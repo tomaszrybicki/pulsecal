@@ -22,7 +22,7 @@
      has neither the tag `pilne` nor `ważne`.
   Notes: moves go through `saveLocal` (pending → sync) like drag & drop; an undo toast would be welcome;
   this is also a natural ADHD feature (low-friction rescheduling).
-- [ ] **Default tag „ważne”**: added automatically to every event whose title starts with `!`
+- [x] **Default tag „ważne”**: added automatically to every event whose title starts with `!`
   (e.g. „!zapłacić czynsz”). Decide: strip the `!` from the title or keep it; apply on save in the app
   (QuickCard / EventSheet / quick add) and also to events pulled from Google; don't remove the tag again
   if the user deletes it manually later (only add on create / when the `!` is newly added).
@@ -94,7 +94,7 @@
   - Never store the OAuth token; the Client ID is needed before we can read the backup anyway.
   - On a new device: after connecting, offer „Przywróć ustawienia z Google?”. Conflicts: newest
     `updatedAt` wins (whole-object), writes debounced.
-- [ ] **Tags with uppercase letters** (e.g. „ADHD”, „Praca”). Today `normalizeTag()` in `tags.ts` lowercases
+- [x] **Tags with uppercase letters** (e.g. „ADHD”, „Praca”). Today `normalizeTag()` in `tags.ts` lowercases
   everything. Change: keep the casing the user typed for display, but compare case-insensitively —
   key = `toLocaleLowerCase("pl")` for dedupe, the hidden-tags filter, `tagColor()`, `#prefix` matching in
   quick add and the Dexie `*tags` index (store tags as typed; `tagStats()` groups by key and shows the most

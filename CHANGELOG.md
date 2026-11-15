@@ -3,6 +3,15 @@
 Każda wersja to jeden commit `vX.Y.Z: …` (treść commita = wpis z tego pliku) i tag `vX.Y.Z`.
 Najnowsze na górze. Opis funkcji aplikacji jest w [FEATURES.md](FEATURES.md).
 
+## [0.11.0] – 2026-11-15: tagi z wielkimi literami, „!” → ważne
+
+- Tagi mogą mieć wielkie litery („ADHD”, „Praca”) — zostają tak, jak je wpisano. Porównania ignorują wielkość
+  liter: „Praca” i „praca” to jeden tag (filtr, kolor, podpowiedzi, „#praca” w szybkim dodawaniu);
+  w panelu bocznym widać najczęstszą pisownię.
+- Tytuł zaczynający się od „!” (np. „!zapłacić czynsz”) automatycznie dostaje tag „ważne” — przy zapisie
+  w aplikacji, w szybkim dodawaniu i dla wpisów z Google. Tylko gdy „!” jest nowy, więc ręcznie usunięty tag
+  nie wraca. „!” zostaje w tytule.
+
 ## [0.10.0] – 2026-11-15: kropki tagów, usuwanie jednym kliknięciem, menu pod prawym przyciskiem
 
 - Tagi widoczne na każdym wpisie jako kolorowe kropki (mapa, wpisy całodniowe, widok miesiąca);

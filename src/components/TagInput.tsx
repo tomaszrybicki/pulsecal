@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { normalizeTag, tagColor } from "../tags";
+import { hasTag, normalizeTag, tagColor, tagKey } from "../tags";
 
 type Props = {
   value: string[];
@@ -18,13 +18,17 @@ export function TagInput({ value, onChange, known, maxSuggestions = 8 }: Props) 
 
   const add = (raw: string) => {
     const t = normalizeTag(raw);
-    if (t && !value.includes(t)) onChange([...value, t]);
+    if (!t) return setText("");
+    // znany tag w innej wielkości liter → bierzemy istniejącą pisownię
+    const known1 = known.find((k) => tagKey(k) === tagKey(t));
+    if (!hasTag(value, t)) onChange([...value, known1 ?? t]);
     setText("");
   };
 
   const suggestions = useMemo(() => {
     const q = normalizeTag(text);
-    return known.filter((t) => !value.includes(t) && (!q || t.includes(q))).slice(0, maxSuggestions);
+    const qk = tagKey(q);
+    return known.filter((t) => !hasTag(value, t) && (!qk || tagKey(t).includes(qk))).slice(0, maxSuggestions);
   }, [known, value, text, maxSuggestions]);
 
   const typed = normalizeTag(text);
@@ -56,7 +60,7 @@ export function TagInput({ value, onChange, known, maxSuggestions = 8 }: Props) 
               const next = [...value];
               for (const p of parts) {
                 const t = normalizeTag(p);
-                if (t && !next.includes(t)) next.push(t);
+                if (t && !hasTag(next, t)) next.push(known.find((k) => tagKey(k) === tagKey(t)) ?? t);
               }
               onChange(next);
               setText(rest);
@@ -78,7 +82,7 @@ export function TagInput({ value, onChange, known, maxSuggestions = 8 }: Props) 
           }}
         />
       </div>
-      {(suggestions.length > 0 || (typed && !known.includes(typed) && !value.includes(typed))) && (
+      {(suggestions.length > 0 || (typed && !hasTag(known, typed) && !hasTag(value, typed))) && (
         <div className="tag-suggest">
           {suggestions.map((t) => (
             <button
@@ -94,7 +98,7 @@ export function TagInput({ value, onChange, known, maxSuggestions = 8 }: Props) 
               {t}
             </button>
           ))}
-          {typed && !known.includes(typed) && !value.includes(typed) && (
+          {typed && !hasTag(known, typed) && !hasTag(value, typed) && (
             <button
               type="button"
               className="tag-chip ghost-chip new"

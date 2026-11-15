@@ -15,18 +15,42 @@ export const TAG_LINE_PREFIX = "Tagi: ";
 /** Klucz filtra dla wpisów bez tagów. */
 export const UNTAGGED = "__untagged__";
 
-/** Normalizacja: małe litery, pojedyncze spacje, bez przecinków (to separator). */
+/** Normalizacja: pojedyncze spacje, bez przecinków (to separator). Wielkość liter zostaje taka, jak wpisano. */
 export function normalizeTag(raw: string): string {
-  return raw.replace(/[,\n\r]/g, " ").replace(/\s+/g, " ").trim().toLowerCase().slice(0, 40);
+  return raw.replace(/[,\n\r]/g, " ").replace(/\s+/g, " ").trim().slice(0, 40);
+}
+
+/** Klucz porównań: „Praca” i „praca” to ten sam tag (filtr, kolor, duplikaty, podpowiedzi). */
+export function tagKey(tag: string): string {
+  return tag.toLocaleLowerCase("pl");
+}
+
+export function hasTag(tags: string[], tag: string): boolean {
+  const k = tagKey(tag);
+  return tags.some((t) => tagKey(t) === k);
 }
 
 export function normalizeTags(raw: string[]): string[] {
   const out: string[] = [];
   for (const r of raw) {
     const t = normalizeTag(r);
-    if (t && !out.includes(t)) out.push(t);
+    if (t && !hasTag(out, t)) out.push(t);
   }
   return out;
+}
+
+/** Tag dodawany automatycznie, gdy tytuł zaczyna się od „!”. */
+export const IMPORTANT_TAG = "ważne";
+
+/**
+ * „!” na początku tytułu → tag „ważne”. Tylko gdy „!” jest nowy (poprzedni tytuł go nie miał),
+ * żeby tag usunięty ręcznie nie wracał przy każdym zapisie.
+ */
+export function autoTags(title: string, tags: string[], prevTitle?: string): string[] {
+  const bang = title.trimStart().startsWith("!");
+  const hadBang = prevTitle?.trimStart().startsWith("!") ?? false;
+  if (!bang || hadBang || hasTag(tags, IMPORTANT_TAG)) return tags;
+  return normalizeTags([...tags, IMPORTANT_TAG]);
 }
 
 const ENTITIES: Record<string, string> = { amp: "&", lt: "<", gt: ">", quot: '"', "#39": "'", apos: "'", nbsp: " " };
@@ -70,12 +94,13 @@ export function joinTags(notes: string, tags: string[]): string {
 export function isVisible(tags: string[] | undefined, hidden: ReadonlySet<string>): boolean {
   if (!hidden.size) return true;
   if (!tags?.length) return !hidden.has(UNTAGGED);
-  return tags.some((t) => !hidden.has(t));
+  return tags.some((t) => !hidden.has(tagKey(t)));
 }
 
 /** Stały kolor tagu z nazwy (ten sam na każdym urządzeniu, bez zapisywania). */
 export function tagColor(tag: string): string {
+  const k = tagKey(tag);
   let h = 0;
-  for (let i = 0; i < tag.length; i++) h = (h * 31 + tag.charCodeAt(i)) >>> 0;
+  for (let i = 0; i < k.length; i++) h = (h * 31 + k.charCodeAt(i)) >>> 0;
   return `hsl(${h % 360} 58% 58%)`;
 }

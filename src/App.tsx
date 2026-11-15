@@ -22,7 +22,7 @@ import { DESKTOP_QUERY, useMediaQuery } from "./hooks/useMediaQuery";
 import { useNow } from "./hooks/useNow";
 import type { ParsedEntry } from "./quickParse";
 import { getCalendarId, getStoredClientId, preloadGoogle, setStoredClientId, switchCalendar } from "./sync/google";
-import { UNTAGGED, isVisible, normalizeTags } from "./tags";
+import { UNTAGGED, autoTags, isVisible, normalizeTags } from "./tags";
 import type { CalEvent, DraftEvent, ViewMode } from "./types";
 import {
   MINUTE,
@@ -161,7 +161,7 @@ export function App() {
       end: Math.max(draft.end, draft.start + 15 * MINUTE),
       allDay: draft.allDay,
       color: draft.color,
-      tags: normalizeTags(draft.tags),
+      tags: autoTags(draft.title.trim(), normalizeTags(draft.tags), existing?.title),
       origin: existing?.origin ?? "local",
       updatedAt: Date.now(),
       deleted: false,
@@ -405,7 +405,7 @@ export function App() {
     });
 
   const soloTag = (tag: string) =>
-    setHiddenTags(new Set([...knownTags, UNTAGGED].filter((t) => t !== tag)));
+    setHiddenTags(new Set([...tagList.map((t) => t.key), UNTAGGED].filter((t) => t !== tag)));
 
   const newColor = PALETTE[0].value;
 
@@ -427,7 +427,7 @@ export function App() {
       end: p.end,
       allDay: p.allDay,
       color: PALETTE[4].value,
-      tags: p.tags,
+      tags: autoTags(p.title, p.tags),
       origin: "local",
       updatedAt: Date.now(),
       deleted: false,

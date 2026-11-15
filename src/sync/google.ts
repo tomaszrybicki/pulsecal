@@ -14,7 +14,7 @@
 import { DEFAULT_GOOGLE_COLOR, GOOGLE_COLOR_MAP, paletteById, paletteByValue } from "../colors";
 import { db } from "../db";
 import type { CalEvent } from "../types";
-import { joinTags, splitTags } from "../tags";
+import { autoTags, joinTags, splitTags } from "../tags";
 import { fromIsoDate, isoDate, addDays } from "../time";
 
 const TOKEN_KEY = "pulsecal:google-token";
@@ -470,15 +470,22 @@ async function applyRemote(g: GEvent): Promise<boolean> {
   const parsed = parseGEvent(g);
   if (!parsed) return false;
 
+  // „!” na początku tytułu (dopisany w Google) → tag „ważne”; wtedy wpis wraca do Google z linią „Tagi: …”
+  const withAuto = (prevTitle?: string) => {
+    const tags = autoTags(parsed.title, parsed.tags, prevTitle);
+    return tags === parsed.tags
+      ? { ...parsed, pending: 0 as const }
+      : { ...parsed, tags, pending: 1 as const, updatedAt: Date.now() };
+  };
+
   if (existing) {
     if (existing.googleEtag && existing.googleEtag === g.etag) return false;
     // lokalna, niewysłana zmiana nowsza od zdalnej → zostawiamy lokalną (wyśle się przy następnym syncu)
     if (existing.pending && existing.updatedAt >= parsed.updatedAt) return false;
     await db.events.put({
-      ...parsed,
+      ...withAuto(existing.title),
       id: existing.id,
       origin: existing.origin === "local" ? "both" : existing.origin,
-      pending: 0,
     });
     return true;
   }
@@ -487,10 +494,9 @@ async function applyRemote(g: GEvent): Promise<boolean> {
   const pulseId = g.extendedProperties?.private?.pulseId;
   const localTwin = pulseId ? await db.events.get(pulseId) : undefined;
   await db.events.put({
-    ...parsed,
+    ...withAuto(),
     id: localTwin && !localTwin.googleEventId ? localTwin.id : pulseId && !localTwin ? pulseId : `g:${g.id}`,
     origin: pulseId ? "both" : "google",
-    pending: 0,
   });
   return true;
 }

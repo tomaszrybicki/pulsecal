@@ -1,5 +1,5 @@
 import Dexie, { type EntityTable } from "dexie";
-import { normalizeTags, splitTags } from "./tags";
+import { normalizeTags, splitTags, tagKey } from "./tags";
 import type { CalEvent } from "./types";
 
 class PulseDB extends Dexie {
@@ -109,14 +109,24 @@ export async function pendingCount(): Promise<number> {
   return db.events.where("pending").equals(1).count();
 }
 
-export type TagStat = { tag: string; count: number };
+/** tag = pisownia do wyświetlania (najczęstsza), key = klucz porównań (małe litery). */
+export type TagStat = { tag: string; key: string; count: number };
 
 /** Wszystkie użyte tagi z liczbą wpisów (najczęstsze pierwsze) — z indeksu, bez czytania wpisów. */
 export async function tagStats(): Promise<TagStat[]> {
   const keys = (await db.events.orderBy("tags").keys()) as string[];
-  const counts = new Map<string, number>();
-  for (const k of keys) counts.set(k, (counts.get(k) ?? 0) + 1);
-  return [...counts]
-    .map(([tag, count]) => ({ tag, count }))
+  // „Praca” i „praca” to jeden tag; pokazujemy najczęstszą pisownię
+  const groups = new Map<string, Map<string, number>>();
+  for (const t of keys) {
+    const k = tagKey(t);
+    const g = groups.get(k) ?? new Map<string, number>();
+    g.set(t, (g.get(t) ?? 0) + 1);
+    groups.set(k, g);
+  }
+  return [...groups]
+    .map(([key, g]) => {
+      const [tag] = [...g].sort((a, b) => b[1] - a[1])[0];
+      return { tag, key, count: [...g.values()].reduce((s, n) => s + n, 0) };
+    })
     .sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag, "pl"));
 }

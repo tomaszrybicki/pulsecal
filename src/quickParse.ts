@@ -7,7 +7,7 @@
  * Bez daty i godziny: dziś, od najbliższego kwadransa. Z datą bez godziny: cały dzień.
  */
 import { DEFAULT_TIMED_MIN } from "./draft";
-import { normalizeTag } from "./tags";
+import { normalizeTag, tagKey } from "./tags";
 import { MINUTE, addDays, atMinutes, endOfDay, nextQuarter, startOfDay } from "./time";
 
 export type ParsedEntry = {
@@ -43,10 +43,13 @@ function nextWeekday(from: Date, dow: number): Date {
 function resolveTag(raw: string, known: string[]): string {
   const t = normalizeTag(raw.replace(/[_]/g, " "));
   if (!t) return "";
-  if (known.includes(t)) return t;
+  const same = (a: string, b: string) => tagKey(a) === tagKey(b);
+  const exact = known.find((k) => same(k, t));
+  if (exact) return exact;
   const spaced = normalizeTag(t.replace(/-/g, " "));
-  if (known.includes(spaced)) return spaced;
-  const prefixed = known.filter((k) => k.startsWith(t) || k.startsWith(spaced));
+  const exactSpaced = known.find((k) => same(k, spaced));
+  if (exactSpaced) return exactSpaced;
+  const prefixed = known.filter((k) => tagKey(k).startsWith(tagKey(t)) || tagKey(k).startsWith(tagKey(spaced)));
   return prefixed.length === 1 ? prefixed[0] : t;
 }
 

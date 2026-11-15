@@ -25,7 +25,7 @@ type Props = {
 
 export function Sidebar(p: Props) {
   const rows: { key: string; label: string; count?: number; color: string }[] = [
-    ...p.tags.map((t) => ({ key: t.tag, label: t.tag, count: t.count, color: tagColor(t.tag) })),
+    ...p.tags.map((t) => ({ key: t.key, label: t.tag, count: t.count, color: tagColor(t.tag) })),
     { key: UNTAGGED, label: "bez tagów", color: "var(--ink-soft)" },
   ];
 

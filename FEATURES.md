@@ -70,7 +70,9 @@ logowanie Google bez własnego serwera (Google Identity Services).
 ### Tagi
 
 - **Wiele tagów na wpis**, np. „przypomnienie”, „wizyta”, „remont mieszkania”, „przy komputerze”.
-  Tagi zapisują się małymi literami i mogą mieć spacje.
+  Tagi mogą mieć spacje i wielkie litery („ADHD”, „Praca”); „Praca” i „praca” to ten sam tag.
+- **Automatyczny tag „ważne”:** tytuł zaczynający się od „!” (np. „!zapłacić czynsz”) dostaje tag „ważne”
+  (raz — jeśli go potem usuniesz, nie wróci).
 - **Dodawanie:** w szybkiej karcie i w pełnej edycji jest pole „Tagi”.
   - Wpisz nazwę i naciśnij Enter albo przecinek (można też wkleić „a, b, c”).
   - Pod polem są już używane tagi do dodania jednym tapnięciem.
@@ -211,14 +213,12 @@ Historia wersji jest w [CHANGELOG.md](CHANGELOG.md).
 - **Konflikty z Google:** gdy ten sam wpis zmieni się jednocześnie w Pulsecal i w Google, wygrywa nowsza
   zmiana, a druga przepada. Porządna obsługa konfliktów jest na liście TODO w `HANDOFF.md`.
 - **Planowane** (kolejność w `HANDOFF.md`):
-  - automatyczny tag „ważne” dla wpisów, których tytuł zaczyna się od „!”;
   - wierniejsze kolory z Google (np. czerwony w Google → czerwony w Pulsecal), zwłaszcza dla wpisów z etykietami
     kolorów w Google i dla domyślnego koloru kalendarza;
   - przełącznik trybu ciemnego (auto / jasny / ciemny);
   - wybór daty w edycji wpisu z tygodniem od poniedziałku;
   - (później) reguły tagów, np. „tytuł zawiera »dentysta« → tag »wizyta«”;
   - (później) kopia ustawień aplikacji w Google Calendar jako ukryty wpis, do odtworzenia na innym urządzeniu;
-  - tagi z wielkimi literami (np. „ADHD”, „Praca”), bez rozróżniania wielkości liter przy porównywaniu;
   - szersza mapa z przewijaniem bez końca;
   - zamykanie okien gestem w dół;
   - szybkie wyszukiwanie i dodawanie z paska („jutro 14:30”);
