@@ -70,6 +70,10 @@ public/                   icons, favicon
 
 ## Conventions and decisions
 - UI copy in Polish, lowercase in headings ("mapa", "miesiąc"). Comments can be Polish or English.
+- Recurring events: stored as instances (`recurring`, `seriesId` = Google `recurringEventId`). Incremental pull
+  uses `singleEvents=false`; a changed series master triggers `reconcileSeries()` (instances endpoint, drop stale
+  instances). Never push an instance automatically (tag rules on instances stay local): a PATCH detaches it
+  from the series.
 - Times are stored as epoch ms (local time). All-day `end` = **last millisecond of the last day**;
   Google's end is exclusive (the next day), so convert at the boundary (`sync/google.ts`).
 - Tags: local field `CalEvent.tags` (casing as typed; compare via `tagKey()` = lowercase; Dexie v3 `*tags` index).

@@ -283,6 +283,8 @@ type GEvent = {
   end?: GTime;
   updated?: string;
   recurringEventId?: string;
+  /** Tylko wydarzenie „główne” serii (przy singleEvents=false). */
+  recurrence?: string[];
   extendedProperties?: { private?: Record<string, string> };
 };
 
@@ -357,6 +359,7 @@ function parseGEvent(g: GEvent): Omit<CalEvent, "id" | "origin" | "pending"> | n
     googleEventId: g.id,
     googleEtag: g.etag,
     recurring: Boolean(g.recurringEventId),
+    seriesId: g.recurringEventId,
     updatedAt: g.updated ? new Date(g.updated).getTime() : Date.now(),
     moves: Number(g.extendedProperties?.private?.pulseMoves) || 0,
     deleted: false,
@@ -488,16 +491,68 @@ function writeMeta(m: SyncMeta): void {
   localStorage.setItem(SYNC_KEY, JSON.stringify(m));
 }
 
-async function listAll(params: Record<string, string>): Promise<GEvent[]> {
+async function listAll(params: Record<string, string>, path = calPath()): Promise<GEvent[]> {
   const out: GEvent[] = [];
   let pageToken: string | undefined;
   do {
     const q = new URLSearchParams({ ...params, maxResults: "250", ...(pageToken ? { pageToken } : {}) });
-    const page = await apiJson<GList>(`${calPath()}?${q}`);
+    const page = await apiJson<GList>(`${path}?${q}`);
     out.push(...(page.items ?? []));
     pageToken = page.nextPageToken;
   } while (pageToken);
   return out;
+}
+
+/* ── wydarzenia cykliczne ── */
+
+/** Lokalne wpisy jednej serii: instancje (ID Google „<idSerii>_<start>”) i ewentualna kopia samej serii. */
+function seriesLocals(masterId: string): Promise<CalEvent[]> {
+  const prefix = `${masterId}_`;
+  return db.events
+    .filter((e) => e.seriesId === masterId || e.googleEventId === masterId || Boolean(e.googleEventId?.startsWith(prefix)))
+    .toArray();
+}
+
+/** Seria usunięta w Google → usuń jej lokalne wpisy (poza tymi, które czekają na wysyłkę). */
+async function dropSeries(masterId: string): Promise<number> {
+  const gone = (await seriesLocals(masterId)).filter((e) => !e.pending);
+  if (gone.length) await db.events.bulkDelete(gone.map((e) => e.id));
+  return gone.length;
+}
+
+/**
+ * Seria zmieniona w Google („wszystkie wydarzenia” / „to i następne”) → pobierz jej wystąpienia w oknie
+ * i usuń lokalne, których już nie ma. Zmiana godziny serii zmienia ID wystąpień, więc bez tego zostałyby
+ * stare kopie, a nowe pojawiłyby się dopiero przy pełnej synchronizacji.
+ */
+async function reconcileSeries(masterId: string, from: number, to: number): Promise<number> {
+  const path = `${calPath()}/${encodeURIComponent(masterId)}/instances`;
+  const params = { timeMin: new Date(from).toISOString(), timeMax: new Date(to).toISOString(), showDeleted: "true" };
+  let items: GEvent[];
+  try {
+    items = await listAll(params, path);
+  } catch (err) {
+    if (err instanceof NeedsAuthError) throw err;
+    if (/Google Calendar (404|410)/.test(String(err))) return dropSeries(masterId);
+    throw err;
+  }
+  let changed = 0;
+  const seen = new Set<string>();
+  for (const g of items) {
+    if (g.status !== "cancelled") seen.add(g.id);
+    if (await applyRemote(g)) changed += 1;
+  }
+  const stale = (await seriesLocals(masterId)).filter(
+    (e) =>
+      !e.pending &&
+      !seen.has(e.googleEventId ?? "") &&
+      (e.googleEventId === masterId || (e.end > from && e.start < to)),
+  );
+  if (stale.length) {
+    await db.events.bulkDelete(stale.map((e) => e.id));
+    changed += stale.length;
+  }
+  return changed;
 }
 
 /** Zastosuj zdalne wydarzenie lokalnie. Zwraca true, jeśli coś się zmieniło. */
@@ -514,8 +569,14 @@ async function applyRemote(g: GEvent, ignoreEtag = false): Promise<boolean> {
   const parsed = parseGEvent(g);
   if (!parsed) return false;
 
-  // reguły tagów (też domyślna „!” → „ważne”) dla zmian z Google; wtedy wpis wraca do Google z linią „Tagi: …”
+  // reguły tagów (też domyślna „!” → „ważne”) dla zmian z Google; wtedy wpis wraca do Google z linią „Tagi: …”.
+  // Wyjątek: wystąpienie serii — tagi z reguł tylko lokalnie, bo zapis jednego wystąpienia w Google
+  // odłącza je od serii (późniejsze zmiany całej serii by go nie objęły).
   const withAuto = (prev?: { title: string; notes: string }) => {
+    if (parsed.recurring) {
+      const tags = applyTagRules(parsed.title, parsed.notes, parsed.tags);
+      return { ...parsed, tags, pending: 0 as const };
+    }
     const tags = applyTagRules(parsed.title, parsed.notes, parsed.tags, prev);
     return tags === parsed.tags
       ? { ...parsed, pending: 0 as const }
@@ -539,7 +600,8 @@ async function applyRemote(g: GEvent, ignoreEtag = false): Promise<boolean> {
   }
 
   // Wydarzenie utworzone przez Pulsecal na innym urządzeniu ma nasze ID w extendedProperties.
-  const pulseId = g.extendedProperties?.private?.pulseId;
+  // (Wystąpienia serii dziedziczą je po wpisie, z którego powstała seria — wtedy go nie używamy.)
+  const pulseId = g.recurringEventId ? undefined : g.extendedProperties?.private?.pulseId;
   const localTwin = pulseId ? await db.events.get(pulseId) : undefined;
   await db.events.put({
     ...withAuto(),
@@ -575,16 +637,24 @@ async function pullFull(from: Date, to: Date, ignoreEtag = false): Promise<numbe
   return changed;
 }
 
-async function pullSince(from: Date, to: Date, since: number): Promise<number> {
-  const items = await listAll({
-    timeMin: from.toISOString(),
-    timeMax: to.toISOString(),
-    singleEvents: "true",
-    showDeleted: "true",
-    updatedMin: new Date(since).toISOString(),
-  });
+/**
+ * Zmiany od `since`. Bez rozwijania serii (singleEvents=false): pojedyncze wpisy i zmienione wystąpienia
+ * przychodzą wprost, a zmieniona seria jako jeden wpis z `recurrence` → odświeżamy jej wystąpienia w oknie.
+ * Bez timeMin/timeMax, żeby nie zgubić serii zaczętej przed oknem.
+ */
+async function pullSince(from: number, to: number, since: number): Promise<number> {
+  const items = await listAll({ showDeleted: "true", updatedMin: new Date(since).toISOString() });
   let changed = 0;
-  for (const g of items) if (await applyRemote(g)) changed += 1;
+  for (const g of items) {
+    if (g.id === SETTINGS_EVENT_ID) continue;
+    if (g.recurrence?.length && g.status !== "cancelled") {
+      changed += await reconcileSeries(g.id, from, to);
+      continue;
+    }
+    if (await applyRemote(g)) changed += 1;
+    // usunięta seria przychodzi jako samo { id, status: "cancelled" }
+    if (g.status === "cancelled" && !g.recurringEventId) changed += await dropSeries(g.id);
+  }
   return changed;
 }
 
@@ -620,7 +690,7 @@ export function syncNow(from: Date, to: Date, opts: { forceFull?: boolean } = {}
     let pulled: number;
     let full = false;
     if (!opts.forceFull && !recolor && meta && covered && fresh) {
-      pulled = await pullSince(from, to, meta.since - CLOCK_SKEW_MS);
+      pulled = await pullSince(meta.from, meta.to, meta.since - CLOCK_SKEW_MS);
       writeMeta({ ...meta, since: startedAt });
     } else {
       // okno pełnej synchronizacji trochę szersze niż widok, żeby przewijanie nie wymuszało pełnej

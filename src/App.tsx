@@ -318,7 +318,9 @@ export function App() {
       const tags = applyTagRules(e.title, e.notes, e.tags ?? [], undefined, rules);
       if (tags.length !== (e.tags ?? []).length) {
         before.push(e);
-        await saveLocal({ ...e, tags });
+        // wystąpienie serii z Google: tylko lokalnie (zapis w Google odłączyłby je od serii)
+        if (e.recurring) await db.events.put({ ...e, tags });
+        else await saveLocal({ ...e, tags });
       }
     }
     sync.requestSync(4000);
@@ -332,7 +334,7 @@ export function App() {
             label: "Cofnij",
             run: () =>
               void (async () => {
-                for (const e of before) await saveLocal(e);
+                for (const e of before) await (e.recurring ? db.events.put(e) : saveLocal(e));
                 sync.requestSync();
               })(),
           }

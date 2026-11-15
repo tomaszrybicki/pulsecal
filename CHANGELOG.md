@@ -3,6 +3,15 @@
 Każda wersja to jeden commit `vX.Y.Z: …` (treść commita = wpis z tego pliku) i tag `vX.Y.Z`.
 Najnowsze na górze. Opis funkcji aplikacji jest w [FEATURES.md](FEATURES.md).
 
+## [0.20.1] – 2026-11-15: zmiany serii z Google
+
+- **Seria zmieniona w Google pojawia się w Pulsecal:** zmiana „wszystkich wydarzeń” albo „tego i następnych”
+  (tytuł, godzina, usunięcie serii) trafia do Pulsecal przy najbliższym odpytaniu. Stare wystąpienia znikają,
+  nowe się dodają. Dotąd zmiana godziny serii zostawiała stare kopie, a nowe pojawiały się dopiero przy
+  pełnym odświeżeniu.
+- **Wystąpienia serii nie odłączają się od niej:** tagi z reguł (także „↻” i „!”) dopisują się do wystąpień
+  serii tylko w Pulsecal. Wcześniej wysyłały każde wystąpienie osobno do Google, co odłączało je od serii.
+
 ## [0.20.0] – 2026-11-15: odświeżanie tagów, reguła „!” i OK w menu
 
 - **Odświeżenie tagów:** przycisk „↻” obok „reguły” w panelu bocznym przechodzi po wszystkich wpisach od dziś

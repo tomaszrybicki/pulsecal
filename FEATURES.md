@@ -189,6 +189,11 @@ logowanie Google bez własnego serwera (Google Identity Services).
   - co 30 s (ustawialne, minimum 10 s), tylko gdy aplikacja jest na ekranie;
   - od razu po powrocie do aplikacji i po odzyskaniu internetu;
   - co 10 minut pełne odświeżenie, które wykrywa też wpisy usunięte w Google.
+- **Wydarzenia cykliczne:** każde wystąpienie serii jest osobnym wpisem. Zmiana całej serii w Google
+  („wszystkie wydarzenia” albo „to i następne”), łącznie ze zmianą godziny i usunięciem serii, pojawia się
+  przy najbliższym odpytaniu: stare wystąpienia znikają, nowe się dodają. Edycja wystąpienia w Pulsecal
+  dotyczy tylko tego jednego (jak „to wydarzenie” w Google). Tagi z reguł na wystąpieniach serii są tylko
+  lokalne, żeby nie odłączać ich od serii w Google.
 - **Konflikty:** wygrywa nowsza zmiana. Niewysłana lokalna zmiana nie zostanie nadpisana starszą wersją z Google.
 - **Kolory:** zachowują się po synchronizacji, także między urządzeniami. Wpisy z kolorem z Google (także
   z etykietą koloru) mają dokładnie ten kolor co w Google; wpisy bez koloru — kolor kalendarza.

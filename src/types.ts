@@ -18,6 +18,8 @@ export interface CalEvent {
   googleEtag?: string;
   /** Instancja wydarzenia cyklicznego z Google (edycja dotyczy tylko tej instancji). */
   recurring?: boolean;
+  /** ID serii w Google (recurringEventId) — do odświeżenia całej serii po zmianie w Google. */
+  seriesId?: string;
   origin: EventOrigin;
   updatedAt: number;
   deleted: boolean;

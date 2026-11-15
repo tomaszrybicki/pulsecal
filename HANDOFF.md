@@ -116,6 +116,15 @@ Previous sessions: first Cursor IDE (built the MVP), then Claude in a chat sessi
 code audit and rewrote the data and sync layer, then stopped at the owner's request.
 **Start by reading `CLAUDE.md`.**
 
+## v0.20.1: recurring series changed in Google
+- Bug: a series edited in GCal („all events”) didn't show in Pulsecal. Incremental pull used `singleEvents=true`
+  + `updatedMin`; changing the series time changes instance IDs, so old copies stayed until the 10-min full pull.
+  Also tag rules / „↻” PATCHed instances, which detached them from the series in Google.
+- Fix: `pullSince` lists changes with `singleEvents=false` (no time bounds); a master with `recurrence` →
+  `reconcileSeries(masterId, meta.from, meta.to)`; a cancelled master → `dropSeries`. Instances store `seriesId`.
+  Rule tags on instances are local only (`pending: 0`), also in `applyRulesToAll`.
+- Not verified against real Google (only `npm run build`). Instances detached earlier stay detached in Google.
+
 ## v0.20.0: refresh tags + „!” as a rule
 - `TagRule.kind`: `"word"` (default, whole word in title/notes) or `"start"` (title starts with). `ruleMatches(rule, title, notes)`.
 - `autoTags()` is gone; „!” → `ważne` is `DEFAULT_RULES[0]` (`id: "default-bang"`), added once per device
