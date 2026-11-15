@@ -3,6 +3,15 @@
 Każda wersja to jeden commit `vX.Y.Z: …` (treść commita = wpis z tego pliku) i tag `vX.Y.Z`.
 Najnowsze na górze. Opis funkcji aplikacji jest w [FEATURES.md](FEATURES.md).
 
+## [0.10.0] – 2026-11-15: kropki tagów, usuwanie jednym kliknięciem, menu pod prawym przyciskiem
+
+- Tagi widoczne na każdym wpisie jako kolorowe kropki (mapa, wpisy całodniowe, widok miesiąca);
+  zastępują tekstowy dopisek z tagami w mapie.
+- Komputer: po najechaniu myszą na wpis pojawia się „×” — usuwa od razu, bez potwierdzenia. Powiadomienie ma
+  „Cofnij”; synchronizacja po usunięciu czeka kilka sekund, więc cofnięcie zwykle zdąży przed Google.
+  Usuwanie z edycji wpisu też da się cofnąć.
+- Komputer: prawy przycisk myszy na wpisie otwiera małe menu: kolory, tagi (zapisują się od razu), „Edytuj”, „Usuń”.
+
 ## [0.9.0] – 2026-11-15: przegląd dnia i porządek w widoku miesiąca
 
 - Widok miesiąca: przyciski „mapa” i „miesiąc” są zawsze widoczne; wybrany zakres tygodni ma osobny przycisk

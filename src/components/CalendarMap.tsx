@@ -3,6 +3,8 @@ import { colorInk } from "../colors";
 import { DRAFT_ID } from "../draft";
 import { useDragGesture, type Pt } from "../hooks/useDragGesture";
 import { useOptimisticMove } from "../hooks/useOptimisticMove";
+import { DelBtn } from "./DelBtn";
+import { TagDots } from "./TagDots";
 import type { CalEvent } from "../types";
 import {
   MINUTE,
@@ -38,6 +40,10 @@ type Props = {
   onVisibleDay?: (d: Date) => void;
   /** Stały zakres tygodni: kółko/przesunięcie poza krawędź → poprzedni/następny zakres. */
   onStep?: (dir: -1 | 1) => void;
+  /** Usunięcie z przycisku „×" po najechaniu (komputer). */
+  onDelete?: (e: CalEvent) => void;
+  /** Prawy przycisk myszy na wpisie → menu (kolor, tagi, usuń). */
+  onContext?: (e: CalEvent, pt: { x: number; y: number }) => void;
 };
 
 /** Ile kolumn od krawędzi zaczynamy doładowywać kolejne dni. */
@@ -100,6 +106,8 @@ export function CalendarMap({
   onEdge,
   onVisibleDay,
   onStep,
+  onDelete,
+  onContext,
 }: Props) {
   const scroller = useRef<HTMLDivElement>(null);
   const { shown, dropped, settle } = useOptimisticMove(events);
@@ -370,6 +378,17 @@ export function CalendarMap({
     });
   };
 
+  const ctx = (e: CalEvent) =>
+    onContext && e.id !== DRAFT_ID
+      ? {
+          onContextMenu: (ev: React.MouseEvent) => {
+            ev.preventDefault();
+            ev.stopPropagation();
+            onContext(e, { x: ev.clientX, y: ev.clientY });
+          },
+        }
+      : {};
+
   const stateClass = (e: CalEvent) =>
     `${e.id === DRAFT_ID ? " ghost-draft" : ""}${preview?.e.id === e.id ? " drag-source" : ""}${dropped === e.id ? " dropped" : ""}`;
 
@@ -402,12 +421,15 @@ export function CalendarMap({
                   className={`event-blob allday-blob${stateClass(e)}`}
                   style={blobVars(e.color)}
                   {...(e.id === DRAFT_ID ? {} : moveAllDay(e))}
+                  {...ctx(e)}
                   onClick={(ev) => {
                     ev.stopPropagation();
                     if (e.id !== DRAFT_ID) onEvent(e);
                   }}
                 >
                   <strong>{e.title || "(bez tytułu)"}</strong>
+                  <TagDots tags={e.tags} />
+                  {onDelete && e.id !== DRAFT_ID && <DelBtn onDelete={() => onDelete(e)} />}
                   {e.id !== DRAFT_ID && sameDay(new Date(e.end), d) && (
                     <span className="resize-edge" aria-hidden {...stretchAllDay(e)} />
                   )}
@@ -461,6 +483,7 @@ export function CalendarMap({
                     className={`event-blob${stateClass(e)}`}
                     style={{ top, height, width, left, ...blobVars(e.color) }}
                     {...(draggable ? moveTimed(e) : {})}
+                    {...ctx(e)}
                     onClick={(ev) => {
                       ev.stopPropagation();
                       if (draggable) onEvent(e);
@@ -470,7 +493,8 @@ export function CalendarMap({
                     <small>
                       {formatClock(new Date(e.start))}–{formatClock(new Date(e.end))}
                     </small>
-                    {e.tags?.length > 0 && <em className="blob-tags">{e.tags.join(" · ")}</em>}
+                    <TagDots tags={e.tags} />
+                    {onDelete && draggable && <DelBtn onDelete={() => onDelete(e)} />}
                     {draggable && segEnd === e.end && (
                       <>
                         <span className="resize-handle" aria-hidden {...resizeTimed(e)} />

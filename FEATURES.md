@@ -75,7 +75,7 @@ logowanie Google bez własnego serwera (Google Identity Services).
   - Wpisz nazwę i naciśnij Enter albo przecinek (można też wkleić „a, b, c”).
   - Pod polem są już używane tagi do dodania jednym tapnięciem.
   - × na tagu go usuwa, a Backspace w pustym polu usuwa ostatni.
-- **W mapie** tagi widać małym tekstem pod godziną wpisu.
+- **Na wpisach** tagi widać jako kolorowe kropki (kolor tagu jak w panelu bocznym).
 - **Ukrywanie i pokazywanie** w panelu bocznym:
   - odznaczenie tagu ukrywa jego wpisy;
   - „tylko” pokazuje wyłącznie ten tag;
@@ -134,6 +134,9 @@ logowanie Google bez własnego serwera (Google Identity Services).
   Okno (pełna edycja i karta nowego wpisu) **wyskakuje obok kursora**: z prawej, a przy prawej krawędzi
   ekranu z lewej. Kliknięte miejsce zostaje widoczne, a zmiany widać w kalendarzu na żywo.
   Ustawienia otwierają się jako panel z prawej.
+- **Szybkie akcje na komputerze:**
+  - po najechaniu myszą na wpis pojawia się „×” — usuwa od razu, bez pytania; w powiadomieniu jest „Cofnij”;
+  - prawy przycisk myszy na wpisie: menu z kolorami, tagami (zapisują się od razu), „Edytuj” i „Usuń”.
 - **Pełna edycja:** tytuł, przełącznik „Cały dzień” (wtedy same daty od–do), start i koniec, notatka, kolor.
   Zmiana startu zachowuje długość wpisu.
 - **Zamykanie:**
@@ -209,9 +212,6 @@ Historia wersji jest w [CHANGELOG.md](CHANGELOG.md).
   zmiana, a druga przepada. Porządna obsługa konfliktów jest na liście TODO w `HANDOFF.md`.
 - **Planowane** (kolejność w `HANDOFF.md`):
   - automatyczny tag „ważne” dla wpisów, których tytuł zaczyna się od „!”;
-  - menu pod prawym przyciskiem myszy na wpisie: usuń, kolory, tagi;
-  - tagi widoczne na każdym wpisie jako kolorowe kropki;
-  - przycisk usuwania po najechaniu myszą na wpis, bez potwierdzenia;
   - wierniejsze kolory z Google (np. czerwony w Google → czerwony w Pulsecal), zwłaszcza dla wpisów z etykietami
     kolorów w Google i dla domyślnego koloru kalendarza;
   - przełącznik trybu ciemnego (auto / jasny / ciemny);

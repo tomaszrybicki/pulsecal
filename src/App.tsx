@@ -2,6 +2,7 @@ import { AnimatePresence } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CalendarMap } from "./components/CalendarMap";
 import { DayPanel } from "./components/DayPanel";
+import { EventMenu } from "./components/EventMenu";
 import { EventSheet } from "./components/EventSheet";
 import type { WeekSelection } from "./components/MiniCalendar";
 import { MonthView } from "./components/MonthView";
@@ -81,6 +82,8 @@ export function App() {
   const [searchOpen, setSearchOpen] = useState(false);
   // przegląd dnia z widoku miesiąca („+N więcej" / „•••")
   const [dayPanel, setDayPanel] = useState<{ day: Date; anchor: Anchor | null } | null>(null);
+  // menu pod prawym przyciskiem myszy na wpisie
+  const [menu, setMenu] = useState<{ e: CalEvent; anchor: Anchor } | null>(null);
   const [clientId, setClientId] = useState(getStoredClientId);
   const [calendarId, setCalendarId] = useState(getCalendarId);
   const [pollSec, setPollSec] = useState(readPollSec);
@@ -222,11 +225,51 @@ export function App() {
     });
   };
 
+  /**
+   * Usuń bez pytania, z „Cofnij" w powiadomieniu. Synchronizacja po usunięciu czeka chwilę, żeby cofnięcie
+   * zwykle zdążyło przed wysłaniem DELETE do Google; jeśli nie zdążyło — wpis wraca jako nowy.
+   */
+  const deleteEvent = async (id: string) => {
+    const before = await db.events.get(id);
+    if (!before) return;
+    await removeLocal(id);
+    sync.requestSync(8000);
+    sync.notify(`Usunięto „${before.title}”`, "ok", {
+      label: "Cofnij",
+      run: () =>
+        void (async () => {
+          const still = await db.events.get(id);
+          if (still || !before.googleEventId) {
+            await db.events.put(before);
+          } else {
+            // usunięcie już doszło do Google → tworzymy wpis od nowa
+            const { googleEventId: _g, googleEtag: _e, ...rest } = before;
+            void _g;
+            void _e;
+            await saveLocal({ ...rest, id: newEventId(), origin: "local" });
+          }
+          sync.requestSync();
+        })(),
+    });
+  };
+
   const removeDraft = async () => {
     if (!draft?.id) return;
-    await removeLocal(draft.id);
+    const id = draft.id;
     setDraft(null);
-    sync.requestSync();
+    await deleteEvent(id);
+  };
+
+  const patchEvent = async (id: string, patch: Partial<CalEvent>) => {
+    const cur = await db.events.get(id);
+    if (!cur) return;
+    await saveLocal({ ...cur, ...patch, tags: normalizeTags(patch.tags ?? cur.tags ?? []) });
+    sync.requestSync(2000);
+  };
+
+  const eventActions = {
+    onDelete: isDesktop ? (e: CalEvent) => void deleteEvent(e.id) : undefined,
+    onContext: isDesktop ? (e: CalEvent, pt: Anchor) => setMenu({ e, anchor: pt }) : undefined,
   };
 
   const changeCalendar = async (id: string) => {
@@ -287,7 +330,7 @@ export function App() {
   // skrót klawiszowy „t" = dziś (jak w Google Calendar), gdy nie piszesz i nie ma otwartego okna
   const goTodayRef = useRef(goToday);
   goTodayRef.current = goToday;
-  const sheetOpen = Boolean(draft) || settingsOpen || searchOpen || Boolean(dayPanel);
+  const sheetOpen = Boolean(draft) || settingsOpen || searchOpen || Boolean(dayPanel) || Boolean(menu);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (sheetOpen || e.ctrlKey || e.metaKey || e.altKey) return;
@@ -512,6 +555,7 @@ export function App() {
               onEdge={weekSel ? undefined : (dir) => setMapStart((s) => addDays(s, dir * MAP_SHIFT))}
               onVisibleDay={weekSel ? undefined : (d) => setFocus((f) => (sameDay(f, d) ? f : startOfDay(d)))}
               onStep={weekSel ? step : undefined}
+              {...eventActions}
               onSlot={(start) => openDraft(timedDraft(start.getTime(), newColor))}
               onAllDaySlot={(day) => openDraft(allDayDraft(day, newColor))}
               onEvent={(e) => openDraft(draftFromEvent(e), isDesktop ? "full" : "quick")}
@@ -532,6 +576,7 @@ export function App() {
               onEvent={(e) => openDraft(draftFromEvent(e), isDesktop ? "full" : "quick")}
               onMove={(e, start, end) => void moveEvent(e, start, end)}
               onStep={step}
+              {...eventActions}
             />
           )}
 
@@ -599,6 +644,30 @@ export function App() {
             onClose={() => setDayPanel(null)}
             onOpen={(e) => openDraft(draftFromEvent(e), isDesktop ? "full" : "quick")}
             onShift={(list, days) => void shiftEvents(list, days)}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {menu && (
+          <EventMenu
+            key={`menu-${menu.e.id}`}
+            event={menu.e}
+            anchor={menu.anchor}
+            knownTags={knownTags}
+            onClose={() => setMenu(null)}
+            onPatch={(p) => void patchEvent(menu.e.id, p)}
+            onDelete={() => {
+              setMenu(null);
+              void deleteEvent(menu.e.id);
+            }}
+            onEdit={() => {
+              const e = menu.e;
+              setMenu(null);
+              setAnchor(menu.anchor);
+              setEditor("full");
+              setDraft(draftFromEvent(e));
+            }}
           />
         )}
       </AnimatePresence>

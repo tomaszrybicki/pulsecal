@@ -4,6 +4,8 @@ import { colorInk } from "../colors";
 import { DRAFT_ID } from "../draft";
 import { useDragGesture, type Pt } from "../hooks/useDragGesture";
 import { useOptimisticMove } from "../hooks/useOptimisticMove";
+import { DelBtn } from "./DelBtn";
+import { TagDots } from "./TagDots";
 import type { CalEvent } from "../types";
 import { WEEKDAY_LABELS, addDays, dayDiff, formatClock, isoDate, sameDay, startOfDay } from "../time";
 
@@ -24,6 +26,10 @@ type Props = {
   onMove: (e: CalEvent, start: number, end: number) => void;
   /** Kółko myszy / przesunięcie palcem w pionie: poprzedni (-1) / następny (1) miesiąc lub zakres. */
   onStep: (dir: -1 | 1) => void;
+  /** Usunięcie z przycisku „×" po najechaniu (komputer). */
+  onDelete?: (e: CalEvent) => void;
+  /** Prawy przycisk myszy na wpisie → menu (kolor, tagi, usuń). */
+  onContext?: (e: CalEvent, pt: { x: number; y: number }) => void;
 };
 
 const WHEEL_STEP = 60;
@@ -90,7 +96,7 @@ function layoutWeek(weekStart: Date, events: CalEvent[]): Seg[] {
   return segs;
 }
 
-export function MonthView({ now, weeks, month, events, onDay, onDayDetails, onAdd, onEvent, onMove, onStep }: Props) {
+export function MonthView({ now, weeks, month, events, onDay, onDayDetails, onAdd, onEvent, onMove, onStep, onDelete, onContext }: Props) {
   const reduce = useReducedMotion();
   const wheel = useRef({ acc: 0, last: 0, lock: 0 });
   const swipe = useRef<{ x: number; y: number; t: number } | null>(null);
@@ -319,6 +325,8 @@ export function MonthView({ now, weeks, month, events, onDay, onDayDetails, onAd
                   onClick={() => {
                     if (s.e.id !== DRAFT_ID) onEvent(s.e);
                   }}
+                  onDelete={onDelete && s.e.id !== DRAFT_ID ? () => onDelete(s.e) : undefined}
+                  onContext={onContext && s.e.id !== DRAFT_ID ? (pt) => onContext(s.e, pt) : undefined}
                 />
               ))}
               {hidden.map((n, c) =>
@@ -362,6 +370,7 @@ function ChipBody({ e, bar }: { e: CalEvent; bar: boolean }) {
       {!bar && <i className="dot" />}
       {!e.allDay && <span className="t">{formatClock(new Date(e.start))}</span>}
       <span className="n">{e.title || "(bez tytułu)"}</span>
+      <TagDots tags={e.tags} max={3} />
     </>
   );
 }
@@ -374,6 +383,8 @@ function MonthChip({
   bindProps,
   stretchProps,
   onClick,
+  onDelete,
+  onContext,
 }: {
   seg: Seg;
   className: string;
@@ -381,6 +392,8 @@ function MonthChip({
   /** Uchwyt w prawym rogu (tylko na odcinku, w którym wpis się kończy). */
   stretchProps?: BindProps;
   onClick: () => void;
+  onDelete?: () => void;
+  onContext?: (pt: { x: number; y: number }) => void;
 }) {
   const { e } = seg;
   return (
@@ -396,12 +409,22 @@ function MonthChip({
       }}
       title={e.title}
       {...bindProps}
+      onContextMenu={
+        onContext
+          ? (ev) => {
+              ev.preventDefault();
+              ev.stopPropagation();
+              onContext({ x: ev.clientX, y: ev.clientY });
+            }
+          : undefined
+      }
       onClick={(ev) => {
         ev.stopPropagation();
         onClick();
       }}
     >
       <ChipBody e={e} bar={seg.bar} />
+      {onDelete && <DelBtn onDelete={onDelete} />}
       {stretchProps && <span className="m-resize" aria-hidden {...stretchProps} />}
     </button>
   );

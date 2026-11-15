@@ -2169,3 +2169,100 @@ button.pill-plus:active {
 .dp-shift:active {
   transform: scale(0.9);
 }
+
+/* ── kropki tagów, „×" po najechaniu, menu wpisu ── */
+
+.tag-dots {
+  display: inline-flex;
+  flex: none;
+  gap: 3px;
+  align-items: center;
+}
+
+.tag-dots i {
+  display: block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1.5px rgba(255, 250, 242, 0.85);
+}
+
+.event-blob .tag-dots {
+  display: flex;
+  margin-top: 4px;
+}
+
+.allday-blob .tag-dots {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  margin: 0;
+  transform: translateY(-50%);
+}
+
+.m-ev .tag-dots {
+  margin-left: auto;
+  padding-left: 3px;
+}
+
+.m-ev .tag-dots i {
+  width: 6px;
+  height: 6px;
+}
+
+.del-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  z-index: 3;
+  display: none;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(28, 25, 23, 0.55);
+  color: #fffaf2;
+  font-size: 0.85rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.del-btn:hover {
+  background: #b91c1c;
+}
+
+.m-ev .del-btn {
+  top: 2px;
+  right: 10px;
+  width: 14px;
+  height: 14px;
+  font-size: 0.7rem;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .event-blob:hover .del-btn,
+  .m-ev:hover .del-btn {
+    display: grid;
+  }
+
+  body.is-dragging .del-btn {
+    display: none !important;
+  }
+}
+
+.sheet.event-menu {
+  width: 300px;
+}
+
+.sheet.event-menu .swatches {
+  margin: 8px 0 10px;
+}
+
+.em-title {
+  overflow: hidden;
+  font-family: var(--display);
+  font-size: 1.05rem;
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
