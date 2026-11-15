@@ -51,6 +51,18 @@
   phone), so the month option seems to disappear. Fix idea: always show „mapa” + „miesiąc”; clicking
   „miesiąc” clears `weekSel` and shows the month of `focus`; show the active range as its own extra chip
   („2 tyg. ×”) next to them.
+- [ ] **Colour sync Google → Pulsecal must be faithful** (red in GCal → red/similar in Pulsecal).
+  Current state (`remoteColor()` in `sync/google.ts`, `GOOGLE_COLOR_MAP` in `colors.ts`): an event's
+  `colorId` (1–11) maps to the nearest of our 6 palette colours; our own `pulseColor` wins only if `colorId`
+  still matches it. Gaps to fix/check:
+  - events **without `colorId`** use the *calendar's* colour in Google, but we show the default „sky” blue →
+    read the calendar's `backgroundColor` (calendarList, already fetched in `listCalendars()`) and use the
+    nearest palette colour as the default;
+  - colours with no close match (Graphite „8” → `#c4b5a5` is not in the palette, so `colorInk` falls back;
+    Grape vs Lavender, Basil vs Sage collapse) → either extend the palette with Google's 11 colours or pick
+    nearest by real colour distance;
+  - check with a real Google account: change the colour in GCal → after a sync the event changes colour in
+    Pulsecal (the etag changes, so `applyRemote` re-applies it), and back.
 
 Versions and commits: see `CHANGELOG.md` and the "Versions and commits" section of `CLAUDE.md`.
 
