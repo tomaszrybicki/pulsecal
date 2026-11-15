@@ -211,7 +211,9 @@ Historia wersji jest w [CHANGELOG.md](CHANGELOG.md).
   - tagi widoczne na każdym wpisie jako kolorowe kropki;
   - przycisk usuwania po najechaniu myszą na wpis, bez potwierdzenia;
   - przycisk „miesiąc” zawsze widoczny, także po wybraniu zakresu tygodni w małym kalendarzu;
-  - wierniejsze kolory z Google (np. czerwony w Google → czerwony w Pulsecal, także domyślny kolor kalendarza);
+  - wierniejsze kolory z Google (np. czerwony w Google → czerwony w Pulsecal), zwłaszcza dla wpisów z etykietami
+    kolorów w Google i dla domyślnego koloru kalendarza;
+  - przełącznik trybu ciemnego (auto / jasny / ciemny);
   - szersza mapa z przewijaniem bez końca;
   - zamykanie okien gestem w dół;
   - szybkie wyszukiwanie i dodawanie z paska („jutro 14:30”);

@@ -63,6 +63,17 @@
     nearest by real colour distance;
   - check with a real Google account: change the colour in GCal → after a sync the event changes colour in
     Pulsecal (the etag changes, so `applyRemote` re-applies it), and back.
+  - **Owner's observation (most important):** events that have a GCal *colour label* (Google lets you name
+    the event colours, e.g. „Praca” = Tomato) get the wrong colour in Pulsecal. In the API a label is still
+    just the event's `colorId` (the names live in the user's settings), so the mismatch is in our mapping:
+    fetch the real hex values from `GET /colors` (`event` palette) once, map by actual colour distance (or
+    keep the exact hex), and log `colorId` → our colour for a few mis-coloured events to confirm. Check also
+    that such events aren't keeping a stale `pulseColor` from an earlier push (it wins when `colorId` matches).
+- [ ] **Dark mode toggle**: a switch (auto / jasny / ciemny, default auto = `prefers-color-scheme`), stored
+  in localStorage, applied as `data-theme` on `<html>`. Needs: dark values for the `:root` variables
+  (`--paper`, `--ink`, `--glass`…), replacing hard-coded light colours (`#fffaf2`, `#efe8dc` in `.sheet`,
+  `.field`, `.tag-box`, `.search-box`, `.mini-chip`, toasts…), event colours readable on dark (blob
+  background mix with black instead of white), the PWA `theme-color` meta. Place: settings sheet or sidebar.
 
 Versions and commits: see `CHANGELOG.md` and the "Versions and commits" section of `CLAUDE.md`.
 
