@@ -17,7 +17,7 @@ import type { CalEvent } from "../types";
 import { applyTagRules } from "../tagRules";
 import { isSettings, type AppSettings, type SettingsBackup } from "../settings";
 import { autoTags, htmlToText, joinTags, splitTags } from "../tags";
-import { fromIsoDate, isoDate, addDays } from "../time";
+import { fromIsoDate, isoDate, addDays, sameDay } from "../time";
 
 const TOKEN_KEY = "pulsecal:google-token";
 const LINKED_KEY = "pulsecal:google-linked";
@@ -358,6 +358,7 @@ function parseGEvent(g: GEvent): Omit<CalEvent, "id" | "origin" | "pending"> | n
     googleEtag: g.etag,
     recurring: Boolean(g.recurringEventId),
     updatedAt: g.updated ? new Date(g.updated).getTime() : Date.now(),
+    moves: Number(g.extendedProperties?.private?.pulseMoves) || 0,
     deleted: false,
   };
 }
@@ -367,7 +368,9 @@ function toGEvent(e: CalEvent): Record<string, unknown> {
   const body: Record<string, unknown> = {
     summary: e.title,
     description: joinTags(e.notes, e.tags ?? []),
-    extendedProperties: { private: { pulseId: e.id, ...(pal ? { pulseColor: pal.id } : {}) } },
+    extendedProperties: {
+      private: { pulseId: e.id, ...(pal ? { pulseColor: pal.id } : {}), ...(e.moves ? { pulseMoves: String(e.moves) } : {}) },
+    },
   };
   // nasz kolor → jego colorId; dokładny kolor Google → ten sam colorId; kolor kalendarza → bez colorId
   const gid = pal?.gid ?? googleIdForColor(e.color);
@@ -523,8 +526,12 @@ async function applyRemote(g: GEvent, ignoreEtag = false): Promise<boolean> {
     if (!ignoreEtag && existing.googleEtag && existing.googleEtag === g.etag) return false;
     // lokalna, niewysłana zmiana nowsza od zdalnej → zostawiamy lokalną (wyśle się przy następnym syncu)
     if (existing.pending && existing.updatedAt >= parsed.updatedAt) return false;
+    // przeniesione w Google na inny dzień → też liczy się jako przeniesienie
+    const knownMoves = Math.max(parsed.moves ?? 0, existing.moves ?? 0);
+    const moved = !sameDay(new Date(existing.start), new Date(parsed.start));
     await db.events.put({
       ...withAuto({ title: existing.title, notes: existing.notes }),
+      moves: moved ? knownMoves + 1 : knownMoves,
       id: existing.id,
       origin: existing.origin === "local" ? "both" : existing.origin,
     });

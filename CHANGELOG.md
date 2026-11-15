@@ -3,6 +3,16 @@
 Każda wersja to jeden commit `vX.Y.Z: …` (treść commita = wpis z tego pliku) i tag `vX.Y.Z`.
 Najnowsze na górze. Opis funkcji aplikacji jest w [FEATURES.md](FEATURES.md).
 
+## [0.19.0] – 2026-11-15: licznik przeniesień i propozycja rozbicia wpisu
+
+- Licznik przeniesień: wpis liczy, ile razy trafił na inny dzień (przeciągnięcie, „>”/„>>”, zmiana daty
+  w edycji, przeniesienie w Google; zmiana godziny w tym samym dniu się nie liczy). Widać go jako „↷N”
+  w mapie, w widoku miesiąca, w przeglądzie dnia i w edycji wpisu. Synchronizuje się z Google.
+- Po każdych N przeniesieniach (ustawienia, domyślnie 10) pojawia się okienko „Przeniesiony N razy” z propozycją
+  rozpisania wpisu na mniejsze kroki: dopisanie kroków do notatki albo utworzenie z nich osobnych wpisów
+  (tego samego dnia, po 30 min; z „Cofnij”).
+- Próg jest w kopii ustawień w Google.
+
 ## [0.18.0] – 2026-11-15: kolory tagów
 
 - Edycja koloru tagu: w panelu bocznym po najechaniu na tag pojawia się kółko z jego kolorem — kliknięcie

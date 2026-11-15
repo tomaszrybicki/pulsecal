@@ -18,13 +18,15 @@ type Props = {
   onSave: () => void;
   onDelete?: () => void;
   knownTags: string[];
+  /** Ile razy wpis przeniesiono na inny dzień. */
+  moves?: number;
   /** Punkt kliknięcia na komputerze → okno wyskakuje przy kursorze. */
   anchor?: Anchor | null;
 };
 
 const NATIVE_DATE = prefersNativeDate();
 
-export function EventSheet({ draft, onChange, onClose, onDismiss, onSave, onDelete, knownTags, anchor = null }: Props) {
+export function EventSheet({ draft, onChange, onClose, onDismiss, onSave, onDelete, knownTags, anchor = null, moves }: Props) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onDismiss();
@@ -57,6 +59,7 @@ export function EventSheet({ draft, onChange, onClose, onDismiss, onSave, onDele
   return (
     <SheetFrame anchor={anchor} label="Wpis" onDismiss={onDismiss}>
         <h2>{draft.id ? "Wpis" : "Nowy blob"}</h2>
+        {moves ? <p className="moves-hint">↷ przeniesiony {moves}×</p> : null}
         <label className="field">
           Tytuł
           <input

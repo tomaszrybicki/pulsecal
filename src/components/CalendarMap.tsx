@@ -492,6 +492,7 @@ export function CalendarMap({
                     <strong>{e.title || "(bez tytułu)"}</strong>
                     <small>
                       {formatClock(new Date(e.start))}–{formatClock(new Date(e.end))}
+                      {e.moves ? <span className="mv" title={`Przeniesiony ${e.moves}×`}> · ↷{e.moves}</span> : null}
                     </small>
                     <TagDots tags={e.tags} />
                     {onDelete && draggable && <DelBtn onDelete={() => onDelete(e)} />}

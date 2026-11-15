@@ -87,6 +87,7 @@ export function DayPanel({ day, events, anchor, onClose, onOpen, onShift, onDele
                     ? whenLabel(e)
                     : `${formatClock(new Date(e.start))}–${formatClock(new Date(e.end))}`}
                   {e.tags?.length ? ` · ${e.tags.join(", ")}` : ""}
+                  {e.moves ? ` · przeniesiony ${e.moves}×` : ""}
                 </span>
               </span>
             </button>

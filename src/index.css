@@ -2522,3 +2522,26 @@ button.pill-plus:active {
     opacity: 0.9;
   }
 }
+
+/* ── licznik przeniesień ── */
+
+.mv {
+  white-space: nowrap;
+}
+
+.m-ev .mv {
+  flex: none;
+  margin-left: 3px;
+  font-size: 0.62rem;
+  opacity: 0.75;
+}
+
+.moves-hint {
+  margin: -6px 0 10px;
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+}
+
+.sheet.move-prompt textarea {
+  font: inherit;
+}

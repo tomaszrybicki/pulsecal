@@ -167,6 +167,13 @@ logowanie Google bez własnego serwera (Google Identity Services).
 - **Wygląd:** podczas przeciągania oryginał blednie, a nad nim płynie kopia. Dni docelowe są podświetlone.
   Po upuszczeniu wpis od razu stoi w nowym miejscu i lekko się „sprężynuje”.
 
+### Licznik przeniesień
+
+- Wpis liczy, ile razy trafił na inny dzień (przeciągnięcie, „>”/„>>”, zmiana daty, przeniesienie w Google).
+  Widać to jako „↷N” na wpisie, w przeglądzie dnia i w edycji. Zmiana godziny w tym samym dniu się nie liczy.
+- Po każdych N przeniesieniach (ustawienia, domyślnie 10) Pulsecal proponuje rozpisać wpis na mniejsze kroki:
+  dopisać je do notatki albo utworzyć z nich osobne wpisy tego dnia.
+
 ### Synchronizacja z Google Calendar
 
 - **Połączenie:** w ustawieniach (kropka w prawym górnym rogu) wkleja się OAuth Client ID i klika „Połącz”.

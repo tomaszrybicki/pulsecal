@@ -4,6 +4,7 @@
  * Nigdy nie zapisujemy tokenu Google ani Client ID.
  */
 import { getTagRules, type TagRule } from "./tagRules";
+import { getMoveThreshold, setMoveThreshold } from "./moves";
 import { getTagColors, reloadTagColors } from "./tags";
 
 export type AppSettings = {
@@ -15,6 +16,8 @@ export type AppSettings = {
   theme: string;
   /** Kolory tagów ustawione ręcznie (klucz tagu → #rrggbb). */
   tagColors?: Record<string, string>;
+  /** Po ilu przeniesieniach proponować rozbicie wpisu. */
+  moveThreshold?: number;
 };
 
 export type SettingsBackup = { settings: AppSettings; updatedAt: number };
@@ -53,6 +56,7 @@ export function collectSettings(): AppSettings {
     sidebar: localStorage.getItem(K.sidebar) !== "0",
     theme: localStorage.getItem(K.theme) || "auto",
     tagColors: getTagColors(),
+    moveThreshold: getMoveThreshold(),
   };
 }
 
@@ -98,6 +102,7 @@ export function applySettings(b: SettingsBackup): void {
   localStorage.setItem(K.theme, s.theme);
   localStorage.setItem(K.colors, JSON.stringify(s.tagColors ?? {}));
   reloadTagColors();
+  if (s.moveThreshold) setMoveThreshold(s.moveThreshold);
   const json = settingsJson(collectSettings());
   localStorage.setItem(SEEN, json);
   localStorage.setItem(BACKED, json);

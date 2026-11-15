@@ -15,6 +15,8 @@ type Props = {
   onMore: () => void;
   onDelete?: () => void;
   knownTags: string[];
+  /** Ile razy wpis przeniesiono na inny dzień. */
+  moves?: number;
   /** Punkt kliknięcia na komputerze → karta wyskakuje przy kursorze. */
   anchor?: Anchor | null;
 };
@@ -24,7 +26,7 @@ type Props = {
  * Nowy wpis → kursor od razu w tytule. Istniejący → tytuł to pole edycji (zmiana nazwy jednym tapnięciem).
  * Miejsce na przyszłe szybkie akcje: wiersz `.quick-actions`.
  */
-export function QuickCard({ draft, onChange, onSave, onDismiss, onMore, onDelete, knownTags, anchor = null }: Props) {
+export function QuickCard({ draft, onChange, onSave, onDismiss, onMore, onDelete, knownTags, anchor = null, moves }: Props) {
   const isNew = !draft.id;
   const input = useRef<HTMLInputElement>(null);
 
@@ -59,6 +61,7 @@ export function QuickCard({ draft, onChange, onSave, onDismiss, onMore, onDelete
             if (e.key === "Enter" && canSave) onSave();
           }}
         />
+        {moves ? <p className="moves-hint">↷ przeniesiony {moves}×</p> : null}
         <div className="quick-when">
           <span>{whenLabel(draft)}</span>
           <button type="button" className="mini-chip" onClick={() => onChange(toggleAllDay(draft))}>

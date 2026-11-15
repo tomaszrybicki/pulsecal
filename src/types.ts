@@ -12,6 +12,8 @@ export interface CalEvent {
   color: string;
   /** Tagi (małe litery). W Google zapisane jako ostatnia linia opisu „Tagi: a, b" — patrz tags.ts. */
   tags: string[];
+  /** Ile razy wpis przeniesiono na inny dzień (moves.ts). W Google: extendedProperties.private.pulseMoves. */
+  moves?: number;
   googleEventId?: string;
   googleEtag?: string;
   /** Instancja wydarzenia cyklicznego z Google (edycja dotyczy tylko tej instancji). */

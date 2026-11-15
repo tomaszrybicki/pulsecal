@@ -370,6 +370,11 @@ function ChipBody({ e, bar }: { e: CalEvent; bar: boolean }) {
       {!bar && <i className="dot" />}
       {!e.allDay && <span className="t">{formatClock(new Date(e.start))}</span>}
       <span className="n">{e.title || "(bez tytułu)"}</span>
+      {e.moves ? (
+        <span className="mv" title={`Przeniesiony ${e.moves}×`}>
+          ↷{e.moves}
+        </span>
+      ) : null}
       <TagDots tags={e.tags} max={3} />
     </>
   );

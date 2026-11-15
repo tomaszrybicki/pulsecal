@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { CalendarMap } from "./components/CalendarMap";
 import { DayPanel } from "./components/DayPanel";
 import { EventMenu } from "./components/EventMenu";
+import { MovePrompt } from "./components/MovePrompt";
 import { EventSheet } from "./components/EventSheet";
 import type { WeekSelection } from "./components/MiniCalendar";
 import { MonthView } from "./components/MonthView";
@@ -23,6 +24,7 @@ import { DESKTOP_QUERY, useMediaQuery } from "./hooks/useMediaQuery";
 import { useNow } from "./hooks/useNow";
 import { useSettingsBackup } from "./hooks/useSettingsBackup";
 import { useTheme } from "./hooks/useTheme";
+import { countMove, crossesThreshold, getMoveThreshold, setMoveThreshold } from "./moves";
 import type { ParsedEntry } from "./quickParse";
 import { getCalendarId, getStoredClientId, preloadGoogle, setStoredClientId, switchCalendar } from "./sync/google";
 import { applyTagRules, getTagRules, setTagRules, type TagRule } from "./tagRules";
@@ -94,6 +96,9 @@ export function App() {
   const [hiddenTags, setHiddenTags] = useState(readHiddenTags);
   const [rules, setRules] = useState<TagRule[]>(getTagRules);
   const [rulesOpen, setRulesOpen] = useState(false);
+  const [moveThreshold, setMoveThresholdState] = useState(getMoveThreshold);
+  // wpis przeniesiony po raz N-ty → propozycja rozbicia na kroki
+  const [movePrompt, setMovePrompt] = useState<CalEvent | null>(null);
   // zmiana koloru tagu → przerysowanie wszystkiego (tagColor czyta z modułu tags.ts)
   const [tagColorsVer, setTagColorsVer] = useState(0);
   // na komputerze kliknięcie wpisu od razu pokazuje wszystkie opcje (bez „Więcej")
@@ -158,6 +163,7 @@ export function App() {
     dockOpen,
     theme.pref,
     tagColorsVer,
+    moveThreshold,
   ]);
 
   useEffect(() => {
@@ -181,6 +187,7 @@ export function App() {
       end: Math.max(draft.end, draft.start + 15 * MINUTE),
       allDay: draft.allDay,
       color: draft.color,
+      moves: existing ? countMove(existing, draft.start) : 0,
       tags: applyTagRules(
         draft.title.trim(),
         draft.notes,
@@ -193,6 +200,7 @@ export function App() {
       pending: 1,
     };
     await saveLocal(event);
+    if (existing && crossesThreshold(existing.moves ?? 0, event.moves ?? 0)) setMovePrompt(event);
     // klik obok mógł już otworzyć inny wpis — zamykamy tylko ten, który zapisaliśmy
     setDraft((cur) => (cur === saving ? null : cur));
     if (!isVisible(event.tags, hiddenTags)) sync.notify("Zapisano. Wpis jest ukryty przez filtr tagów.", "warn");
@@ -223,7 +231,9 @@ export function App() {
   const moveEvent = async (e: CalEvent, start: number, end: number) => {
     const current = await db.events.get(e.id);
     if (!current) return;
-    await saveLocal({ ...current, start, end });
+    const next = { ...current, start, end, moves: countMove(current, start) };
+    await saveLocal(next);
+    if (crossesThreshold(current.moves ?? 0, next.moves)) setMovePrompt(next);
     sync.requestSync();
   };
 
@@ -231,13 +241,14 @@ export function App() {
   const shiftEvents = async (list: CalEvent[], days: number) => {
     const before = (await db.events.bulkGet(list.map((e) => e.id))).filter((e): e is CalEvent => Boolean(e));
     if (!before.length) return;
+    let prompt: CalEvent | null = null;
     for (const e of before) {
-      await saveLocal({
-        ...e,
-        start: addDays(new Date(e.start), days).getTime(),
-        end: addDays(new Date(e.end), days).getTime(),
-      });
+      const start = addDays(new Date(e.start), days).getTime();
+      const next = { ...e, start, end: addDays(new Date(e.end), days).getTime(), moves: countMove(e, start) };
+      await saveLocal(next);
+      if (!prompt && crossesThreshold(e.moves ?? 0, next.moves)) prompt = next;
     }
+    if (prompt) setMovePrompt(prompt);
     sync.requestSync(4000);
     const n = before.length;
     const what = n === 1 ? `„${before[0].title}”` : `${n} ${n < 5 ? "wpisy" : "wpisów"}`;
@@ -324,6 +335,50 @@ export function App() {
           }
         : undefined,
     );
+  };
+
+  /** Z okienka „przeniesiony N razy”: kroki jako osobne wpisy tego dnia (30 min po kolei) albo w notatce. */
+  const createSteps = async (e: CalEvent, steps: string[]) => {
+    setMovePrompt(null);
+    const ids: string[] = [];
+    for (let i = 0; i < steps.length; i++) {
+      const start = e.allDay ? e.start : e.start + i * 30 * MINUTE;
+      const id = newEventId();
+      ids.push(id);
+      await saveLocal({
+        id,
+        title: steps[i],
+        notes: `Krok ${i + 1}/${steps.length} z „${e.title}”`,
+        start,
+        end: e.allDay ? e.end : start + 30 * MINUTE,
+        allDay: e.allDay,
+        color: e.color,
+        tags: e.tags ?? [],
+        origin: "local",
+        updatedAt: Date.now(),
+        deleted: false,
+        pending: 1,
+      });
+    }
+    sync.requestSync(4000);
+    sync.notify(`Utworzono ${steps.length} ${steps.length === 1 ? "krok" : steps.length < 5 ? "kroki" : "kroków"}`, "ok", {
+      label: "Cofnij",
+      run: () =>
+        void (async () => {
+          for (const id of ids) await removeLocal(id);
+          sync.requestSync();
+        })(),
+    });
+  };
+
+  const appendSteps = async (e: CalEvent, steps: string[]) => {
+    setMovePrompt(null);
+    const cur = await db.events.get(e.id);
+    if (!cur) return;
+    const list = steps.map((s) => `- ${s}`).join("\n");
+    await saveLocal({ ...cur, notes: cur.notes.trim() ? `${cur.notes.trimEnd()}\n\nKroki:\n${list}` : `Kroki:\n${list}` });
+    sync.requestSync(2000);
+    sync.notify("Kroki dopisane do notatki");
   };
 
   const eventActions = {
@@ -679,6 +734,7 @@ export function App() {
             draft={draft}
             knownTags={knownTags}
             anchor={anchor}
+            moves={events.find((e) => e.id === draft.id)?.moves}
             onChange={setDraft}
             onSave={() => void saveDraft()}
             onDismiss={dismissDraft}
@@ -692,6 +748,7 @@ export function App() {
             draft={draft}
             knownTags={knownTags}
             anchor={anchor}
+            moves={events.find((e) => e.id === draft.id)?.moves}
             onChange={setDraft}
             onClose={() => setDraft(null)}
             onDismiss={dismissDraft}
@@ -744,6 +801,18 @@ export function App() {
       </AnimatePresence>
 
       <AnimatePresence>
+        {movePrompt && !draft && (
+          <MovePrompt
+            key={`move-${movePrompt.id}`}
+            event={movePrompt}
+            onClose={() => setMovePrompt(null)}
+            onAppendNotes={(steps) => void appendSteps(movePrompt, steps)}
+            onCreateSteps={(steps) => void createSteps(movePrompt, steps)}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
         {rulesOpen && (
           <TagRulesSheet
             key="rules"
@@ -781,6 +850,11 @@ export function App() {
             onClientId={setClientId}
             onCalendarId={(id) => void changeCalendar(id)}
             onPollSec={setPollSec}
+            moveThreshold={moveThreshold}
+            onMoveThreshold={(v) => {
+              setMoveThreshold(v);
+              setMoveThresholdState(v);
+            }}
             onConnect={() => void sync.connect()}
             onDisconnect={sync.disconnect}
             onSyncNow={sync.syncManually}
