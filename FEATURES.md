@@ -210,6 +210,7 @@ Historia wersji jest w [CHANGELOG.md](CHANGELOG.md).
   - menu pod prawym przyciskiem myszy na wpisie: usuń, kolory, tagi;
   - tagi widoczne na każdym wpisie jako kolorowe kropki;
   - przycisk usuwania po najechaniu myszą na wpis, bez potwierdzenia;
+  - przycisk „miesiąc” zawsze widoczny, także po wybraniu zakresu tygodni w małym kalendarzu;
   - szersza mapa z przewijaniem bez końca;
   - zamykanie okien gestem w dół;
   - szybkie wyszukiwanie i dodawanie z paska („jutro 14:30”);

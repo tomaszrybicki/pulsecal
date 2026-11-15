@@ -46,6 +46,11 @@
   (stopPropagation on pointerdown/click). Strongly suggested: an „Cofnij” (undo) toast instead of a
   confirmation, since `removeLocal` of a Google-synced event becomes a DELETE in Google on the next sync —
   undo must restore the record before that sync runs (or re-create it).
+- [ ] **„miesiąc” button must always be visible.** Cause: with a week range picked in the mini calendar,
+  App renders the grid chip as `gridLabel` = „2 tyg.” instead of „miesiąc” (topbar on desktop, drawer on
+  phone), so the month option seems to disappear. Fix idea: always show „mapa” + „miesiąc”; clicking
+  „miesiąc” clears `weekSel` and shows the month of `focus`; show the active range as its own extra chip
+  („2 tyg. ×”) next to them.
 
 Versions and commits: see `CHANGELOG.md` and the "Versions and commits" section of `CLAUDE.md`.
 
