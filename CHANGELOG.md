@@ -3,6 +3,12 @@
 Każda wersja to jeden commit `vX.Y.Z: …` (treść commita = wpis z tego pliku) i tag `vX.Y.Z`.
 Najnowsze na górze. Opis funkcji aplikacji jest w [FEATURES.md](FEATURES.md).
 
+## [0.18.0] – 2026-11-15: kolory tagów
+
+- Edycja koloru tagu: w panelu bocznym po najechaniu na tag pojawia się kółko z jego kolorem — kliknięcie
+  otwiera wybór koloru; „↺” wraca do koloru automatycznego. Kolor zmienia się wszędzie (kropki, pigułki, filtr).
+- Kolory tagów są w kopii ustawień w Google.
+
 ## [0.17.0] – 2026-11-15: klikanie obok okienek, usuwanie w przeglądzie dnia
 
 - Okienka przy kursorze (wpis, menu pod prawym przyciskiem, przegląd dnia) nie blokują już reszty ekranu:

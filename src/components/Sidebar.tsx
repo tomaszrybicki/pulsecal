@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import type { TagStat } from "../db";
 import type { ThemePref } from "../hooks/useTheme";
-import { UNTAGGED, tagColor } from "../tags";
+import { UNTAGGED, hasCustomColor, tagColor } from "../tags";
 import { MiniCalendar, type WeekSelection } from "./MiniCalendar";
 
 type Props = {
@@ -25,6 +25,8 @@ type Props = {
   theme: ThemePref;
   onTheme: (t: ThemePref) => void;
   onOpenRules: () => void;
+  /** Kolor tagu (null = automatyczny). */
+  onTagColor: (tag: string, color: string | null) => void;
 };
 
 const THEMES: [ThemePref, string][] = [
@@ -96,6 +98,29 @@ export function Sidebar(p: Props) {
                     <span className="tag-name">{r.label}</span>
                     {r.count !== undefined && <span className="tag-count">{r.count}</span>}
                   </label>
+                  {r.key !== UNTAGGED && (
+                    <span className="tag-color-ctl">
+                      <label className="tag-color" title="Kolor tagu" style={{ background: r.color }}>
+                        <input
+                          type="color"
+                          aria-label={`Kolor tagu ${r.label}`}
+                          value={r.color}
+                          onChange={(e) => p.onTagColor(r.label, e.target.value)}
+                        />
+                      </label>
+                      {hasCustomColor(r.label) && (
+                        <button
+                          type="button"
+                          className="tag-color-reset"
+                          title="Kolor automatyczny"
+                          aria-label={`Kolor automatyczny dla ${r.label}`}
+                          onClick={() => p.onTagColor(r.label, null)}
+                        >
+                          ↺
+                        </button>
+                      )}
+                    </span>
+                  )}
                   <button
                     type="button"
                     className="solo-btn"

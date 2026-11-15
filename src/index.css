@@ -2469,3 +2469,56 @@ button.pill-plus:active {
   color: var(--danger-ink);
   background: var(--danger-bg);
 }
+
+/* ── kolor tagu ── */
+
+.tag-color-ctl {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.tag-color {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  border-radius: 46% 54% 50% 50%;
+  box-shadow: 0 0 0 2px var(--surface), 0 0 0 3px var(--ink-faint);
+  cursor: pointer;
+  opacity: 0;
+}
+
+.tag-color input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.tag-color-reset {
+  border: 0;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  background: transparent;
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+  cursor: pointer;
+  opacity: 0;
+}
+
+.side-tags li:hover .tag-color,
+.side-tags li:hover .tag-color-reset,
+.tag-color:focus-within {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .tag-color,
+  .tag-color-reset {
+    opacity: 0.9;
+  }
+}

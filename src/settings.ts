@@ -4,6 +4,7 @@
  * Nigdy nie zapisujemy tokenu Google ani Client ID.
  */
 import { getTagRules, type TagRule } from "./tagRules";
+import { getTagColors, reloadTagColors } from "./tags";
 
 export type AppSettings = {
   v: 1;
@@ -12,6 +13,8 @@ export type AppSettings = {
   pollSec: number;
   sidebar: boolean;
   theme: string;
+  /** Kolory tagów ustawione ręcznie (klucz tagu → #rrggbb). */
+  tagColors?: Record<string, string>;
 };
 
 export type SettingsBackup = { settings: AppSettings; updatedAt: number };
@@ -22,6 +25,7 @@ const K = {
   sidebar: "pulsecal:sidebar",
   theme: "pulsecal:theme",
   rules: "pulsecal:tag-rules",
+  colors: "pulsecal:tag-colors",
 };
 /** Ostatnio widziany stan (JSON) — do wykrycia zmian. */
 const SEEN = "pulsecal:settings-seen";
@@ -48,6 +52,7 @@ export function collectSettings(): AppSettings {
     pollSec: Number.isFinite(poll) && poll > 0 ? poll : 30,
     sidebar: localStorage.getItem(K.sidebar) !== "0",
     theme: localStorage.getItem(K.theme) || "auto",
+    tagColors: getTagColors(),
   };
 }
 
@@ -91,6 +96,8 @@ export function applySettings(b: SettingsBackup): void {
   localStorage.setItem(K.poll, String(s.pollSec));
   localStorage.setItem(K.sidebar, s.sidebar ? "1" : "0");
   localStorage.setItem(K.theme, s.theme);
+  localStorage.setItem(K.colors, JSON.stringify(s.tagColors ?? {}));
+  reloadTagColors();
   const json = settingsJson(collectSettings());
   localStorage.setItem(SEEN, json);
   localStorage.setItem(BACKED, json);

@@ -81,6 +81,8 @@ logowanie Google bez własnego serwera (Google Identity Services).
   - Pod polem są już używane tagi do dodania jednym tapnięciem.
   - × na tagu go usuwa, a Backspace w pustym polu usuwa ostatni.
 - **Na wpisach** tagi widać jako kolorowe kropki (kolor tagu jak w panelu bocznym).
+- **Kolor tagu:** w panelu bocznym po najechaniu na tag — kółko z kolorem otwiera wybór koloru, „↺” wraca
+  do automatycznego (wyliczanego z nazwy).
 - **Ukrywanie i pokazywanie** w panelu bocznym:
   - odznaczenie tagu ukrywa jego wpisy;
   - „tylko” pokazuje wyłącznie ten tag;

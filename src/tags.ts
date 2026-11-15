@@ -97,10 +97,65 @@ export function isVisible(tags: string[] | undefined, hidden: ReadonlySet<string
   return tags.some((t) => !hidden.has(tagKey(t)));
 }
 
-/** Stały kolor tagu z nazwy (ten sam na każdym urządzeniu, bez zapisywania). */
-export function tagColor(tag: string): string {
+/* ── kolory tagów ── */
+
+const COLORS_KEY = "pulsecal:tag-colors";
+
+function loadColors(): Record<string, string> {
+  try {
+    const v = JSON.parse(localStorage.getItem(COLORS_KEY) || "{}") as unknown;
+    return v && typeof v === "object" ? (v as Record<string, string>) : {};
+  } catch {
+    return {};
+  }
+}
+
+let customColors = loadColors();
+
+/** Kolory ustawione ręcznie (klucz tagu → #rrggbb). */
+export function getTagColors(): Record<string, string> {
+  return customColors;
+}
+
+/** Ustaw kolor tagu (null = z powrotem automatyczny). Zapis w localStorage, kopia w Google (settings.ts). */
+export function setTagColor(tag: string, color: string | null): void {
+  const next = { ...customColors };
+  if (color) next[tagKey(tag)] = color.toLowerCase();
+  else delete next[tagKey(tag)];
+  customColors = next;
+  localStorage.setItem(COLORS_KEY, JSON.stringify(next));
+}
+
+/** Po odtworzeniu ustawień z kopii. */
+export function reloadTagColors(): void {
+  customColors = loadColors();
+}
+
+function hslHex(h: number, s: number, l: number): string {
+  const a = s * Math.min(l, 1 - l);
+  const f = (n: number) => {
+    const k = (n + h / 30) % 12;
+    const c = l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1));
+    return Math.round(c * 255)
+      .toString(16)
+      .padStart(2, "0");
+  };
+  return `#${f(0)}${f(8)}${f(4)}`;
+}
+
+/** Kolor automatyczny z nazwy — ten sam na każdym urządzeniu. */
+export function autoTagColor(tag: string): string {
   const k = tagKey(tag);
   let h = 0;
   for (let i = 0; i < k.length; i++) h = (h * 31 + k.charCodeAt(i)) >>> 0;
-  return `hsl(${h % 360} 58% 58%)`;
+  return hslHex(h % 360, 0.58, 0.58);
+}
+
+/** Kolor tagu: ustawiony ręcznie albo automatyczny (#rrggbb — działa też z <input type="color">). */
+export function tagColor(tag: string): string {
+  return customColors[tagKey(tag)] ?? autoTagColor(tag);
+}
+
+export function hasCustomColor(tag: string): boolean {
+  return tagKey(tag) in customColors;
 }

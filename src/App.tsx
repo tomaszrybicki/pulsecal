@@ -26,7 +26,7 @@ import { useTheme } from "./hooks/useTheme";
 import type { ParsedEntry } from "./quickParse";
 import { getCalendarId, getStoredClientId, preloadGoogle, setStoredClientId, switchCalendar } from "./sync/google";
 import { applyTagRules, getTagRules, setTagRules, type TagRule } from "./tagRules";
-import { UNTAGGED, autoTags, isVisible, normalizeTags } from "./tags";
+import { UNTAGGED, autoTags, isVisible, normalizeTags, setTagColor } from "./tags";
 import type { CalEvent, DraftEvent, ViewMode } from "./types";
 import {
   MINUTE,
@@ -94,6 +94,8 @@ export function App() {
   const [hiddenTags, setHiddenTags] = useState(readHiddenTags);
   const [rules, setRules] = useState<TagRule[]>(getTagRules);
   const [rulesOpen, setRulesOpen] = useState(false);
+  // zmiana koloru tagu → przerysowanie wszystkiego (tagColor czyta z modułu tags.ts)
+  const [tagColorsVer, setTagColorsVer] = useState(0);
   // na komputerze kliknięcie wpisu od razu pokazuje wszystkie opcje (bez „Więcej")
   const isDesktop = useMediaQuery(DESKTOP_QUERY);
   const theme = useTheme();
@@ -149,7 +151,14 @@ export function App() {
   }, [dockOpen]);
 
   // kopia ustawień w Google: po udanej synchronizacji (jest token) i po każdej zmianie ustawień
-  useSettingsBackup(sync.linked && sync.state === "idle", sync.notify, [hiddenTags, rules, pollSec, dockOpen, theme.pref]);
+  useSettingsBackup(sync.linked && sync.state === "idle", sync.notify, [
+    hiddenTags,
+    rules,
+    pollSec,
+    dockOpen,
+    theme.pref,
+    tagColorsVer,
+  ]);
 
   useEffect(() => {
     const onDown = (e: PointerEvent) => {
@@ -594,6 +603,10 @@ export function App() {
           onShowAll={() => setHiddenTags(new Set())}
           theme={theme.pref}
           onTheme={theme.setPref}
+          onTagColor={(tag, color) => {
+            setTagColor(tag, color);
+            setTagColorsVer((v) => v + 1);
+          }}
           onOpenRules={() => {
             closeDrawer();
             setRulesOpen(true);
