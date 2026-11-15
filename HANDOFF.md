@@ -69,7 +69,7 @@
     fetch the real hex values from `GET /colors` (`event` palette) once, map by actual colour distance (or
     keep the exact hex), and log `colorId` → our colour for a few mis-coloured events to confirm. Check also
     that such events aren't keeping a stale `pulseColor` from an earlier push (it wins when `colorId` matches).
-- [ ] **Dark mode toggle**: a switch (auto / jasny / ciemny, default auto = `prefers-color-scheme`), stored
+- [x] **Dark mode toggle**: a switch (auto / jasny / ciemny, default auto = `prefers-color-scheme`), stored
   in localStorage, applied as `data-theme` on `<html>`. Needs: dark values for the `:root` variables
   (`--paper`, `--ink`, `--glass`…), replacing hard-coded light colours (`#fffaf2`, `#efe8dc` in `.sheet`,
   `.field`, `.tag-box`, `.search-box`, `.mini-chip`, toasts…), event colours readable on dark (blob

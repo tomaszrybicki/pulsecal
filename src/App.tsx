@@ -20,6 +20,7 @@ import { useGoogleSync, MIN_POLL_SEC } from "./hooks/useGoogleSync";
 import { useLiveQuery } from "./hooks/useLiveQuery";
 import { DESKTOP_QUERY, useMediaQuery } from "./hooks/useMediaQuery";
 import { useNow } from "./hooks/useNow";
+import { useTheme } from "./hooks/useTheme";
 import type { ParsedEntry } from "./quickParse";
 import { getCalendarId, getStoredClientId, preloadGoogle, setStoredClientId, switchCalendar } from "./sync/google";
 import { UNTAGGED, autoTags, isVisible, normalizeTags } from "./tags";
@@ -90,6 +91,7 @@ export function App() {
   const [hiddenTags, setHiddenTags] = useState(readHiddenTags);
   // na komputerze kliknięcie wpisu od razu pokazuje wszystkie opcje (bez „Więcej")
   const isDesktop = useMediaQuery(DESKTOP_QUERY);
+  const theme = useTheme();
   // panel boczny: na komputerze stała kolumna (zapamiętana), na telefonie wysuwana szuflada
   const [dockOpen, setDockOpen] = useState(() => localStorage.getItem(SIDEBAR_KEY) !== "0");
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -542,6 +544,8 @@ export function App() {
           onToggleTag={toggleTag}
           onSoloTag={soloTag}
           onShowAll={() => setHiddenTags(new Set())}
+          theme={theme.pref}
+          onTheme={theme.setPref}
         />
 
         <main className="map-shell">

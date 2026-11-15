@@ -3,6 +3,13 @@
 Każda wersja to jeden commit `vX.Y.Z: …` (treść commita = wpis z tego pliku) i tag `vX.Y.Z`.
 Najnowsze na górze. Opis funkcji aplikacji jest w [FEATURES.md](FEATURES.md).
 
+## [0.13.0] – 2026-11-15: tryb ciemny
+
+- Tryb ciemny: przełącznik „motyw: auto / jasny / ciemny” na dole panelu bocznego. Auto = według ustawień
+  systemu (zmienia się razem z nim). Wybór zapamiętany na urządzeniu.
+- Ciemne wersje tła, okien, pól, dni w widoku miesiąca i powiadomień; wpisy zostają w swoich kolorach.
+  Pasek aplikacji na telefonie też ciemnieje, a przy starcie nie miga jasne tło.
+
 ## [0.12.0] – 2026-11-15: wierne kolory z Google Calendar
 
 - Kolory z Google Calendar wiernie: wpis z kolorem (także z etykietą koloru w Google) ma dokładnie ten kolor

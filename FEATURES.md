@@ -188,6 +188,7 @@ logowanie Google bez własnego serwera (Google Identity Services).
 - **Kolory i czcionki:** ciepła „papierowa” paleta, czcionki Fraunces (nagłówki) i Outfit (interfejs).
 - **Animacje:** wpisy delikatnie zmieniają kształt, a okna wjeżdżają sprężyście i zjeżdżają przy zamykaniu.
 - **Ograniczony ruch:** gdy jest włączony w systemie, animacje się wyłączają.
+- **Tryb ciemny:** na dole panelu bocznego „motyw: auto / jasny / ciemny”; auto podąża za ustawieniem systemu.
 - **PWA:** instalowalne, z ikoną, działa offline. Nowa wersja instaluje się sama.
 
 ---
@@ -214,7 +215,6 @@ Historia wersji jest w [CHANGELOG.md](CHANGELOG.md).
 - **Konflikty z Google:** gdy ten sam wpis zmieni się jednocześnie w Pulsecal i w Google, wygrywa nowsza
   zmiana, a druga przepada. Porządna obsługa konfliktów jest na liście TODO w `HANDOFF.md`.
 - **Planowane** (kolejność w `HANDOFF.md`):
-  - przełącznik trybu ciemnego (auto / jasny / ciemny);
   - wybór daty w edycji wpisu z tygodniem od poniedziałku;
   - (później) reguły tagów, np. „tytuł zawiera »dentysta« → tag »wizyta«”;
   - (później) kopia ustawień aplikacji w Google Calendar jako ukryty wpis, do odtworzenia na innym urządzeniu;

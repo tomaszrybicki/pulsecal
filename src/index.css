@@ -13,6 +13,47 @@
   --safe-bot: env(safe-area-inset-bottom, 0px);
   --font: "Outfit", ui-rounded, system-ui, sans-serif;
   --display: "Fraunces", Georgia, serif;
+  /* powierzchnie i stany — nadpisywane w motywie ciemnym */
+  --surface: #fffaf2;
+  --field: #efe8dc;
+  --track: #e2d8c8;
+  --on-ink: #faf6ef;
+  --cell: rgba(255, 250, 242, 0.45);
+  --cell-soft: var(--cell-soft);
+  --cell-out: rgba(255, 250, 242, 0.18);
+  --cell-strong: rgba(255, 250, 242, 0.9);
+  --hover: rgba(28, 25, 23, 0.05);
+  --hover-strong: rgba(28, 25, 23, 0.07);
+  --danger-bg: #ffddd4;
+  --danger-ink: #7f1d1d;
+}
+
+/* Motyw ciemny: data-theme="dark" na <html> (ustawia App: auto = według systemu, albo ręcznie). */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #1b1815;
+  --paper-2: #24201c;
+  --ink: #f1ebe2;
+  --ink-soft: rgba(241, 235, 226, 0.62);
+  --ink-faint: rgba(241, 235, 226, 0.13);
+  --glass: rgba(40, 35, 30, 0.8);
+  --shadow: 0 18px 50px rgba(0, 0, 0, 0.5);
+  --surface: #27221d;
+  --field: #352e27;
+  --track: #4a4037;
+  --on-ink: #1b1815;
+  --cell: rgba(255, 245, 230, 0.05);
+  --cell-soft: rgba(255, 245, 230, 0.035);
+  --cell-out: rgba(255, 245, 230, 0.015);
+  --cell-strong: rgba(255, 245, 230, 0.14);
+  --hover: rgba(241, 235, 226, 0.06);
+  --hover-strong: rgba(241, 235, 226, 0.1);
+  --danger-bg: rgba(220, 38, 38, 0.22);
+  --danger-ink: #fca5a5;
+}
+
+:root[data-theme="dark"] .ambient {
+  opacity: 0.35;
 }
 
 * {
@@ -170,7 +211,7 @@ textarea {
 
 .chip[aria-pressed="true"] {
   background: var(--ink);
-  color: #faf6ef;
+  color: var(--on-ink);
 }
 
 .icon-btn {
@@ -251,7 +292,7 @@ textarea {
   /* linie godzin jako tło (zamiast 24 elementów na każdą kolumnę — okno ma teraz 42 dni) */
   background:
     repeating-linear-gradient(to bottom, var(--ink-faint) 0 1px, transparent 1px var(--hour)),
-    rgba(255, 250, 242, 0.28);
+    var(--cell-soft);
   box-shadow: inset 0 0 0 1px var(--ink-faint);
 }
 
@@ -358,7 +399,7 @@ textarea {
   animation: none;
   transform: scale(1.03);
   box-shadow:
-    0 0 0 2px #fffaf2,
+    0 0 0 2px var(--surface),
     0 20px 40px color-mix(in srgb, var(--blob) 50%, transparent);
 }
 
@@ -488,8 +529,8 @@ body.is-dragging .map-scroll {
   place-items: center;
   border-radius: 42% 58% 50% 50%;
   border: 0;
-  background: #1c1917;
-  color: #faf6ef;
+  background: var(--ink);
+  color: var(--on-ink);
   animation: blob-jiggle 8s ease-in-out infinite;
 }
 
@@ -518,7 +559,7 @@ body.is-dragging .map-scroll {
 
 .sheet {
   width: min(560px, 100%);
-  background: #fffaf2;
+  background: var(--surface);
   border-radius: 32px 32px 0 0;
   padding: 12px 18px calc(20px + var(--safe-bot));
   box-shadow: var(--shadow);
@@ -552,7 +593,7 @@ body.is-dragging .map-scroll {
 .field textarea {
   border: 0;
   border-radius: 16px;
-  background: #efe8dc;
+  background: var(--field);
   padding: 12px 14px;
   color: var(--ink);
 }
@@ -592,16 +633,16 @@ body.is-dragging .map-scroll {
 
 .primary {
   background: var(--ink);
-  color: #faf6ef;
+  color: var(--on-ink);
 }
 
 .ghost {
-  background: #efe8dc;
+  background: var(--field);
 }
 
 .danger {
-  background: #ffddd4;
-  color: #7f1d1d;
+  background: var(--danger-bg);
+  color: var(--danger-ink);
 }
 
 .hint {
@@ -700,7 +741,7 @@ body.is-dragging .map-scroll {
   padding: 10px 16px;
   border-radius: 22px;
   background: var(--ink);
-  color: #fffaf2;
+  color: var(--on-ink);
   font-size: 0.85rem;
   line-height: 1.35;
   box-shadow: var(--shadow);
@@ -709,10 +750,12 @@ body.is-dragging .map-scroll {
 
 .toast.warn {
   background: #92400e;
+  color: #fffaf2;
 }
 
 .toast.error {
   background: #7f1d1d;
+  color: #fffaf2;
 }
 
 .field select {
@@ -764,7 +807,7 @@ body.is-dragging .map-scroll {
   justify-content: center;
   align-items: flex-start;
   border-radius: 16px 20px 14px 18px;
-  background: rgba(255, 250, 242, 0.45);
+  background: var(--cell);
   cursor: pointer;
   transition:
     background 0.2s,
@@ -772,7 +815,7 @@ body.is-dragging .map-scroll {
 }
 
 .m-day.out {
-  background: rgba(255, 250, 242, 0.18);
+  background: var(--cell-out);
 }
 
 .m-day.out .m-num {
@@ -780,7 +823,7 @@ body.is-dragging .map-scroll {
 }
 
 .m-day.drop-target {
-  background: rgba(255, 250, 242, 0.9);
+  background: var(--cell-strong);
   box-shadow: inset 0 0 0 2px var(--ink);
 }
 
@@ -986,7 +1029,7 @@ body.is-dragging .map-scroll {
   border: 0;
   border-radius: 999px;
   padding: 6px 12px;
-  background: #efe8dc;
+  background: var(--field);
   color: var(--ink);
   font-size: 0.78rem;
   cursor: pointer;
@@ -1033,7 +1076,7 @@ body.is-dragging .map-scroll {
   width: 44px;
   height: 26px;
   border-radius: 999px;
-  background: #e2d8c8;
+  background: var(--track);
   transition: background 0.25s;
 }
 
@@ -1044,7 +1087,7 @@ body.is-dragging .map-scroll {
   width: 20px;
   height: 20px;
   border-radius: 46% 54% 50% 50%;
-  background: #fffaf2;
+  background: var(--surface);
   box-shadow: 0 2px 6px rgba(70, 42, 20, 0.2);
   transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
@@ -1531,7 +1574,7 @@ body.is-dragging .map-scroll {
 }
 
 .side-tags li:hover {
-  background: rgba(28, 25, 23, 0.05);
+  background: var(--hover);
 }
 
 .side-tags label {
@@ -1649,7 +1692,7 @@ body.is-dragging .map-scroll {
   min-height: 40px;
   padding: 6px 8px;
   border-radius: 16px;
-  background: #efe8dc;
+  background: var(--field);
 }
 
 .tag-box input {
@@ -1670,7 +1713,7 @@ body.is-dragging .map-scroll {
   border: 0;
   border-radius: 999px;
   padding: 3px 4px 3px 9px;
-  background: color-mix(in srgb, var(--tag) 24%, #fffaf2);
+  background: color-mix(in srgb, var(--tag) 24%, var(--surface));
   color: var(--ink);
   font: inherit;
   font-size: 0.78rem;
@@ -1809,7 +1852,7 @@ body.is-dragging .map-scroll {
 }
 
 .today-btn:hover {
-  background: #fffaf2;
+  background: var(--surface);
 }
 
 .today-btn:active {
@@ -1880,7 +1923,7 @@ button.pill-plus:active {
   gap: 8px;
   padding: 2px 14px;
   border-radius: 18px;
-  background: #efe8dc;
+  background: var(--field);
 }
 
 .search-icon {
@@ -1929,7 +1972,7 @@ button.pill-plus:active {
 }
 
 .search-row.active {
-  background: rgba(28, 25, 23, 0.07);
+  background: var(--hover-strong);
 }
 
 .search-row.past {
@@ -1951,7 +1994,7 @@ button.pill-plus:active {
   height: 22px;
   border-radius: 46% 54% 50% 50%;
   background: var(--ink);
-  color: #faf6ef;
+  color: var(--on-ink);
   font-size: 0.9rem;
 }
 
@@ -1997,7 +2040,7 @@ button.pill-plus:active {
 .sr-tags i {
   border-radius: 999px;
   padding: 2px 7px;
-  background: color-mix(in srgb, var(--tag) 22%, #fffaf2);
+  background: color-mix(in srgb, var(--tag) 22%, var(--surface));
   font-size: 0.7rem;
   font-style: normal;
 }
@@ -2047,15 +2090,15 @@ button.pill-plus:active {
   border: 0;
   border-radius: 999px;
   padding: 4px 12px;
-  background: rgba(255, 250, 242, 0.18);
-  color: #fffaf2;
+  background: color-mix(in srgb, currentColor 18%, transparent);
+  color: inherit;
   font: inherit;
   font-weight: 600;
   cursor: pointer;
 }
 
 .toast-action:hover {
-  background: rgba(255, 250, 242, 0.3);
+  background: color-mix(in srgb, currentColor 30%, transparent);
 }
 
 .dp-head {
@@ -2076,7 +2119,7 @@ button.pill-plus:active {
   border-radius: 999px;
   padding: 9px 14px;
   background: var(--ink);
-  color: #faf6ef;
+  color: var(--on-ink);
   font: inherit;
   font-weight: 500;
   text-align: left;
@@ -2104,7 +2147,7 @@ button.pill-plus:active {
 }
 
 .dp-list li:hover {
-  background: rgba(28, 25, 23, 0.05);
+  background: var(--hover);
 }
 
 .dp-open {
@@ -2158,7 +2201,7 @@ button.pill-plus:active {
   border: 0;
   border-radius: 999px;
   padding: 0 8px;
-  background: #efe8dc;
+  background: var(--field);
   color: var(--ink);
   font: inherit;
   font-weight: 600;
@@ -2265,4 +2308,39 @@ button.pill-plus:active {
   font-weight: 600;
   white-space: nowrap;
   text-overflow: ellipsis;
+}
+
+/* ── przełącznik motywu ── */
+
+.side-theme h3 {
+  margin: 20px 6px 8px;
+  font-family: var(--display);
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.seg {
+  display: inline-flex;
+  gap: 2px;
+  margin: 0 6px;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--field);
+}
+
+.seg button {
+  border: 0;
+  border-radius: 999px;
+  padding: 6px 12px;
+  background: transparent;
+  color: var(--ink-soft);
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.seg button.on {
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
 }

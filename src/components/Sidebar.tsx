@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import type { TagStat } from "../db";
+import type { ThemePref } from "../hooks/useTheme";
 import { UNTAGGED, tagColor } from "../tags";
 import { MiniCalendar, type WeekSelection } from "./MiniCalendar";
 
@@ -21,7 +22,15 @@ type Props = {
   onToggleTag: (tag: string) => void;
   onSoloTag: (tag: string) => void;
   onShowAll: () => void;
+  theme: ThemePref;
+  onTheme: (t: ThemePref) => void;
 };
+
+const THEMES: [ThemePref, string][] = [
+  ["auto", "auto"],
+  ["light", "jasny"],
+  ["dark", "ciemny"],
+];
 
 export function Sidebar(p: Props) {
   const rows: { key: string; label: string; count?: number; color: string }[] = [
@@ -97,6 +106,24 @@ export function Sidebar(p: Props) {
           {p.tags.length > 1 && (
             <p className="hint">Wpis z kilkoma tagami jest widoczny, jeśli choć jeden z nich jest zaznaczony.</p>
           )}
+        </section>
+
+        <section className="side-theme">
+          <h3>motyw</h3>
+          <div className="seg" role="radiogroup" aria-label="Motyw">
+            {THEMES.map(([v, label]) => (
+              <button
+                key={v}
+                type="button"
+                role="radio"
+                aria-checked={p.theme === v}
+                className={p.theme === v ? "on" : ""}
+                onClick={() => p.onTheme(v)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </section>
       </aside>
     </>
