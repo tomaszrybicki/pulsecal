@@ -12,7 +12,9 @@ export function Toast({ notice }: { notice: SyncNotice | null }) {
   useEffect(() => {
     if (!notice) return;
     setShown(notice);
-    const id = window.setTimeout(() => setShown(null), notice.tone === "ok" ? VISIBLE_MS : VISIBLE_MS * 1.8);
+    // z przyciskiem „Cofnij" dłużej — trzeba zdążyć kliknąć
+    const ms = notice.action ? VISIBLE_MS * 2.2 : notice.tone === "ok" ? VISIBLE_MS : VISIBLE_MS * 1.8;
+    const id = window.setTimeout(() => setShown(null), ms);
     return () => window.clearTimeout(id);
   }, [notice]);
 
@@ -30,7 +32,20 @@ export function Toast({ notice }: { notice: SyncNotice | null }) {
             exit={reduce ? { opacity: 0 } : { opacity: 0, y: 12, scale: 0.9 }}
             transition={{ type: "spring", stiffness: 520, damping: 24 }}
           >
-            {shown.text}
+            <span>{shown.text}</span>
+            {shown.action && (
+              <button
+                type="button"
+                className="toast-action"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  shown.action?.run();
+                  setShown(null);
+                }}
+              >
+                {shown.action.label}
+              </button>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

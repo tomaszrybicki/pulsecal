@@ -29,7 +29,12 @@ logowanie Google bez własnego serwera (Google Identity Services).
 - **Miesiąc:** układ jak w Google Calendar.
   - Wpisy z godziną: kropka, godzina i nazwa.
   - Wpisy całodniowe i kilkudniowe: kolorowe paski przez kilka dni, także przez granicę tygodnia.
+  - Kolejność w dniu: najpierw wpisy z godziną, potem całodniowe i kilkudniowe; w każdej grupie alfabetycznie.
   - Gdy wpisy się nie mieszczą: „+N więcej”.
+  - **Przegląd dnia:** „+N więcej” albo przycisk „•••” na dole dnia otwiera okienko ze wszystkimi wpisami dnia.
+    Przy każdym: „>” przenosi na następny dzień, „>>” o tydzień (godzina zostaje). „> wszystkie niepilne”
+    przenosi na następny dzień wszystko, co nie ma tagu „pilne” ani „ważne”. Każde przeniesienie można cofnąć
+    przyciskiem „Cofnij” w powiadomieniu.
   - Na telefonie wszystko jako kolorowe pigułki z samą nazwą.
   - Liczba widocznych wierszy dopasowuje się do wysokości ekranu.
 - **Nawigacja:**
@@ -203,14 +208,10 @@ Historia wersji jest w [CHANGELOG.md](CHANGELOG.md).
 - **Konflikty z Google:** gdy ten sam wpis zmieni się jednocześnie w Pulsecal i w Google, wygrywa nowsza
   zmiana, a druga przepada. Porządna obsługa konfliktów jest na liście TODO w `HANDOFF.md`.
 - **Planowane** (kolejność w `HANDOFF.md`):
-  - w widoku miesiąca: okienko ze wszystkimi wpisami dnia zamiast przejścia do mapy oraz „przegląd dnia”
-    z przyciskami „>” (na jutro), „>>” (za tydzień) i „> wszystkie niepilne”;
   - automatyczny tag „ważne” dla wpisów, których tytuł zaczyna się od „!”;
-  - w widoku miesiąca: najpierw wpisy z godziną, potem całodniowe, a w obrębie dnia sortowanie alfabetyczne;
   - menu pod prawym przyciskiem myszy na wpisie: usuń, kolory, tagi;
   - tagi widoczne na każdym wpisie jako kolorowe kropki;
   - przycisk usuwania po najechaniu myszą na wpis, bez potwierdzenia;
-  - przycisk „miesiąc” zawsze widoczny, także po wybraniu zakresu tygodni w małym kalendarzu;
   - wierniejsze kolory z Google (np. czerwony w Google → czerwony w Pulsecal), zwłaszcza dla wpisów z etykietami
     kolorów w Google i dla domyślnego koloru kalendarza;
   - przełącznik trybu ciemnego (auto / jasny / ciemny);

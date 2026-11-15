@@ -1,5 +1,5 @@
+import type { ReactNode } from "react";
 import type { TagStat } from "../db";
-import type { ViewMode } from "../types";
 import { UNTAGGED, tagColor } from "../tags";
 import { MiniCalendar, type WeekSelection } from "./MiniCalendar";
 
@@ -14,10 +14,8 @@ type Props = {
   onPickDay: (d: Date) => void;
   onPickWeeks: (start: Date, weeks: number) => void;
   onCreate: () => void;
-  view: ViewMode;
-  /** Nazwa widoku siatki: „miesiąc" albo „2 tyg." przy wybranych tygodniach. */
-  gridLabel: string;
-  onView: (v: ViewMode) => void;
+  /** Przełącznik widoku (w szufladzie na telefonie — w górnym pasku brak miejsca). */
+  viewSwitch: ReactNode;
   tags: TagStat[];
   hidden: ReadonlySet<string>;
   onToggleTag: (tag: string) => void;
@@ -47,12 +45,7 @@ export function Sidebar(p: Props) {
 
         {p.mode === "drawer" && (
           <div className="side-views" role="group" aria-label="Widok">
-            <button type="button" className="chip" aria-pressed={p.view === "map"} onClick={() => p.onView("map")}>
-              mapa
-            </button>
-            <button type="button" className="chip" aria-pressed={p.view === "month"} onClick={() => p.onView("month")}>
-              {p.gridLabel}
-            </button>
+            {p.viewSwitch}
           </div>
         )}
 

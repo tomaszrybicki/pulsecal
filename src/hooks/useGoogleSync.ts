@@ -14,7 +14,8 @@ import type { SyncState } from "../types";
 export const MIN_POLL_SEC = 10;
 const DEBOUNCE_MS = 800;
 
-export type SyncNotice = { id: number; text: string; tone: "ok" | "warn" | "error" };
+export type NoticeAction = { label: string; run: () => void };
+export type SyncNotice = { id: number; text: string; tone: "ok" | "warn" | "error"; action?: NoticeAction };
 
 type Options = { from: Date; to: Date; pollSec: number };
 
@@ -44,8 +45,8 @@ export function useGoogleSync({ from, to, pollSec }: Options) {
   linkedRef.current = linked;
   const debounce = useRef<number | undefined>(undefined);
 
-  const notify = useCallback((text: string, tone: SyncNotice["tone"] = "ok") => {
-    setNotice({ id: Date.now() + Math.random(), text, tone });
+  const notify = useCallback((text: string, tone: SyncNotice["tone"] = "ok", action?: NoticeAction) => {
+    setNotice({ id: Date.now() + Math.random(), text, tone, action });
   }, []);
 
   const run = useCallback(
@@ -93,10 +94,13 @@ export function useGoogleSync({ from, to, pollSec }: Options) {
   );
 
   /** Po lokalnej zmianie: zbiera kilka szybkich zmian w jedną synchronizację. */
-  const requestSync = useCallback(() => {
-    window.clearTimeout(debounce.current);
-    debounce.current = window.setTimeout(() => void run(), DEBOUNCE_MS);
-  }, [run]);
+  const requestSync = useCallback(
+    (delayMs = DEBOUNCE_MS) => {
+      window.clearTimeout(debounce.current);
+      debounce.current = window.setTimeout(() => void run(), delayMs);
+    },
+    [run],
+  );
 
   useEffect(() => () => window.clearTimeout(debounce.current), []);
 

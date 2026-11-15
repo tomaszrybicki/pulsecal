@@ -16,6 +16,8 @@ type Props = {
   events: CalEvent[];
   /** Tapnięcie numeru dnia / „+N" → ten dzień w mapie. */
   onDay: (d: Date) => void;
+  /** „+N więcej" i przycisk „•••" w dniu: okienko z wszystkimi wpisami dnia (przegląd dnia). */
+  onDayDetails: (d: Date) => void;
   /** Tapnięcie pustego miejsca w dniu → szybkie dodanie. */
   onAdd: (d: Date) => void;
   onEvent: (e: CalEvent) => void;
@@ -71,10 +73,10 @@ function layoutWeek(weekStart: Date, events: CalEvent[]): Seg[] {
       contR: d.e >= weekEnd,
     });
   }
-  segs.sort(
-    (a, b) =>
-      a.col - b.col || Number(b.bar) - Number(a.bar) || b.span - a.span || a.e.start - b.e.start,
-  );
+  // Najpierw wpisy z godziną (jednodniowe), potem całodniowe/kilkudniowe; w każdej grupie alfabetycznie.
+  // Paski kilkudniowe muszą mieć jeden pas przez cały tydzień, więc trafiają pod wszystkie wpisy z godziną.
+  const byTitle = (a: Seg, b: Seg) => (a.e.title || "").localeCompare(b.e.title || "", "pl", { sensitivity: "base" });
+  segs.sort((a, b) => Number(a.bar) - Number(b.bar) || a.col - b.col || byTitle(a, b) || b.span - a.span);
   const lanes: boolean[][] = [];
   for (const s of segs) {
     let lane = lanes.findIndex((used) => !used.slice(s.col, s.col + s.span).some(Boolean));
@@ -88,7 +90,7 @@ function layoutWeek(weekStart: Date, events: CalEvent[]): Seg[] {
   return segs;
 }
 
-export function MonthView({ now, weeks, month, events, onDay, onAdd, onEvent, onMove, onStep }: Props) {
+export function MonthView({ now, weeks, month, events, onDay, onDayDetails, onAdd, onEvent, onMove, onStep }: Props) {
   const reduce = useReducedMotion();
   const wheel = useRef({ acc: 0, last: 0, lock: 0 });
   const swipe = useRef<{ x: number; y: number; t: number } | null>(null);
@@ -290,6 +292,20 @@ export function MonthView({ now, weeks, month, events, onDay, onAdd, onEvent, on
                       {d.getDate()}
                       {isRange && d.getDate() === 1 ? ` ${MONTH_TAG[d.getMonth()]}` : ""}
                     </button>
+                    {perDay[c] > 0 && (
+                      <button
+                        type="button"
+                        className="m-day-more"
+                        title="Przegląd dnia"
+                        aria-label={`Przegląd dnia ${isoDate(d)}`}
+                        onClick={(ev) => {
+                          ev.stopPropagation();
+                          onDayDetails(d);
+                        }}
+                      >
+                        •••
+                      </button>
+                    )}
                   </div>
                 );
               })}
@@ -312,7 +328,7 @@ export function MonthView({ now, weeks, month, events, onDay, onAdd, onEvent, on
                     type="button"
                     className="m-more"
                     style={{ gridColumn: c + 1, gridRow: dayLimit[c] + 2 }}
-                    onClick={() => onDay(week[c])}
+                    onClick={() => onDayDetails(week[c])}
                   >
                     +{n} więcej
                   </button>

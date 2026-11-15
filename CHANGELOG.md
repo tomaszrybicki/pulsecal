@@ -3,6 +3,17 @@
 Każda wersja to jeden commit `vX.Y.Z: …` (treść commita = wpis z tego pliku) i tag `vX.Y.Z`.
 Najnowsze na górze. Opis funkcji aplikacji jest w [FEATURES.md](FEATURES.md).
 
+## [0.9.0] – 2026-11-15: przegląd dnia i porządek w widoku miesiąca
+
+- Widok miesiąca: przyciski „mapa” i „miesiąc” są zawsze widoczne; wybrany zakres tygodni ma osobny przycisk
+  („2 tyg.”), a „miesiąc” wraca do całego miesiąca.
+- Widok miesiąca: w każdym dniu najpierw wpisy z godziną, potem całodniowe i kilkudniowe; w każdej grupie
+  alfabetycznie.
+- Przegląd dnia: „+N więcej” i nowy przycisk „•••” na dole każdego dnia z wpisami otwierają okienko ze
+  wszystkimi wpisami dnia (zamiast przejścia do mapy). Przy każdym „>” (na następny dzień) i „>>” (o tydzień),
+  na górze „> wszystkie niepilne” — przenosi wszystko bez tagu „pilne” ani „ważne”. Kliknięcie wpisu go otwiera.
+- Powiadomienia mogą mieć przycisk „Cofnij” — przenoszenie z przeglądu dnia da się cofnąć.
+
 ## [0.8.1] – 2026-11-15: fokus i domyślny widok
 
 - Poprawka: po otwarciu okna nowego wpisu kursor od razu stoi w polu tytułu (na komputerze okno przy kursorze

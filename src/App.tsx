@@ -1,6 +1,7 @@
 import { AnimatePresence } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CalendarMap } from "./components/CalendarMap";
+import { DayPanel } from "./components/DayPanel";
 import { EventSheet } from "./components/EventSheet";
 import type { WeekSelection } from "./components/MiniCalendar";
 import { MonthView } from "./components/MonthView";
@@ -78,6 +79,8 @@ export function App() {
   const lastPointer = useRef<{ x: number; y: number; t: number; mouse: boolean } | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  // przegląd dnia z widoku miesiąca („+N więcej" / „•••")
+  const [dayPanel, setDayPanel] = useState<{ day: Date; anchor: Anchor | null } | null>(null);
   const [clientId, setClientId] = useState(getStoredClientId);
   const [calendarId, setCalendarId] = useState(getCalendarId);
   const [pollSec, setPollSec] = useState(readPollSec);
@@ -167,10 +170,14 @@ export function App() {
     sync.requestSync();
   };
 
-  const openDraft = (d: DraftEvent, mode: "quick" | "full" = "quick") => {
-    // kliknięcie myszą przed chwilą → okno przy kursorze; telefon / klawiatura → arkusz od dołu
+  /** Kliknięcie myszą przed chwilą → okno przy kursorze; telefon / klawiatura → arkusz od dołu. */
+  const pointerAnchor = (): Anchor | null => {
     const p = lastPointer.current;
-    setAnchor(isDesktop && p?.mouse && Date.now() - p.t < 1500 ? { x: p.x, y: p.y } : null);
+    return isDesktop && p?.mouse && Date.now() - p.t < 1500 ? { x: p.x, y: p.y } : null;
+  };
+
+  const openDraft = (d: DraftEvent, mode: "quick" | "full" = "quick") => {
+    setAnchor(pointerAnchor());
     setEditor(mode);
     setDraft(d);
   };
@@ -189,6 +196,30 @@ export function App() {
     if (!current) return;
     await saveLocal({ ...current, start, end });
     sync.requestSync();
+  };
+
+  /** Przesuń wpisy o `days` dni (godzina zostaje). Toast z „Cofnij" przywraca poprzednie terminy. */
+  const shiftEvents = async (list: CalEvent[], days: number) => {
+    const before = (await db.events.bulkGet(list.map((e) => e.id))).filter((e): e is CalEvent => Boolean(e));
+    if (!before.length) return;
+    for (const e of before) {
+      await saveLocal({
+        ...e,
+        start: addDays(new Date(e.start), days).getTime(),
+        end: addDays(new Date(e.end), days).getTime(),
+      });
+    }
+    sync.requestSync(4000);
+    const n = before.length;
+    const what = n === 1 ? `„${before[0].title}”` : `${n} ${n < 5 ? "wpisy" : "wpisów"}`;
+    sync.notify(`Przeniesiono ${what} ${days === 1 ? "na następny dzień" : `o ${days === 7 ? "tydzień" : `${days} dni`}`}`, "ok", {
+      label: "Cofnij",
+      run: () =>
+        void (async () => {
+          for (const e of before) await saveLocal(e);
+          sync.requestSync();
+        })(),
+    });
   };
 
   const removeDraft = async () => {
@@ -256,7 +287,7 @@ export function App() {
   // skrót klawiszowy „t" = dziś (jak w Google Calendar), gdy nie piszesz i nie ma otwartego okna
   const goTodayRef = useRef(goToday);
   goTodayRef.current = goToday;
-  const sheetOpen = Boolean(draft) || settingsOpen || searchOpen;
+  const sheetOpen = Boolean(draft) || settingsOpen || searchOpen || Boolean(dayPanel);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (sheetOpen || e.ctrlKey || e.metaKey || e.altKey) return;
@@ -273,7 +304,45 @@ export function App() {
     return () => window.removeEventListener("keydown", onKey);
   }, [sheetOpen]);
 
-  const gridLabel = weekSel ? `${weekSel.weeks} tyg.` : "miesiąc";
+  /** mapa / miesiąc zawsze widoczne; wybrany zakres tygodni jako osobny, dodatkowy przycisk. */
+  const viewChips = (after?: () => void) => (
+    <>
+      <button
+        className="chip"
+        aria-pressed={view === "map"}
+        onClick={() => {
+          setView("map");
+          after?.();
+        }}
+      >
+        mapa
+      </button>
+      <button
+        className="chip"
+        aria-pressed={view === "month" && !weekSel}
+        onClick={() => {
+          if (weekSel) clearWeekSel();
+          setView("month");
+          after?.();
+        }}
+      >
+        miesiąc
+      </button>
+      {weekSel && (
+        <button
+          className="chip"
+          aria-pressed={view === "month"}
+          title="Siatka wybranych tygodni"
+          onClick={() => {
+            setView("month");
+            after?.();
+          }}
+        >
+          {weekSel.weeks} tyg.
+        </button>
+      )}
+    </>
+  );
 
   const periodLabel = weekSel
     ? rangeLabel(weekSel.start, addDays(weekSel.start, weekSel.weeks * 7 - 1))
@@ -385,16 +454,7 @@ export function App() {
         </div>
         <div className="chip-row">
           {/* telefon: przełącznik widoku jest w szufladzie (jak w Google Calendar) — tu brak miejsca */}
-          {isDesktop && (
-            <>
-              <button className="chip" aria-pressed={view === "map"} onClick={() => setView("map")}>
-                mapa
-              </button>
-              <button className="chip" aria-pressed={view === "month"} onClick={() => setView("month")}>
-                {gridLabel}
-              </button>
-            </>
-          )}
+          {isDesktop && viewChips()}
           <SyncIndicator
             state={sync.state}
             pending={pending}
@@ -433,12 +493,7 @@ export function App() {
             closeDrawer();
             openDraft(timedDraft(nextQuarter().getTime(), newColor), isDesktop ? "full" : "quick");
           }}
-          view={view}
-          gridLabel={gridLabel}
-          onView={(v) => {
-            setView(v);
-            closeDrawer();
-          }}
+          viewSwitch={viewChips(closeDrawer)}
           tags={tagList}
           hidden={hiddenTags}
           onToggleTag={toggleTag}
@@ -472,6 +527,7 @@ export function App() {
                 goToDay(d);
                 setView("map");
               }}
+              onDayDetails={(d) => setDayPanel({ day: startOfDay(d), anchor: pointerAnchor() })}
               onAdd={(d) => openDraft(allDayDraft(d, newColor))}
               onEvent={(e) => openDraft(draftFromEvent(e), isDesktop ? "full" : "quick")}
               onMove={(e, start, end) => void moveEvent(e, start, end)}
@@ -527,6 +583,22 @@ export function App() {
             onDismiss={dismissDraft}
             onSave={() => void saveDraft()}
             onDelete={draft.id ? () => void removeDraft() : undefined}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {dayPanel && !draft && (
+          <DayPanel
+            key="day"
+            day={dayPanel.day}
+            anchor={dayPanel.anchor}
+            events={visibleEvents.filter(
+              (e) => e.start < addDays(dayPanel.day, 1).getTime() && e.end > dayPanel.day.getTime(),
+            )}
+            onClose={() => setDayPanel(null)}
+            onOpen={(e) => openDraft(draftFromEvent(e), isDesktop ? "full" : "quick")}
+            onShift={(list, days) => void shiftEvents(list, days)}
           />
         )}
       </AnimatePresence>

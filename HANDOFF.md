@@ -13,7 +13,7 @@
   4. Edge cases: deleted on one side + edited on the other; recurring instances; the same event edited on
      two devices (both push to Google).
   5. A small log of resolved conflicts (for trust/debugging).
-- [ ] **Month view: day popup + "triage" of a day's events** (don't open the map for "+N więcej").
+- [x] **Month view: day popup + "triage" of a day's events** (don't open the map for "+N więcej").
   1. "+N więcej" opens a popup with **all** events of that day (instead of switching to the map/week).
   2. Every day that has any event gets a small button at the bottom of its cell that opens an
      **analysis/triage mode** for that day: a list of the day's events, each with
@@ -26,9 +26,9 @@
   (e.g. „!zapłacić czynsz”). Decide: strip the `!` from the title or keep it; apply on save in the app
   (QuickCard / EventSheet / quick add) and also to events pulled from Google; don't remove the tag again
   if the user deletes it manually later (only add on create / when the `!` is newly added).
-- [ ] **Month view: alphabetical order of events within a day** (by title, Polish collation:
+- [x] **Month view: alphabetical order of events within a day** (by title, Polish collation:
   `localeCompare(…, "pl")`).
-- [ ] **Month view: timed events (not all-day) shown first**, all-day after them.
+- [x] **Month view: timed events (not all-day) shown first**, all-day after them.
   Today `layoutWeek()` in `MonthView.tsx` does the opposite: bars (all-day / multi-day) first, then timed
   by start time. Notes for both items:
   - decide the order *inside* the timed group: alphabetical (item 3) or by time — ask the owner;
@@ -46,7 +46,7 @@
   (stopPropagation on pointerdown/click). Strongly suggested: an „Cofnij” (undo) toast instead of a
   confirmation, since `removeLocal` of a Google-synced event becomes a DELETE in Google on the next sync —
   undo must restore the record before that sync runs (or re-create it).
-- [ ] **„miesiąc” button must always be visible.** Cause: with a week range picked in the mini calendar,
+- [x] **„miesiąc” button must always be visible.** Cause: with a week range picked in the mini calendar,
   App renders the grid chip as `gridLabel` = „2 tyg.” instead of „miesiąc” (topbar on desktop, drawer on
   phone), so the month option seems to disappear. Fix idea: always show „mapa” + „miesiąc”; clicking
   „miesiąc” clears `weekSel` and shows the month of `focus`; show the active range as its own extra chip
