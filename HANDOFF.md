@@ -72,6 +72,11 @@ and later **quick action buttons**. Done:
   (`does not provide an export named …`). `touch` the file and reload.
 - Not done yet: rename/delete a tag globally, custom tag colors.
 
+## 0e. v0.6.0: editor popover at the cursor
+- `SheetFrame.tsx` wraps QuickCard/EventSheet: with an `anchor` it renders a floating window placed by
+  `useAnchoredPlacement` (`place()` = right of cursor, flip left, clamp vertically; measured with offset*).
+  App records the last mouse `pointerdown` (capture) and passes it as anchor when `isDesktop` and recent.
+
 ## 1. Original state of `src/` (before this session) (the code you see)
 Unchanged MVP from Cursor. It builds, and these work: the map view (21 days horizontally), the month view,
 adding/editing/deleting in the bottom sheet, IndexedDB, the PWA, and a basic sync with Google.

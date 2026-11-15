@@ -10,3 +10,10 @@ export const sheetMotion = {
   animate: { y: 0, scale: 1, transition: { type: "spring", stiffness: 420, damping: 22 } },
   exit: { y: 90, scale: 0.98, opacity: 0, transition: { duration: 0.2, ease: "easeIn" } },
 } as const;
+
+/** Okienko przy kursorze (komputer): wyskakuje z punktu kliknięcia z lekkim przestrzeleniem. */
+export const popMotion = {
+  initial: { opacity: 0, scale: 0.88 },
+  animate: { opacity: 1, scale: 1, transition: { type: "spring", stiffness: 520, damping: 26 } },
+  exit: { opacity: 0, scale: 0.94, transition: { duration: 0.14 } },
+} as const;

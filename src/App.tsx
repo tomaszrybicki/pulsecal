@@ -1,5 +1,5 @@
 import { AnimatePresence } from "framer-motion";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { CalendarMap } from "./components/CalendarMap";
 import { EventSheet } from "./components/EventSheet";
 import type { WeekSelection } from "./components/MiniCalendar";
@@ -12,6 +12,7 @@ import { Toast } from "./components/Toast";
 import { PALETTE } from "./colors";
 import { db, eventsInRange, newEventId, pendingCount, removeLocal, saveLocal, tagStats, type TagStat } from "./db";
 import { allDayDraft, draftFromEvent, isDirty, timedDraft, withDraft } from "./draft";
+import type { Anchor } from "./hooks/useAnchoredPlacement";
 import { useGoogleSync, MIN_POLL_SEC } from "./hooks/useGoogleSync";
 import { useLiveQuery } from "./hooks/useLiveQuery";
 import { DESKTOP_QUERY, useMediaQuery } from "./hooks/useMediaQuery";
@@ -63,6 +64,9 @@ export function App() {
   const [draft, setDraft] = useState<DraftEvent | null>(null);
   // szybka karta (tytuł + kiedy) albo pełny arkusz edycji
   const [editor, setEditor] = useState<"quick" | "full">("quick");
+  // komputer: okno wpisu wyskakuje przy kursorze (ostatnie kliknięcie myszą)
+  const [anchor, setAnchor] = useState<Anchor | null>(null);
+  const lastPointer = useRef<{ x: number; y: number; t: number; mouse: boolean } | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [clientId, setClientId] = useState(getStoredClientId);
   const [calendarId, setCalendarId] = useState(getCalendarId);
@@ -122,6 +126,14 @@ export function App() {
     localStorage.setItem(SIDEBAR_KEY, dockOpen ? "1" : "0");
   }, [dockOpen]);
 
+  useEffect(() => {
+    const onDown = (e: PointerEvent) => {
+      lastPointer.current = { x: e.clientX, y: e.clientY, t: Date.now(), mouse: e.pointerType !== "touch" };
+    };
+    window.addEventListener("pointerdown", onDown, true);
+    return () => window.removeEventListener("pointerdown", onDown, true);
+  }, []);
+
   const saveDraft = async () => {
     if (!draft?.title.trim()) return;
     const existing = draft.id ? await db.events.get(draft.id) : undefined;
@@ -147,6 +159,9 @@ export function App() {
   };
 
   const openDraft = (d: DraftEvent, mode: "quick" | "full" = "quick") => {
+    // kliknięcie myszą przed chwilą → okno przy kursorze; telefon / klawiatura → arkusz od dołu
+    const p = lastPointer.current;
+    setAnchor(isDesktop && p?.mouse && Date.now() - p.t < 1500 ? { x: p.x, y: p.y } : null);
     setEditor(mode);
     setDraft(d);
   };
@@ -394,6 +409,7 @@ export function App() {
             key="quick"
             draft={draft}
             knownTags={knownTags}
+            anchor={anchor}
             onChange={setDraft}
             onSave={() => void saveDraft()}
             onDismiss={dismissDraft}
@@ -406,6 +422,7 @@ export function App() {
             key="full"
             draft={draft}
             knownTags={knownTags}
+            anchor={anchor}
             onChange={setDraft}
             onClose={() => setDraft(null)}
             onDismiss={dismissDraft}

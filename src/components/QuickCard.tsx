@@ -1,9 +1,9 @@
-import { motion } from "framer-motion";
 import { useEffect, useRef } from "react";
 import { PALETTE } from "../colors";
 import { toggleAllDay, whenLabel } from "../draft";
 import type { DraftEvent } from "../types";
-import { backdropMotion, sheetMotion } from "./sheetMotion";
+import type { Anchor } from "../hooks/useAnchoredPlacement";
+import { SheetFrame } from "./SheetFrame";
 import { TagInput } from "./TagInput";
 
 type Props = {
@@ -15,6 +15,8 @@ type Props = {
   onMore: () => void;
   onDelete?: () => void;
   knownTags: string[];
+  /** Punkt kliknięcia na komputerze → karta wyskakuje przy kursorze. */
+  anchor?: Anchor | null;
 };
 
 /**
@@ -22,7 +24,7 @@ type Props = {
  * Nowy wpis → kursor od razu w tytule. Istniejący → tytuł to pole edycji (zmiana nazwy jednym tapnięciem).
  * Miejsce na przyszłe szybkie akcje: wiersz `.quick-actions`.
  */
-export function QuickCard({ draft, onChange, onSave, onDismiss, onMore, onDelete, knownTags }: Props) {
+export function QuickCard({ draft, onChange, onSave, onDismiss, onMore, onDelete, knownTags, anchor = null }: Props) {
   const isNew = !draft.id;
   const input = useRef<HTMLInputElement>(null);
 
@@ -42,15 +44,13 @@ export function QuickCard({ draft, onChange, onSave, onDismiss, onMore, onDelete
   const canSave = draft.title.trim().length > 0;
 
   return (
-    <motion.div className="sheet-backdrop light" onClick={onDismiss} role="presentation" {...backdropMotion}>
-      <motion.div
-        className="sheet quick"
-        onClick={(e) => e.stopPropagation()}
-        role="dialog"
-        aria-label={isNew ? "Nowy wpis" : "Wpis"}
-        {...sheetMotion}
-      >
-        <div className="grab" />
+    <SheetFrame
+      anchor={anchor}
+      className="quick"
+      backdropClass="light"
+      label={isNew ? "Nowy wpis" : "Wpis"}
+      onDismiss={onDismiss}
+    >
         <input
           ref={input}
           className="quick-title"
@@ -96,7 +96,6 @@ export function QuickCard({ draft, onChange, onSave, onDismiss, onMore, onDelete
             Zapisz
           </button>
         </div>
-      </motion.div>
-    </motion.div>
+    </SheetFrame>
   );
 }

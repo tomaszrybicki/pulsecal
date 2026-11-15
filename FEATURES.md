@@ -94,8 +94,10 @@ logowanie Google bez własnego serwera (Google Identity Services).
 
 - **Telefon:** tapnięcie wpisu otwiera szybką kartę. Tytuł jest tam polem do edycji, więc zmiana nazwy
   to jedno tapnięcie. Do tego przełącznik „cały dzień”, kolory oraz przyciski Usuń, Więcej i Zapisz.
-- **Komputer:** kliknięcie wpisu od razu otwiera pełną edycję, bez klikania „Więcej”. Edycja jest panelem
-  z prawej strony, więc kalendarz zostaje widoczny i zmiany widać w nim na żywo.
+- **Komputer:** kliknięcie wpisu od razu otwiera pełną edycję, bez klikania „Więcej”.
+  Okno (pełna edycja i karta nowego wpisu) **wyskakuje obok kursora**: z prawej, a przy prawej krawędzi
+  ekranu z lewej. Kliknięte miejsce zostaje widoczne, a zmiany widać w kalendarzu na żywo.
+  Ustawienia otwierają się jako panel z prawej.
 - **Pełna edycja:** tytuł, przełącznik „Cały dzień” (wtedy same daty od–do), start i koniec, notatka, kolor.
   Zmiana startu zachowuje długość wpisu.
 - **Zamykanie:**

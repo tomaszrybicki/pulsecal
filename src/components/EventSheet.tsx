@@ -1,10 +1,10 @@
-import { motion } from "framer-motion";
 import { useEffect } from "react";
 import { PALETTE } from "../colors";
 import { toggleAllDay } from "../draft";
 import type { DraftEvent } from "../types";
 import { addDays, dayDiff, endOfDay, parseLocalInput, toDateInput, toLocalInput } from "../time";
-import { backdropMotion, sheetMotion } from "./sheetMotion";
+import type { Anchor } from "../hooks/useAnchoredPlacement";
+import { SheetFrame } from "./SheetFrame";
 import { TagInput } from "./TagInput";
 
 type Props = {
@@ -17,9 +17,11 @@ type Props = {
   onSave: () => void;
   onDelete?: () => void;
   knownTags: string[];
+  /** Punkt kliknięcia na komputerze → okno wyskakuje przy kursorze. */
+  anchor?: Anchor | null;
 };
 
-export function EventSheet({ draft, onChange, onClose, onDismiss, onSave, onDelete, knownTags }: Props) {
+export function EventSheet({ draft, onChange, onClose, onDismiss, onSave, onDelete, knownTags, anchor = null }: Props) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onDismiss();
@@ -50,15 +52,7 @@ export function EventSheet({ draft, onChange, onClose, onDismiss, onSave, onDele
   };
 
   return (
-    <motion.div className="sheet-backdrop" onClick={onDismiss} role="presentation" {...backdropMotion}>
-      <motion.div
-        className="sheet"
-        onClick={(e) => e.stopPropagation()}
-        role="dialog"
-        aria-label="Wpis"
-        {...sheetMotion}
-      >
-        <div className="grab" />
+    <SheetFrame anchor={anchor} label="Wpis" onDismiss={onDismiss}>
         <h2>{draft.id ? "Wpis" : "Nowy blob"}</h2>
         <label className="field">
           Tytuł
@@ -149,7 +143,6 @@ export function EventSheet({ draft, onChange, onClose, onDismiss, onSave, onDele
             Zapisz
           </button>
         </div>
-      </motion.div>
-    </motion.div>
+    </SheetFrame>
   );
 }
