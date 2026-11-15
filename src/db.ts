@@ -1,7 +1,6 @@
 import Dexie, { type EntityTable } from "dexie";
+import { normalizeTags, splitTags } from "./tags";
 import type { CalEvent } from "./types";
-import { PALETTE } from "./colors";
-import { addDays, atMinutes, startOfDay } from "./time";
 
 class PulseDB extends Dexie {
   events!: EntityTable<CalEvent, "id">;
@@ -11,90 +10,68 @@ class PulseDB extends Dexie {
     this.version(1).stores({
       events: "id, start, end, googleEventId, updatedAt, deleted",
     });
+    // v2: flaga `pending` (kolejka wysyłki do Google) + usunięcie przykładowych wpisów,
+    // żeby nie wysłały się do prawdziwego kalendarza przy pierwszym połączeniu.
+    this.version(2)
+      .stores({
+        events: "id, start, end, googleEventId, updatedAt, pending",
+      })
+      .upgrade(async (tx) => {
+        const table = tx.table<CalEvent & { pending?: 0 | 1 }, string>("events");
+        await table.toCollection().modify((e, ref) => {
+          if (!e.googleEventId && SAMPLE_SIGNATURES.has(`${e.title}|${e.notes}`)) {
+            delete (ref as { value?: unknown }).value;
+            return;
+          }
+          e.pending = e.googleEventId ? (e.deleted ? 1 : 0) : 1;
+        });
+      });
+    // v3: tagi jako osobne pole z indeksem multiEntry (filtrowanie, lista tagów).
+    // Linia „Tagi: …" z opisu przechodzi do `tags`, notatka zostaje bez niej.
+    this.version(3)
+      .stores({
+        events: "id, start, end, googleEventId, updatedAt, pending, *tags",
+      })
+      .upgrade(async (tx) => {
+        await tx
+          .table<CalEvent, string>("events")
+          .toCollection()
+          .modify((e) => {
+            const { notes, tags } = splitTags(e.notes ?? "");
+            e.notes = notes;
+            e.tags = normalizeTags([...(e.tags ?? []), ...tags]);
+          });
+      });
   }
 }
+
+const SAMPLE_SIGNATURES = new Set([
+  "Głęboka praca|Jeden kęs. Bez przełączania.",
+  "Spacer / reset|",
+  "Inbox 15 min|Tylko triage, nie robienie.",
+]);
 
 export const db = new PulseDB();
 
-const SEEDED = "pulsecal:seeded-v1";
-const DEDUPED = "pulsecal:dedupe-v1";
+export function newEventId(): string {
+  // 32 znaki hex — poprawne również jako ID wydarzenia w Google (base32hex),
+  // dzięki czemu wysyłka jest idempotentna (ponowny POST → 409 zamiast duplikatu).
+  return crypto.randomUUID().replace(/-/g, "");
+}
 
-export async function seedIfEmpty(): Promise<void> {
-  if (!localStorage.getItem(SEEDED)) {
-    localStorage.setItem(SEEDED, "1");
-    const count = await db.events.count();
-    if (count === 0) {
-      await addSamples();
-    }
+/** Zapis lokalnej zmiany: oznacza wpis do wysłania. */
+export async function saveLocal(event: CalEvent): Promise<void> {
+  await db.events.put({ ...event, pending: 1, updatedAt: Date.now() });
+}
+
+export async function removeLocal(id: string): Promise<void> {
+  const e = await db.events.get(id);
+  if (!e) return;
+  if (!e.googleEventId) {
+    await db.events.delete(id);
+    return;
   }
-  await dedupeLocalClones();
-}
-
-async function addSamples(): Promise<void> {
-
-  const today = startOfDay(new Date());
-  const now = Date.now();
-  const samples: CalEvent[] = [
-    {
-      id: crypto.randomUUID(),
-      title: "Głęboka praca",
-      notes: "Jeden kęs. Bez przełączania.",
-      start: atMinutes(today, 9 * 60 + 30).getTime(),
-      end: atMinutes(today, 11 * 60).getTime(),
-      allDay: false,
-      color: PALETTE[2].value,
-      origin: "local",
-      updatedAt: now,
-      deleted: false,
-    },
-    {
-      id: crypto.randomUUID(),
-      title: "Spacer / reset",
-      notes: "",
-      start: atMinutes(today, 13 * 60).getTime(),
-      end: atMinutes(today, 13 * 60 + 40).getTime(),
-      allDay: false,
-      color: PALETTE[0].value,
-      origin: "local",
-      updatedAt: now,
-      deleted: false,
-    },
-    {
-      id: crypto.randomUUID(),
-      title: "Inbox 15 min",
-      notes: "Tylko triage, nie robienie.",
-      start: atMinutes(addDays(today, 1), 10 * 60).getTime(),
-      end: atMinutes(addDays(today, 1), 10 * 60 + 15).getTime(),
-      allDay: false,
-      color: PALETTE[3].value,
-      origin: "local",
-      updatedAt: now,
-      deleted: false,
-    },
-  ];
-
-  await db.events.bulkAdd(samples);
-}
-
-async function dedupeLocalClones(): Promise<void> {
-  if (localStorage.getItem(DEDUPED)) return;
-  localStorage.setItem(DEDUPED, "1");
-  const all = await db.events.toArray();
-  const seen = new Set<string>();
-  for (const e of all) {
-    if (e.googleEventId) continue;
-    const key = `${e.title}|${e.start}|${e.end}`;
-    if (seen.has(key)) await db.events.delete(e.id);
-    else seen.add(key);
-  }
-}
-
-export async function upsertEvent(event: CalEvent): Promise<void> {
-  await db.events.put(event);
-}
-
-export async function softDeleteEvent(id: string): Promise<void> {
-  await db.events.update(id, { deleted: true, updatedAt: Date.now() });
+  await db.events.update(id, { deleted: true, pending: 1, updatedAt: Date.now() });
 }
 
 export async function eventsInRange(from: number, to: number): Promise<CalEvent[]> {
@@ -103,4 +80,43 @@ export async function eventsInRange(from: number, to: number): Promise<CalEvent[
     .below(to)
     .filter((e) => !e.deleted && e.end > from)
     .toArray();
+}
+
+export async function searchEvents(query: string, limit = 30): Promise<CalEvent[]> {
+  const q = query.trim().toLowerCase();
+  if (!q) return [];
+  const hits = await db.events
+    .filter(
+      (e) =>
+        !e.deleted &&
+        (e.title.toLowerCase().includes(q) ||
+          e.notes.toLowerCase().includes(q) ||
+          (e.tags ?? []).some((t) => t.includes(q))),
+    )
+    .toArray();
+  const now = Date.now();
+  // najpierw nadchodzące (od najbliższego), potem przeszłe (od najświeższego)
+  hits.sort((a, b) => {
+    const af = a.end >= now;
+    const bf = b.end >= now;
+    if (af !== bf) return af ? -1 : 1;
+    return af ? a.start - b.start : b.start - a.start;
+  });
+  return hits.slice(0, limit);
+}
+
+export async function pendingCount(): Promise<number> {
+  return db.events.where("pending").equals(1).count();
+}
+
+export type TagStat = { tag: string; count: number };
+
+/** Wszystkie użyte tagi z liczbą wpisów (najczęstsze pierwsze) — z indeksu, bez czytania wpisów. */
+export async function tagStats(): Promise<TagStat[]> {
+  const keys = (await db.events.orderBy("tags").keys()) as string[];
+  const counts = new Map<string, number>();
+  for (const k of keys) counts.set(k, (counts.get(k) ?? 0) + 1);
+  return [...counts]
+    .map(([tag, count]) => ({ tag, count }))
+    .sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag, "pl"));
 }

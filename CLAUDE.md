@@ -1,6 +1,7 @@
 # CLAUDE.md — Pulsecal
 
 Context for Claude Code. Read `HANDOFF.md` next: it has the current status and the next steps.
+`FEATURES.md` (Polish, for the owner) describes what the app does; `CHANGELOG.md` is the version history.
 
 ## What this is
 Pulsecal is a **Google Calendar clone as a PWA** (installed on iOS through Safari → "Add to Home Screen").
@@ -33,18 +34,29 @@ There are no tests and no linter. "Done" means `npm run build` passes with no er
 ## Layout
 ```
 src/
-  App.tsx                 state, view switching, polling (to be rewritten, see HANDOFF)
+  App.tsx                 state, view switching, draft/editor state, event moves
   db.ts                   Dexie schema + local CRUD
+  draft.ts                draft helpers (DRAFT_ID ghost, all-day toggle, when-label, withDraft)
+  tags.ts                 tags: normalize, "Tagi: a, b" last line of the Google description, filter rule, color
   types.ts                CalEvent, DraftEvent, ViewMode, SyncState
   colors.ts               palette + mapping to Google colorId
   time.ts                 date helpers (Monday is the first day of the week, Polish labels)
   sync/google.ts          OAuth (GIS) + sync engine
   hooks/useLiveQuery.ts   Dexie liveQuery → React
   hooks/useNow.ts         ticking clock
+  hooks/useGoogleSync.ts  polling + SyncState + connect/disconnect + toast notices
+  hooks/useDragGesture.ts mouse drag / touch long-press drag, auto-scroll, click suppression
+  hooks/useOptimisticMove.ts  keeps a dropped event in place until liveQuery catches up
+  hooks/useMediaQuery.ts  DESKTOP_QUERY (desktop → click opens the full editor)
   components/
     CalendarMap.tsx       "map" view: days side by side, scrolled horizontally, 24 h vertically
-    MonthView.tsx         month grid
-    EventSheet.tsx        bottom sheet for editing an entry
+    MonthView.tsx         GCal-style month: week rows with lanes, bars, "+N", drag + corner stretch
+    QuickCard.tsx         quick add / rename card (phone default for tapping an event)
+    EventSheet.tsx        full editor (desktop default; right-side panel on wide screens)
+    Sidebar.tsx           left panel: action buttons, MiniCalendar, tag filter list (docked / drawer)
+    MiniCalendar.tsx      mini month with ISO week numbers; drag or week number → WeekSelection
+    TagInput.tsx          tag chips editor with suggestions
+    SyncIndicator.tsx, Toast.tsx, sheetMotion.ts
     SettingsSheet.tsx     Client ID, calendar, polling interval
 public/                   icons, favicon
 ```
@@ -53,6 +65,9 @@ public/                   icons, favicon
 - UI copy in Polish, lowercase in headings ("mapa", "miesiąc"). Comments can be Polish or English.
 - Times are stored as epoch ms (local time). All-day `end` = **last millisecond of the last day**;
   Google's end is exclusive (the next day), so convert at the boundary (`sync/google.ts`).
+- Tags: local field `CalEvent.tags` (lowercase, Dexie v3 `*tags` index). Only at the Google boundary
+  (`parseGEvent`/`toGEvent`) do they become the last description line `Tagi: a, b` via `splitTags`/`joinTags`.
+  Filter rule: an event is visible if any of its tags is visible (`isVisible` in `tags.ts`).
 - Never use `new Date("YYYY-MM-DD")`, because it gives UTC. Use `fromIsoDate()` from `time.ts`.
 - Every local change goes through `saveLocal()`/`removeLocal()` in `db.ts`, which sets `pending = 1`.
   The UI **does not call the Google API directly**; it only triggers `syncNow()`.
@@ -67,4 +82,13 @@ public/                   icons, favicon
 
 ## Owner's environment
 Windows, the project lives in `C:\Users\Tomasz\Projects\pulsecal`. `node_modules` is installed for win32.
-Git is initialized but has **no commits**. Before larger changes, suggest an initial commit.
+Local git repo on `master`, no remote yet (and no `gh` CLI installed).
+
+## Versions and commits (owner's request)
+Every finished batch of work is a version, committed as soon as it is done:
+1. `npm run build` passes.
+2. Bump the version: `npm version X.Y.Z --no-git-tag-version` (new features → minor, fixes only → patch).
+3. Add a `## [X.Y.Z] – YYYY-MM-DD: title` section at the top of `CHANGELOG.md` (Polish, owner-facing);
+   update `FEATURES.md` if behaviour changed, and `HANDOFF.md` for the next session.
+4. One commit `vX.Y.Z: title` whose body is that changelog section, then an annotated tag `vX.Y.Z`.
+Commit directly on `master` (solo project, the owner wants one commit per version in its history).

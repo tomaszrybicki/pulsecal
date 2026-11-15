@@ -1,61 +1,116 @@
 import { motion } from "framer-motion";
+import { useEffect } from "react";
 import { PALETTE } from "../colors";
+import { toggleAllDay } from "../draft";
 import type { DraftEvent } from "../types";
-import { toLocalInput } from "../time";
+import { addDays, dayDiff, endOfDay, parseLocalInput, toDateInput, toLocalInput } from "../time";
+import { backdropMotion, sheetMotion } from "./sheetMotion";
+import { TagInput } from "./TagInput";
 
 type Props = {
   draft: DraftEvent;
   onChange: (d: DraftEvent) => void;
+  /** „Anuluj": zamknij bez zapisu. */
   onClose: () => void;
+  /** Tło / Esc: istniejący wpis ze zmianami App zapisuje, nowy odrzuca. */
+  onDismiss: () => void;
   onSave: () => void;
   onDelete?: () => void;
+  knownTags: string[];
 };
 
-export function EventSheet({ draft, onChange, onClose, onSave, onDelete }: Props) {
+export function EventSheet({ draft, onChange, onClose, onDismiss, onSave, onDelete, knownTags }: Props) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onDismiss();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onDismiss]);
+
+  const setTimedStart = (value: string) => {
+    const start = parseLocalInput(value);
+    // zachowaj długość wpisu przy przesuwaniu startu
+    if (start !== null) onChange({ ...draft, start, end: start + (draft.end - draft.start) });
+  };
+  const setTimedEnd = (value: string) => {
+    const end = parseLocalInput(value);
+    if (end !== null) onChange({ ...draft, end });
+  };
+  const setDayStart = (value: string) => {
+    const start = parseLocalInput(value);
+    if (start === null) return;
+    const days = dayDiff(new Date(draft.start), new Date(draft.end));
+    onChange({ ...draft, start, end: endOfDay(addDays(new Date(start), days)).getTime() });
+  };
+  const setDayEnd = (value: string) => {
+    const t = parseLocalInput(value);
+    if (t === null) return;
+    onChange({ ...draft, end: endOfDay(new Date(Math.max(t, draft.start))).getTime() });
+  };
+
   return (
-    <motion.div
-      className="sheet-backdrop"
-      onClick={onClose}
-      role="presentation"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-    >
+    <motion.div className="sheet-backdrop" onClick={onDismiss} role="presentation" {...backdropMotion}>
       <motion.div
         className="sheet"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-label="Wpis"
-        initial={{ y: 48, scale: 0.96 }}
-        animate={{ y: 0, scale: 1 }}
-        transition={{ type: "spring", stiffness: 420, damping: 22 }}
+        {...sheetMotion}
       >
         <div className="grab" />
         <h2>{draft.id ? "Wpis" : "Nowy blob"}</h2>
         <label className="field">
           Tytuł
           <input
-            autoFocus
+            autoFocus={!draft.id}
             value={draft.title}
             placeholder="Co się dzieje?"
             onChange={(e) => onChange({ ...draft, title: e.target.value })}
           />
         </label>
-        <label className="field">
-          Start
-          <input
-            type="datetime-local"
-            value={toLocalInput(draft.start)}
-            onChange={(e) => onChange({ ...draft, start: new Date(e.target.value).getTime() })}
-          />
+        <label className="toggle">
+          <input type="checkbox" checked={draft.allDay} onChange={() => onChange(toggleAllDay(draft))} />
+          <span className="toggle-track" aria-hidden>
+            <span className="toggle-knob" />
+          </span>
+          Cały dzień
         </label>
-        <label className="field">
-          Koniec
-          <input
-            type="datetime-local"
-            value={toLocalInput(draft.end)}
-            onChange={(e) => onChange({ ...draft, end: new Date(e.target.value).getTime() })}
-          />
-        </label>
+        {draft.allDay ? (
+          <div className="field-row">
+            <label className="field">
+              Od
+              <input type="date" value={toDateInput(draft.start)} onChange={(e) => setDayStart(e.target.value)} />
+            </label>
+            <label className="field">
+              Do
+              <input type="date" value={toDateInput(draft.end)} onChange={(e) => setDayEnd(e.target.value)} />
+            </label>
+          </div>
+        ) : (
+          <>
+            <label className="field">
+              Start
+              <input
+                type="datetime-local"
+                value={toLocalInput(draft.start)}
+                onChange={(e) => setTimedStart(e.target.value)}
+              />
+            </label>
+            <label className="field">
+              Koniec
+              <input
+                type="datetime-local"
+                value={toLocalInput(draft.end)}
+                onChange={(e) => setTimedEnd(e.target.value)}
+              />
+            </label>
+          </>
+        )}
+        <div className="field">
+          Tagi
+          <TagInput value={draft.tags} known={knownTags} onChange={(tags) => onChange({ ...draft, tags })} />
+        </div>
         <label className="field">
           Notatka
           <textarea
@@ -72,6 +127,7 @@ export function EventSheet({ draft, onChange, onClose, onSave, onDelete }: Props
                 key={c.id}
                 type="button"
                 className="swatch"
+                aria-label={`Kolor ${c.id}`}
                 style={{ background: c.value }}
                 aria-pressed={draft.color === c.value}
                 onClick={() => onChange({ ...draft, color: c.value })}
@@ -89,7 +145,7 @@ export function EventSheet({ draft, onChange, onClose, onSave, onDelete }: Props
               Anuluj
             </button>
           )}
-          <button type="button" className="primary" onClick={onSave}>
+          <button type="button" className="primary" onClick={onSave} disabled={!draft.title.trim()}>
             Zapisz
           </button>
         </div>

@@ -1,10 +1,78 @@
 # HANDOFF: Pulsecal work status (2026-11-15)
 
+Versions and commits: see `CHANGELOG.md` and the "Versions and commits" section of `CLAUDE.md`.
+
 Previous sessions: first Cursor IDE (built the MVP), then Claude in a chat session, which did the
 code audit and rewrote the data and sync layer, then stopped at the owner's request.
 **Start by reading `CLAUDE.md`.**
 
-## 1. Current state of `src/` (the code you see)
+## 0. Update 2026-11-15 (Claude Code session)
+- Initial commit made (`9a8ae06`, the Cursor MVP + handoff notes).
+- **Steps 1–3 are done** and `npm run build` passes. The `handoff/wip/src` files now live in `src/`
+  (the stale `handoff/wip` copy was deleted in v0.5.0).
+- `src/hooks/useGoogleSync.ts`: polling (min 10 s), visibilitychange, online/offline, debounced
+  `requestSync()` after local edits, token-expiry timer → `expired`, `connect()` (sync in onClick),
+  `notice` for toasts. `components/SyncIndicator.tsx` + `components/Toast.tsx` added.
+- `syncNow` change: one failing event no longer blocks the queue/pull; `SyncResult` has `failed`/`pushError`.
+- Settings: calendar is switched only on commit (blur/Enter, with confirm), with a `listCalendars()` dropdown
+  when connected. Poll interval commits on blur.
+- App: `useNow(30_000)` instead of 1 s; event range covers the whole 42-day grid in month view;
+  EventSheet uses `parseLocalInput` and keeps the duration when the start changes.
+- Fixed: map view opened with today scrolled under the sticky hour gutter (`scroll-padding-left`
+  + DOM-based scroll target).
+- Smoke-tested in a browser (Dexie v2 migration, local save with `pending=1`, settings sheet).
+  **Not tested against real Google yet** (needs a Client ID): connect, push, pull, expiry, calendar switch.
+- Next: step 4 (navigation).
+
+## 0b. Update 2026-11-15, part 2: GCal parity (owner priority)
+The owner's priority: easy **adding, moving (every view), renaming, event names in month view**,
+and later **quick action buttons**. Done:
+- **Month view rewritten** (`MonthView.tsx`): GCal-style week rows with lanes. Multi-day/all-day events
+  are spanning bars, timed ones are "dot + time + name" (phone: tinted pills, name only). Overflow → "+N więcej".
+  Lane capacity is measured (ResizeObserver). Weeks entirely in the next month are skipped.
+  Tap empty day area → quick add (all-day by default, like GCal's "Add time"); tap the day number or "+N" → map view.
+- **Drag & drop** (`hooks/useDragGesture.ts`): mouse after 4 px, touch after a 280 ms hold (non-passive
+  `touchmove` on window + `preventDefault`), Esc cancels, auto-scroll near edges, swallows the click after a drop.
+  The touched element must stay mounted, so views draw a separate **ghost** (`.drag-ghost` / `.m-float`)
+  and fade the source. `hooks/useOptimisticMove.ts` holds the new position until liveQuery catches up + "squish".
+  Map: move timed (15-min snap, across days), resize via the bottom handle, move all-day across days.
+  Month: move to another day (keeps the time of day).
+- **QuickCard** (`components/QuickCard.tsx`): GCal-like popover as a compact bottom card: title input,
+  when-label, "+ godzina"/"cały dzień" toggle, colors, Usuń/Więcej/Zapisz. Used for new entries (slot tap,
+  all-day row tap, month day tap, dock pill) and for tapping an existing entry (rename in place; tapping
+  outside saves edits of existing entries, discards new ones). **Quick action buttons go into `.quick-actions`.**
+- The draft is drawn live in the views (`withDraft()` in `src/draft.ts`, id `__draft__`, dashed outline).
+- EventSheet: "Cały dzień" toggle with date inputs. All sheets have exit animations (`sheetMotion.ts`).
+- ‹ › next to the month label: month view ±1 month, map ±7 days.
+- Event blobs: radius-only `blob-soft` morph (no translate/rotate), `prefers-reduced-motion` respected.
+- Tested in the in-app browser with a mouse (month drag, map move/resize, quick add, rename, phone layout).
+  **Touch long-press drag not tested on a real iPhone yet.**
+
+## 0c. Update 2026-11-15, part 3
+- Corner stretch: month chips have a right-edge handle (`.m-resize`, extends the end by whole days, keeps
+  the end time); map timed events have a bottom-right corner (`.resize-corner`, same logic as the bottom
+  handle: the column under the pointer sets the end day); map all-day events have a right edge (`.resize-edge`).
+- Desktop (`DESKTOP_QUERY`): clicking an event opens the full EventSheet directly. On ≥900 px all sheets are a
+  right-side panel. EventSheet: outside click / Esc → `dismissDraft` (saves edits of existing), "Anuluj" discards.
+- `FEATURES.md` added (owner-facing description + feature log, in Polish). Keep it updated.
+- Open idea: timed events ≥ 24 h could move to the all-day row like GCal does.
+
+## 0d. Update 2026-11-15, part 4: sidebar + tags
+- **Sidebar** (`Sidebar.tsx`): ☰ toggles it. Docked column on desktop (`DESKTOP_QUERY`, open state in
+  localStorage `pulsecal:sidebar`), fixed drawer otherwise. Top `.side-actions` is where future function
+  buttons go. On phones the mapa/miesiąc switch lives in the drawer (topbar had no room).
+- **MiniCalendar**: pointer capture + `elementFromPoint`; same-day click → `onPickDay`, drag across days or
+  week numbers → `onPickWeeks(start, n≤6)`. App holds `weekSel`; `mapDays` / `gridWeeks` derive from it,
+  `CalendarMap` now takes `days` + `focusDay`, `MonthView` takes `weeks` + `month` (null = range, no dimming).
+  ≤ 7 days → `.grid.fit` (columns fill width via `cqw`; `.map-shell` is a size container).
+- **Tags** (`tags.ts`, `TagInput.tsx`): see CLAUDE.md conventions. `tagStats()` in db.ts reads the multiEntry
+  index keys for the sidebar list. Hidden tags in localStorage `pulsecal:hidden-tags` (`__untagged__` = no tags).
+  Round-trip of the description format was tested in the browser (plain, HTML from Google, `Tags:`, not-last-line).
+- Gotcha seen while testing: Vite HMR can get stuck on a half-written module after several quick writes
+  (`does not provide an export named …`). `touch` the file and reload.
+- Not done yet: rename/delete a tag globally, custom tag colors.
+
+## 1. Original state of `src/` (before this session) (the code you see)
 Unchanged MVP from Cursor. It builds, and these work: the map view (21 days horizontally), the month view,
 adding/editing/deleting in the bottom sheet, IndexedDB, the PWA, and a basic sync with Google.
 

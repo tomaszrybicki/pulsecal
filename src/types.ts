@@ -10,11 +10,17 @@ export interface CalEvent {
   end: number;
   allDay: boolean;
   color: string;
+  /** Tagi (małe litery). W Google zapisane jako ostatnia linia opisu „Tagi: a, b" — patrz tags.ts. */
+  tags: string[];
   googleEventId?: string;
   googleEtag?: string;
+  /** Instancja wydarzenia cyklicznego z Google (edycja dotyczy tylko tej instancji). */
+  recurring?: boolean;
   origin: EventOrigin;
   updatedAt: number;
   deleted: boolean;
+  /** 1 = lokalna zmiana czeka na wysłanie do Google (liczba, bo IndexedDB nie indeksuje booleanów). */
+  pending: 0 | 1;
 }
 
 export interface DraftEvent {
@@ -25,4 +31,7 @@ export interface DraftEvent {
   end: number;
   allDay: boolean;
   color: string;
+  tags: string[];
 }
+
+export type SyncState = "off" | "idle" | "syncing" | "expired" | "offline" | "error";
