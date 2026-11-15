@@ -14,6 +14,7 @@
 import { DEFAULT_GOOGLE_COLOR, GOOGLE_EVENT_COLORS, googleIdForColor, paletteById, paletteByValue } from "../colors";
 import { db } from "../db";
 import type { CalEvent } from "../types";
+import { applyTagRules } from "../tagRules";
 import { autoTags, joinTags, splitTags } from "../tags";
 import { fromIsoDate, isoDate, addDays } from "../time";
 
@@ -509,8 +510,8 @@ async function applyRemote(g: GEvent, ignoreEtag = false): Promise<boolean> {
   if (!parsed) return false;
 
   // „!” na początku tytułu (dopisany w Google) → tag „ważne”; wtedy wpis wraca do Google z linią „Tagi: …”
-  const withAuto = (prevTitle?: string) => {
-    const tags = autoTags(parsed.title, parsed.tags, prevTitle);
+  const withAuto = (prev?: { title: string; notes: string }) => {
+    const tags = applyTagRules(parsed.title, parsed.notes, autoTags(parsed.title, parsed.tags, prev?.title), prev);
     return tags === parsed.tags
       ? { ...parsed, pending: 0 as const }
       : { ...parsed, tags, pending: 1 as const, updatedAt: Date.now() };
@@ -521,7 +522,7 @@ async function applyRemote(g: GEvent, ignoreEtag = false): Promise<boolean> {
     // lokalna, niewysłana zmiana nowsza od zdalnej → zostawiamy lokalną (wyśle się przy następnym syncu)
     if (existing.pending && existing.updatedAt >= parsed.updatedAt) return false;
     await db.events.put({
-      ...withAuto(existing.title),
+      ...withAuto({ title: existing.title, notes: existing.notes }),
       id: existing.id,
       origin: existing.origin === "local" ? "both" : existing.origin,
     });

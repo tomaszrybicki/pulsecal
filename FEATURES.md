@@ -71,6 +71,9 @@ logowanie Google bez własnego serwera (Google Identity Services).
 
 - **Wiele tagów na wpis**, np. „przypomnienie”, „wizyta”, „remont mieszkania”, „przy komputerze”.
   Tagi mogą mieć spacje i wielkie litery („ADHD”, „Praca”); „Praca” i „praca” to ten sam tag.
+- **Reguły tagów** (panel boczny → „tagi” → „reguły”): „słowo w tytule lub notatce → tag”, np. „dentysta” →
+  „wizyta”. Całe słowa, bez względu na wielkość liter. Działają przy zapisie, w szybkim dodawaniu i dla wpisów
+  z Google; tylko dodają tagi. „Zastosuj do istniejących wpisów” dopisuje tagi wstecz (z „Cofnij”).
 - **Automatyczny tag „ważne”:** tytuł zaczynający się od „!” (np. „!zapłacić czynsz”) dostaje tag „ważne”
   (raz — jeśli go potem usuniesz, nie wróci).
 - **Dodawanie:** w szybkiej karcie i w pełnej edycji jest pole „Tagi”.
@@ -216,7 +219,6 @@ Historia wersji jest w [CHANGELOG.md](CHANGELOG.md).
 - **Konflikty z Google:** gdy ten sam wpis zmieni się jednocześnie w Pulsecal i w Google, wygrywa nowsza
   zmiana, a druga przepada. Porządna obsługa konfliktów jest na liście TODO w `HANDOFF.md`.
 - **Planowane** (kolejność w `HANDOFF.md`):
-  - (później) reguły tagów, np. „tytuł zawiera »dentysta« → tag »wizyta«”;
   - (później) kopia ustawień aplikacji w Google Calendar jako ukryty wpis, do odtworzenia na innym urządzeniu;
   - szersza mapa z przewijaniem bez końca;
   - zamykanie okien gestem w dół;

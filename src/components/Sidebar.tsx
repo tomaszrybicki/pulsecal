@@ -24,6 +24,7 @@ type Props = {
   onShowAll: () => void;
   theme: ThemePref;
   onTheme: (t: ThemePref) => void;
+  onOpenRules: () => void;
 };
 
 const THEMES: [ThemePref, string][] = [
@@ -70,11 +71,16 @@ export function Sidebar(p: Props) {
         <section className="side-tags">
           <header>
             <h3>tagi</h3>
-            {p.hidden.size > 0 && (
-              <button type="button" className="link-btn" onClick={p.onShowAll}>
-                pokaż wszystkie
+            <span className="side-links">
+              {p.hidden.size > 0 && (
+                <button type="button" className="link-btn" onClick={p.onShowAll}>
+                  pokaż wszystkie
+                </button>
+              )}
+              <button type="button" className="link-btn" onClick={p.onOpenRules}>
+                reguły
               </button>
-            )}
+            </span>
           </header>
           {p.tags.length === 0 && (
             <p className="hint">Dodaj tag do wpisu (pole „Tagi”), a pojawi się tutaj. Odznacz tag, żeby ukryć jego wpisy.</p>

@@ -3,6 +3,15 @@
 Każda wersja to jeden commit `vX.Y.Z: …` (treść commita = wpis z tego pliku) i tag `vX.Y.Z`.
 Najnowsze na górze. Opis funkcji aplikacji jest w [FEATURES.md](FEATURES.md).
 
+## [0.15.0] – 2026-11-15: reguły tagów
+
+- Reguły tagów: „słowo albo fraza w tytule lub notatce → tag” (np. „dentysta” → „wizyta”). Edycja w panelu
+  bocznym: „tagi → reguły”.
+- Dopasowanie całych słów, bez względu na wielkość liter, z polskimi znakami („kot” nie pasuje do „kotlet”).
+- Działają przy zapisie w aplikacji, w szybkim dodawaniu i dla wpisów z Google. Tylko dodają tagi; reguła
+  zadziała, gdy słowo pojawi się w tytule/notatce, więc ręcznie usunięty tag nie wraca.
+- Przycisk „Zastosuj do istniejących wpisów” (z „Cofnij”).
+
 ## [0.14.0] – 2026-11-15: wybór daty od poniedziałku
 
 - Wybór daty w pełnej edycji z tygodniem od poniedziałku: własny kalendarzyk zamiast przeglądarkowego

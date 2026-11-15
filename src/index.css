@@ -2398,3 +2398,61 @@ button.pill-plus:active {
   row-gap: 2px;
   font-size: 0.78rem;
 }
+
+/* ── reguły tagów ── */
+
+.side-links {
+  display: inline-flex;
+  gap: 10px;
+}
+
+.rules-list {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+}
+
+.rules-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 0;
+  font-size: 0.86rem;
+}
+
+.rule-word {
+  font-weight: 500;
+}
+
+.rule-add {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.rule-add input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  border-radius: 14px;
+  padding: 10px 12px;
+  background: var(--field);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.86rem;
+}
+
+.rule-add button {
+  flex: none;
+  border: 0;
+  border-radius: 999px;
+  padding: 10px 14px;
+  font: inherit;
+  cursor: pointer;
+}
+
+.rule-add button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}

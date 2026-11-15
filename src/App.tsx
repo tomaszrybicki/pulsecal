@@ -10,6 +10,7 @@ import { QuickCard } from "./components/QuickCard";
 import { SearchSheet } from "./components/SearchSheet";
 import { SettingsSheet } from "./components/SettingsSheet";
 import { Sidebar } from "./components/Sidebar";
+import { TagRulesSheet } from "./components/TagRulesSheet";
 import { SyncIndicator } from "./components/SyncIndicator";
 import { Toast } from "./components/Toast";
 import { PALETTE } from "./colors";
@@ -23,6 +24,7 @@ import { useNow } from "./hooks/useNow";
 import { useTheme } from "./hooks/useTheme";
 import type { ParsedEntry } from "./quickParse";
 import { getCalendarId, getStoredClientId, preloadGoogle, setStoredClientId, switchCalendar } from "./sync/google";
+import { applyTagRules, getTagRules, setTagRules, type TagRule } from "./tagRules";
 import { UNTAGGED, autoTags, isVisible, normalizeTags } from "./tags";
 import type { CalEvent, DraftEvent, ViewMode } from "./types";
 import {
@@ -89,6 +91,8 @@ export function App() {
   const [calendarId, setCalendarId] = useState(getCalendarId);
   const [pollSec, setPollSec] = useState(readPollSec);
   const [hiddenTags, setHiddenTags] = useState(readHiddenTags);
+  const [rules, setRules] = useState<TagRule[]>(getTagRules);
+  const [rulesOpen, setRulesOpen] = useState(false);
   // na komputerze kliknięcie wpisu od razu pokazuje wszystkie opcje (bez „Więcej")
   const isDesktop = useMediaQuery(DESKTOP_QUERY);
   const theme = useTheme();
@@ -163,7 +167,12 @@ export function App() {
       end: Math.max(draft.end, draft.start + 15 * MINUTE),
       allDay: draft.allDay,
       color: draft.color,
-      tags: autoTags(draft.title.trim(), normalizeTags(draft.tags), existing?.title),
+      tags: applyTagRules(
+        draft.title.trim(),
+        draft.notes,
+        autoTags(draft.title.trim(), normalizeTags(draft.tags), existing?.title),
+        existing ? { title: existing.title, notes: existing.notes } : undefined,
+      ),
       origin: existing?.origin ?? "local",
       updatedAt: Date.now(),
       deleted: false,
@@ -269,6 +278,39 @@ export function App() {
     sync.requestSync(2000);
   };
 
+  const changeRules = (next: TagRule[]) => {
+    setRules(next);
+    setTagRules(next);
+  };
+
+  /** Reguły dla wszystkich istniejących wpisów (tylko dodają tagi), z „Cofnij”. */
+  const applyRulesToAll = async () => {
+    const all = await db.events.filter((e) => !e.deleted).toArray();
+    const before: CalEvent[] = [];
+    for (const e of all) {
+      const tags = applyTagRules(e.title, e.notes, e.tags ?? [], undefined, rules);
+      if (tags.length !== (e.tags ?? []).length) {
+        before.push(e);
+        await saveLocal({ ...e, tags });
+      }
+    }
+    sync.requestSync(4000);
+    sync.notify(
+      before.length ? `Dodano tagi w ${before.length} ${before.length === 1 ? "wpisie" : "wpisach"}` : "Żaden wpis nie pasuje do reguł",
+      "ok",
+      before.length
+        ? {
+            label: "Cofnij",
+            run: () =>
+              void (async () => {
+                for (const e of before) await saveLocal(e);
+                sync.requestSync();
+              })(),
+          }
+        : undefined,
+    );
+  };
+
   const eventActions = {
     onDelete: isDesktop ? (e: CalEvent) => void deleteEvent(e.id) : undefined,
     onContext: isDesktop ? (e: CalEvent, pt: Anchor) => setMenu({ e, anchor: pt }) : undefined,
@@ -332,7 +374,7 @@ export function App() {
   // skrót klawiszowy „t" = dziś (jak w Google Calendar), gdy nie piszesz i nie ma otwartego okna
   const goTodayRef = useRef(goToday);
   goTodayRef.current = goToday;
-  const sheetOpen = Boolean(draft) || settingsOpen || searchOpen || Boolean(dayPanel) || Boolean(menu);
+  const sheetOpen = Boolean(draft) || settingsOpen || searchOpen || rulesOpen || Boolean(dayPanel) || Boolean(menu);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (sheetOpen || e.ctrlKey || e.metaKey || e.altKey) return;
@@ -429,7 +471,7 @@ export function App() {
       end: p.end,
       allDay: p.allDay,
       color: PALETTE[4].value,
-      tags: autoTags(p.title, p.tags),
+      tags: applyTagRules(p.title, "", autoTags(p.title, p.tags)),
       origin: "local",
       updatedAt: Date.now(),
       deleted: false,
@@ -546,6 +588,10 @@ export function App() {
           onShowAll={() => setHiddenTags(new Set())}
           theme={theme.pref}
           onTheme={theme.setPref}
+          onOpenRules={() => {
+            closeDrawer();
+            setRulesOpen(true);
+          }}
         />
 
         <main className="map-shell">
@@ -672,6 +718,19 @@ export function App() {
               setEditor("full");
               setDraft(draftFromEvent(e));
             }}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {rulesOpen && (
+          <TagRulesSheet
+            key="rules"
+            rules={rules}
+            knownTags={knownTags}
+            onChange={changeRules}
+            onApplyAll={() => void applyRulesToAll()}
+            onClose={() => setRulesOpen(false)}
           />
         )}
       </AnimatePresence>

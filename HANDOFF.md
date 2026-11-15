@@ -89,7 +89,7 @@
 - [ ] **P2 – Silent reconnect after the 1 h token expiry** (no backend): when the token has expired, the
   user's next click anywhere calls `connectGoogle()` (prompt "") inside that gesture — usually just a short
   popup flash. The full fix (log in once) needs a small backend with refresh tokens — ask the owner first.
-- [ ] **P2 – Tag rules**: rules like „title (or notes) contains word X → add tag Y” (e.g. „dentysta” →
+- [x] **P2 – Tag rules**: rules like „title (or notes) contains word X → add tag Y” (e.g. „dentysta” →
   `wizyta`). Edited in the sidebar under the tag list / in settings. Apply on save in the app (QuickCard,
   EventSheet, quick add) and to events pulled from Google; only *add* tags (never remove), and don't re-add
   a tag the user removed by hand from that event. Match case-insensitively on whole words, Polish letters
