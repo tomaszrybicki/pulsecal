@@ -203,6 +203,9 @@ Historia wersji jest w [CHANGELOG.md](CHANGELOG.md).
 - **Konflikty z Google:** gdy ten sam wpis zmieni się jednocześnie w Pulsecal i w Google, wygrywa nowsza
   zmiana, a druga przepada. Porządna obsługa konfliktów jest na liście TODO w `HANDOFF.md`.
 - **Planowane** (kolejność w `HANDOFF.md`):
+  - w widoku miesiąca: okienko ze wszystkimi wpisami dnia zamiast przejścia do mapy oraz „przegląd dnia”
+    z przyciskami „>” (na jutro), „>>” (za tydzień) i „> wszystkie niepilne”;
+  - automatyczny tag „ważne” dla wpisów, których tytuł zaczyna się od „!”;
   - szersza mapa z przewijaniem bez końca;
   - zamykanie okien gestem w dół;
   - szybkie wyszukiwanie i dodawanie z paska („jutro 14:30”);

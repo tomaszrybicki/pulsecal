@@ -13,6 +13,19 @@
   4. Edge cases: deleted on one side + edited on the other; recurring instances; the same event edited on
      two devices (both push to Google).
   5. A small log of resolved conflicts (for trust/debugging).
+- [ ] **Month view: day popup + "triage" of a day's events** (don't open the map for "+N więcej").
+  1. "+N więcej" opens a popup with **all** events of that day (instead of switching to the map/week).
+  2. Every day that has any event gets a small button at the bottom of its cell that opens an
+     **analysis/triage mode** for that day: a list of the day's events, each with
+     `>` = move to the next day and `>>` = move by 7 days (keep the time of day; all-day stays all-day).
+  3. A general button **„> wszystkie niepilne”** that moves to the next day every event of that day that
+     has neither the tag `pilne` nor `ważne`.
+  Notes: moves go through `saveLocal` (pending → sync) like drag & drop; an undo toast would be welcome;
+  this is also a natural ADHD feature (low-friction rescheduling).
+- [ ] **Default tag „ważne”**: added automatically to every event whose title starts with `!`
+  (e.g. „!zapłacić czynsz”). Decide: strip the `!` from the title or keep it; apply on save in the app
+  (QuickCard / EventSheet / quick add) and also to events pulled from Google; don't remove the tag again
+  if the user deletes it manually later (only add on create / when the `!` is newly added).
 
 Versions and commits: see `CHANGELOG.md` and the "Versions and commits" section of `CLAUDE.md`.
 
