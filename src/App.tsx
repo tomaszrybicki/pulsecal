@@ -63,7 +63,7 @@ function readHiddenTags(): Set<string> {
 export function App() {
   // Minuta wystarcza dla linii „teraz"; tykanie co sekundę re-renderowało całą aplikację.
   const now = useNow(30_000);
-  const [view, setView] = useState<ViewMode>("map");
+  const [view, setView] = useState<ViewMode>("month");
   const [focus, setFocus] = useState(() => startOfDay(new Date()));
   // tygodnie wybrane w małym kalendarzu (null = zwykły widok: miesiąc / 21 dni wokół fokusu)
   const [weekSel, setWeekSel] = useState<WeekSelection | null>(null);

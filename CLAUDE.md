@@ -30,6 +30,9 @@ npm run build    # tsc --noEmit && vite build
 npm run preview
 ```
 There are no tests and no linter. "Done" means `npm run build` passes with no errors.
+**Keep usage down (owner's request):** for small changes you are confident about, `npm run build` is enough —
+skip browser testing or do one minimal check. Test in the browser only for bigger or risky changes
+(drag/gestures, sync, data migrations).
 
 ## Layout
 ```

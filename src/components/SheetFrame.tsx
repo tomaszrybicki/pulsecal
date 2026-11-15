@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { useRef, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { useAnchoredPlacement, type Anchor } from "../hooks/useAnchoredPlacement";
 import { backdropMotion, paletteMotion, popMotion, sheetMotion } from "./sheetMotion";
 
@@ -21,6 +21,13 @@ export function SheetFrame({ anchor, className = "", backdropClass = "", label, 
   const pos = useAnchoredPlacement(anchor, ref);
   const floating = anchor !== null;
   const palette = variant === "palette";
+  const shown = !floating || pos !== null;
+
+  // Fokus na polu oznaczonym data-autofocus dopiero, gdy okno jest widoczne — okno przy kursorze jest
+  // przez pierwszą klatkę ukryte (visibility: hidden), a przeglądarka ignoruje focus() na ukrytym elemencie.
+  useEffect(() => {
+    if (shown) ref.current?.querySelector<HTMLElement>("[data-autofocus]")?.focus({ preventScroll: true });
+  }, [shown]);
 
   return (
     <motion.div

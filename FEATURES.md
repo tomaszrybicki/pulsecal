@@ -200,6 +200,8 @@ Historia wersji jest w [CHANGELOG.md](CHANGELOG.md).
   tagów (kolor wynika z nazwy). Tag usunięty ze wszystkich wpisów znika z listy.
 - **Opis z formatowaniem z Google** (pogrubienia, linki) po edycji wpisu w Pulsecal wraca do Google
   jako zwykły tekst.
+- **Konflikty z Google:** gdy ten sam wpis zmieni się jednocześnie w Pulsecal i w Google, wygrywa nowsza
+  zmiana, a druga przepada. Porządna obsługa konfliktów jest na liście TODO w `HANDOFF.md`.
 - **Planowane** (kolejność w `HANDOFF.md`):
   - szersza mapa z przewijaniem bez końca;
   - zamykanie okien gestem w dół;

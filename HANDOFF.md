@@ -1,5 +1,19 @@
 # HANDOFF: Pulsecal work status (2026-11-15)
 
+## TODO (owner's list)
+- [ ] **Conflict handling between Google Calendar and the local DB.** Today it is last-writer-wins
+  (`applyRemote` in `sync/google.ts`: local `updatedAt` vs Google `updated`), so a simultaneous edit on
+  both sides silently loses one version. Build a real system:
+  1. Detect: local entry is `pending` AND Google's etag differs from the last synced `googleEtag`
+     (both sides changed since the last sync) → conflict, instead of picking the newer one.
+  2. Merge what can be merged field by field (title / time / notes / tags / colour) when only different
+     fields changed; that needs the last synced snapshot (store it, e.g. `syncBase` on the event).
+  3. Real conflicts: keep both versions (e.g. `conflict` field with the remote copy), mark the entry in
+     the UI, let the owner pick „moja / z Google / połącz”; don't push until resolved.
+  4. Edge cases: deleted on one side + edited on the other; recurring instances; the same event edited on
+     two devices (both push to Google).
+  5. A small log of resolved conflicts (for trust/debugging).
+
 Versions and commits: see `CHANGELOG.md` and the "Versions and commits" section of `CLAUDE.md`.
 
 Previous sessions: first Cursor IDE (built the MVP), then Claude in a chat session, which did the

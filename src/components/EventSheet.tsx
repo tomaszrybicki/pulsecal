@@ -57,7 +57,7 @@ export function EventSheet({ draft, onChange, onClose, onDismiss, onSave, onDele
         <label className="field">
           Tytuł
           <input
-            autoFocus={!draft.id}
+            data-autofocus={!draft.id || undefined}
             value={draft.title}
             placeholder="Co się dzieje?"
             onChange={(e) => onChange({ ...draft, title: e.target.value })}

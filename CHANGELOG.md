@@ -3,6 +3,13 @@
 Każda wersja to jeden commit `vX.Y.Z: …` (treść commita = wpis z tego pliku) i tag `vX.Y.Z`.
 Najnowsze na górze. Opis funkcji aplikacji jest w [FEATURES.md](FEATURES.md).
 
+## [0.8.1] – 2026-11-15: fokus i domyślny widok
+
+- Poprawka: po otwarciu okna nowego wpisu kursor od razu stoi w polu tytułu (na komputerze okno przy kursorze
+  było przez chwilę ukryte i przeglądarka ignorowała ustawienie fokusu).
+- Domyślny widok po uruchomieniu: miesiąc.
+- TODO: system obsługi konfliktów Google ↔ lokalna baza (plan w `HANDOFF.md`).
+
 ## [0.8.0] – 2026-11-15: szukaj i dodaj jednym zdaniem
 
 - Pasek „Szukaj w czasie albo dodaj wpis” naprawdę szuka (wcześniej tylko otwierał nowy wpis):

@@ -29,11 +29,6 @@ export function QuickCard({ draft, onChange, onSave, onDismiss, onMore, onDelete
   const input = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (!isNew) return;
-    input.current?.focus();
-  }, [isNew]);
-
-  useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onDismiss();
     };
@@ -54,6 +49,7 @@ export function QuickCard({ draft, onChange, onSave, onDismiss, onMore, onDelete
         <input
           ref={input}
           className="quick-title"
+          data-autofocus={isNew || undefined}
           value={draft.title}
           placeholder={isNew ? "Dodaj tytuł" : "Bez tytułu"}
           enterKeyHint="done"
