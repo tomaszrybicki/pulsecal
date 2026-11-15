@@ -17,3 +17,10 @@ export const popMotion = {
   animate: { opacity: 1, scale: 1, transition: { type: "spring", stiffness: 520, damping: 26 } },
   exit: { opacity: 0, scale: 0.94, transition: { duration: 0.14 } },
 } as const;
+
+/** Okno wyszukiwania u góry ekranu: zjeżdża lekko z góry. */
+export const paletteMotion = {
+  initial: { y: -24, scale: 0.97, opacity: 0 },
+  animate: { y: 0, scale: 1, opacity: 1, transition: { type: "spring", stiffness: 480, damping: 30 } },
+  exit: { y: -16, opacity: 0, transition: { duration: 0.14 } },
+} as const;

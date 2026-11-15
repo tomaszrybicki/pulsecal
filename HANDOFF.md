@@ -89,7 +89,17 @@ and later **quick action buttons**. Done:
   one gesture = one step via a lock that extends while inertia events keep coming). MonthView: React onWheel
   + vertical swipe (capture phase, so chip drag handlers don't swallow it) → `onStep`.
 - Testing tip: in the hidden pane, dispatch `new Event('scroll')` / `WheelEvent` manually.
-- Next: v0.8.0 search (the dock pill still only creates an entry).
+
+## 0g. v0.8.0: search + quick add (HANDOFF step 7 done)
+- `SearchSheet.tsx` (SheetFrame variant "palette"): `searchEvents()` (now also matches tags) or the next 8
+  upcoming events; first row "Utwórz …" from `parseQuickEntry()` (`quickParse.ts`). Default Enter: create if
+  the text had a date/time (`hasWhen`) or there are no results, otherwise open the first result.
+- App: dock pill = search, separate "+" = blank entry; "/" opens search; `createFromSearch` saves directly,
+  jumps to the day and toasts (warns if a tag filter hides it).
+- Parser checked in the browser on 12 phrases (see CHANGELOG 0.8.0 examples). Known choices: an ambiguous
+  `#prefix` becomes a new tag; a past "d.m" date without a year goes to next year; "nie" is not Sunday.
+- Remaining HANDOFF steps: 5 (touch drag polish on iPhone), 6 (swipe-down to close sheets, duration chips,
+  origin badge), 8 (dark mode, more shortcuts), 9 (README about re-login / backend option).
 
 ## 1. Original state of `src/` (before this session) (the code you see)
 Unchanged MVP from Cursor. It builds, and these work: the map view (21 days horizontally), the month view,

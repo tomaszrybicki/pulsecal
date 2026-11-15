@@ -3,6 +3,16 @@
 Każda wersja to jeden commit `vX.Y.Z: …` (treść commita = wpis z tego pliku) i tag `vX.Y.Z`.
 Najnowsze na górze. Opis funkcji aplikacji jest w [FEATURES.md](FEATURES.md).
 
+## [0.8.0] – 2026-11-15: szukaj i dodaj jednym zdaniem
+
+- Pasek „Szukaj w czasie albo dodaj wpis” naprawdę szuka (wcześniej tylko otwierał nowy wpis):
+  tytuły, notatki i tagi, nadchodzące przed minionymi, podświetlenie dopasowania, najbliższe wpisy przy pustym polu.
+- Wynik otwiera wpis i przenosi do jego dnia.
+- Dodawanie jednym zdaniem po polsku z podglądem: „dentysta jutro 14:30 1h #wizyta”, „urodziny mamy 26.11”,
+  „faktury w piątek o 10”, „za 3 dni”, „30m”, „cały dzień”, tagi po początku nazwy.
+- Klawisz „/” otwiera wyszukiwanie; „+” na pasku osobno tworzy pusty wpis.
+- Okno wyszukiwania u góry ekranu (klawiatura telefonu nie zasłania wyników).
+
 ## [0.7.0] – 2026-11-15: przewijanie przez daty i „dziś”
 
 - Przycisk „dziś” w górnym pasku i skrót klawiszowy T: powrót do dzisiejszego dnia w obecnym widoku.

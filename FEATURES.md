@@ -97,9 +97,29 @@ logowanie Google bez własnego serwera (Google Identity Services).
   - **Mapa:** wpis o godzinie, w którą tapnięto (45 min).
   - **Wiersz całodniowy w mapie:** wpis na cały dzień.
   - **Miesiąc:** wpis na cały dzień, a przycisk „+ godzina” zamienia go na wpis z godziną (jak w Google).
-  - **Pasek na dole:** wpis od najbliższego kwadransa.
+  - **„+” na pasku na dole:** wpis od najbliższego kwadransa.
+  - **Jednym zdaniem:** przez wyszukiwarkę, opisane niżej.
 - **Podgląd na żywo:** szkic od razu widać w kalendarzu (przerywana ramka), a tytuł zmienia się w trakcie pisania.
 - Tapnięcie obok karty przy nowym wpisie zamyka ją bez zapisu (jak w Google).
+
+### Szukaj i dodaj jednym zdaniem
+
+- **Otwieranie:** pasek „Szukaj w czasie albo dodaj wpis” na dole albo klawisz **/** na komputerze.
+  Okno pojawia się u góry ekranu (na telefonie klawiatura nie zasłania wyników).
+- **Szukanie:** w tytułach, notatkach i tagach („#remont” też działa). Najpierw nadchodzące, potem minione;
+  pasujący tekst jest podświetlony. Puste pole pokazuje najbliższe wpisy.
+  Kliknięcie wyniku (albo Enter) przenosi do tego dnia i otwiera wpis.
+- **Dodawanie jednym zdaniem:** na górze listy jest „Utwórz „…”” z podglądem, co zostanie zapisane. Rozumie:
+  - dni: „dziś”, „jutro”, „pojutro”, „w piątek”, „za 3 dni”, „za tydzień”, „26.11”, „26.11.2027”, „2026-11-26”;
+  - godziny: „14:30”, „o 10”, „9:00-10:30”, „o 9-11”;
+  - długość: „30m”, „45 min”, „1h”, „1,5 h”, „2 godz”;
+  - „cały dzień”;
+  - tagi: „#wizyta” (wystarczy początek nazwy, jeśli pasuje tylko do jednego istniejącego tagu, np. „#rem”).
+
+  Bez daty i godziny: dziś od najbliższego kwadransa. Data bez godziny: cały dzień.
+  Przykład: „dentysta jutro 14:30 1h #wizyta”.
+- **Enter:** jeśli w tekście jest data albo godzina, tworzy wpis; inaczej otwiera pierwszy wynik.
+  Strzałki zmieniają zaznaczenie, Esc zamyka.
 
 ### Edycja i zmiana nazwy
 

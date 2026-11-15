@@ -38,6 +38,7 @@ src/
   db.ts                   Dexie schema + local CRUD
   draft.ts                draft helpers (DRAFT_ID ghost, all-day toggle, when-label, withDraft)
   tags.ts                 tags: normalize, "Tagi: a, b" last line of the Google description, filter rule, color
+  quickParse.ts           Polish one-line quick add ("dentysta jutro 14:30 1h #wizyta") → ParsedEntry
   types.ts                CalEvent, DraftEvent, ViewMode, SyncState
   colors.ts               palette + mapping to Google colorId
   time.ts                 date helpers (Monday is the first day of the week, Polish labels)
@@ -48,6 +49,7 @@ src/
   hooks/useDragGesture.ts mouse drag / touch long-press drag, auto-scroll, click suppression
   hooks/useOptimisticMove.ts  keeps a dropped event in place until liveQuery catches up
   hooks/useMediaQuery.ts  DESKTOP_QUERY (desktop → click opens the full editor)
+  hooks/useAnchoredPlacement.ts  place a window next to the click point (flip/clamp to the viewport)
   components/
     CalendarMap.tsx       "map" view: days side by side, scrolled horizontally, 24 h vertically
     MonthView.tsx         GCal-style month: week rows with lanes, bars, "+N", drag + corner stretch
@@ -56,6 +58,8 @@ src/
     Sidebar.tsx           left panel: action buttons, MiniCalendar, tag filter list (docked / drawer)
     MiniCalendar.tsx      mini month with ISO week numbers; drag or week number → WeekSelection
     TagInput.tsx          tag chips editor with suggestions
+    SearchSheet.tsx       search (title/notes/tags) + "Utwórz …" from quickParse; opened by the dock pill or "/"
+    SheetFrame.tsx        shared window shell: bottom sheet / popover at the cursor (desktop) / top palette
     SyncIndicator.tsx, Toast.tsx, sheetMotion.ts
     SettingsSheet.tsx     Client ID, calendar, polling interval
 public/                   icons, favicon

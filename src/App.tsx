@@ -5,18 +5,20 @@ import { EventSheet } from "./components/EventSheet";
 import type { WeekSelection } from "./components/MiniCalendar";
 import { MonthView } from "./components/MonthView";
 import { QuickCard } from "./components/QuickCard";
+import { SearchSheet } from "./components/SearchSheet";
 import { SettingsSheet } from "./components/SettingsSheet";
 import { Sidebar } from "./components/Sidebar";
 import { SyncIndicator } from "./components/SyncIndicator";
 import { Toast } from "./components/Toast";
 import { PALETTE } from "./colors";
 import { db, eventsInRange, newEventId, pendingCount, removeLocal, saveLocal, tagStats, type TagStat } from "./db";
-import { allDayDraft, draftFromEvent, isDirty, timedDraft, withDraft } from "./draft";
+import { allDayDraft, draftFromEvent, isDirty, timedDraft, whenLabel, withDraft } from "./draft";
 import type { Anchor } from "./hooks/useAnchoredPlacement";
 import { useGoogleSync, MIN_POLL_SEC } from "./hooks/useGoogleSync";
 import { useLiveQuery } from "./hooks/useLiveQuery";
 import { DESKTOP_QUERY, useMediaQuery } from "./hooks/useMediaQuery";
 import { useNow } from "./hooks/useNow";
+import type { ParsedEntry } from "./quickParse";
 import { getCalendarId, getStoredClientId, preloadGoogle, setStoredClientId, switchCalendar } from "./sync/google";
 import { UNTAGGED, isVisible, normalizeTags } from "./tags";
 import type { CalEvent, DraftEvent, ViewMode } from "./types";
@@ -75,6 +77,7 @@ export function App() {
   const [anchor, setAnchor] = useState<Anchor | null>(null);
   const lastPointer = useRef<{ x: number; y: number; t: number; mouse: boolean } | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const [clientId, setClientId] = useState(getStoredClientId);
   const [calendarId, setCalendarId] = useState(getCalendarId);
   const [pollSec, setPollSec] = useState(readPollSec);
@@ -253,13 +256,18 @@ export function App() {
   // skrót klawiszowy „t" = dziś (jak w Google Calendar), gdy nie piszesz i nie ma otwartego okna
   const goTodayRef = useRef(goToday);
   goTodayRef.current = goToday;
-  const sheetOpen = Boolean(draft) || settingsOpen;
+  const sheetOpen = Boolean(draft) || settingsOpen || searchOpen;
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (sheetOpen || e.ctrlKey || e.metaKey || e.altKey) return;
       const el = e.target as HTMLElement | null;
       if (el?.closest("input, textarea, select, [contenteditable]")) return;
       if (e.key === "t" || e.key === "T") goTodayRef.current();
+      // „/" = szukaj (jak w Google Calendar)
+      if (e.key === "/") {
+        e.preventDefault();
+        setSearchOpen(true);
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -288,6 +296,40 @@ export function App() {
     setHiddenTags(new Set([...knownTags, UNTAGGED].filter((t) => t !== tag)));
 
   const newColor = PALETTE[0].value;
+
+  /* ── szukaj / szybkie dodawanie ── */
+
+  const openFromSearch = (e: CalEvent) => {
+    setSearchOpen(false);
+    goToDay(new Date(e.start));
+    openDraft(draftFromEvent(e), isDesktop ? "full" : "quick");
+  };
+
+  const createFromSearch = async (p: ParsedEntry) => {
+    setSearchOpen(false);
+    const event: CalEvent = {
+      id: newEventId(),
+      title: p.title,
+      notes: "",
+      start: p.start,
+      end: p.end,
+      allDay: p.allDay,
+      color: PALETTE[4].value,
+      tags: p.tags,
+      origin: "local",
+      updatedAt: Date.now(),
+      deleted: false,
+      pending: 1,
+    };
+    await saveLocal(event);
+    goToDay(new Date(p.start));
+    const hidden = !isVisible(event.tags, hiddenTags);
+    sync.notify(
+      `Dodano „${p.title}” · ${whenLabel(p)}${hidden ? " (ukryty przez filtr tagów)" : ""}`,
+      hidden ? "warn" : "ok",
+    );
+    sync.requestSync();
+  };
 
   return (
     <div className="app">
@@ -438,10 +480,19 @@ export function App() {
           )}
 
           <div className="dock">
-            <button className="pill" onClick={() => openDraft(timedDraft(nextQuarter().getTime(), PALETTE[4].value))}>
-              Szukaj w czasie albo dodaj wpis
-              <span className="pill-plus">+</span>
-            </button>
+            <div className="pill">
+              <button type="button" className="pill-search" onClick={() => setSearchOpen(true)}>
+                Szukaj w czasie albo dodaj wpis
+              </button>
+              <button
+                type="button"
+                className="pill-plus"
+                aria-label="Nowy wpis"
+                onClick={() => openDraft(timedDraft(nextQuarter().getTime(), PALETTE[4].value))}
+              >
+                +
+              </button>
+            </div>
             <button className="locate" aria-label="Teraz" onClick={goToNow}>
               ●
             </button>
@@ -476,6 +527,18 @@ export function App() {
             onDismiss={dismissDraft}
             onSave={() => void saveDraft()}
             onDelete={draft.id ? () => void removeDraft() : undefined}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {searchOpen && (
+          <SearchSheet
+            key="search"
+            knownTags={knownTags}
+            onClose={() => setSearchOpen(false)}
+            onOpenEvent={openFromSearch}
+            onCreate={(p) => void createFromSearch(p)}
           />
         )}
       </AnimatePresence>

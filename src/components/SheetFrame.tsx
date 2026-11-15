@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { useRef, type ReactNode } from "react";
 import { useAnchoredPlacement, type Anchor } from "../hooks/useAnchoredPlacement";
-import { backdropMotion, popMotion, sheetMotion } from "./sheetMotion";
+import { backdropMotion, paletteMotion, popMotion, sheetMotion } from "./sheetMotion";
 
 type Props = {
   /** Punkt kliknięcia (komputer) → okienko przy kursorze. null → arkusz od dołu (telefon) / panel. */
@@ -11,17 +11,20 @@ type Props = {
   label: string;
   onDismiss: () => void;
   children: ReactNode;
+  /** palette = okno u góry ekranu (wyszukiwanie) — klawiatura telefonu nie zasłania wyników. */
+  variant?: "sheet" | "palette";
 };
 
 /** Wspólna oprawa okien wpisu: tło (klik obok = zamknij) + arkusz albo okienko przy kursorze. */
-export function SheetFrame({ anchor, className = "", backdropClass = "", label, onDismiss, children }: Props) {
+export function SheetFrame({ anchor, className = "", backdropClass = "", label, onDismiss, children, variant = "sheet" }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const pos = useAnchoredPlacement(anchor, ref);
   const floating = anchor !== null;
+  const palette = variant === "palette";
 
   return (
     <motion.div
-      className={`sheet-backdrop ${backdropClass}${floating ? " anchored" : ""}`}
+      className={`sheet-backdrop ${backdropClass}${floating ? " anchored" : ""}${palette ? " palette" : ""}`}
       onClick={onDismiss}
       role="presentation"
       {...backdropMotion}
@@ -42,9 +45,9 @@ export function SheetFrame({ anchor, className = "", backdropClass = "", label, 
               }
             : undefined
         }
-        {...(floating ? popMotion : sheetMotion)}
+        {...(floating ? popMotion : palette ? paletteMotion : sheetMotion)}
       >
-        <div className="grab" />
+        {!palette && <div className="grab" />}
         {children}
       </motion.div>
     </motion.div>
