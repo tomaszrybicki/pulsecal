@@ -80,6 +80,15 @@
   month view already start on Monday. Options: a small custom picker built from `MiniCalendar` (consistent
   look, Monday first, works with our blob style) for date + a time field/chips for the time; keep native
   inputs on iOS where the wheel picker is good and has no week grid.
+- [ ] **P2 – Undo button for the last action**: a persistent „Cofnij” (e.g. in the topbar or the dock, plus
+  Ctrl/Cmd+Z) that undoes the most recent change — move, resize, delete, edit, tag/colour change, day triage —
+  not only while the toast is visible. Today undo exists only in the toast after delete and day-panel moves
+  (`deleteEvent`, `shiftEvents` in App). Idea: a small undo stack of `{ label, before: CalEvent[] }`
+  snapshots taken before every `saveLocal`/`removeLocal` from the UI; undo = put the snapshots back
+  (re-create with a new id if a deletion already reached Google, as `deleteEvent` does).
+- [ ] **P2 – Silent reconnect after the 1 h token expiry** (no backend): when the token has expired, the
+  user's next click anywhere calls `connectGoogle()` (prompt "") inside that gesture — usually just a short
+  popup flash. The full fix (log in once) needs a small backend with refresh tokens — ask the owner first.
 - [ ] **P2 – Tag rules**: rules like „title (or notes) contains word X → add tag Y” (e.g. „dentysta” →
   `wizyta`). Edited in the sidebar under the tag list / in settings. Apply on save in the app (QuickCard,
   EventSheet, quick add) and to events pulled from Google; only *add* tags (never remove), and don't re-add
