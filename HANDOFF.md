@@ -94,7 +94,7 @@
   EventSheet, quick add) and to events pulled from Google; only *add* tags (never remove), and don't re-add
   a tag the user removed by hand from that event. Match case-insensitively on whole words, Polish letters
   included. The planned „!” → `ważne` rule can become the first built-in rule.
-- [ ] **P2 – Back up app settings in Google Calendar**: settings are growing (hidden tags, tag rules, poll
+- [x] **P2 – Back up app settings in Google Calendar**: settings are growing (hidden tags, tag rules, poll
   interval, sidebar, future theme / tag colours), so store a copy as one hidden event with a parseable
   description (JSON in a fenced block + a human note „Ustawienia Pulsecal — nie usuwaj”).
   - Hide it: all-day event on a fixed far date (e.g. 1 Jan 2000 or 10 years ahead), `transparency:

@@ -185,6 +185,9 @@ logowanie Google bez własnego serwera (Google Identity Services).
   - czerwona: błąd.
 
   Liczba obok kropki to wpisy czekające na wysłanie.
+- **Kopia ustawień:** ukryte tagi, reguły tagów, interwał odpytywania, panel boczny i motyw zapisują się też
+  w Google, w ukrytym wpisie „Pulsecal — ustawienia (nie usuwaj)” z 1 stycznia 2000. Na nowym urządzeniu
+  po połączeniu odtwarzają się same (albo po kliknięciu „Przywróć”, jeśli tu były już zmieniane).
 - **Komunikaty:** krótkie, sprężyste powiadomienia nad dolnym paskiem.
 
 ### Wygląd i dostępność
@@ -219,7 +222,6 @@ Historia wersji jest w [CHANGELOG.md](CHANGELOG.md).
 - **Konflikty z Google:** gdy ten sam wpis zmieni się jednocześnie w Pulsecal i w Google, wygrywa nowsza
   zmiana, a druga przepada. Porządna obsługa konfliktów jest na liście TODO w `HANDOFF.md`.
 - **Planowane** (kolejność w `HANDOFF.md`):
-  - (później) kopia ustawień aplikacji w Google Calendar jako ukryty wpis, do odtworzenia na innym urządzeniu;
   - szersza mapa z przewijaniem bez końca;
   - zamykanie okien gestem w dół;
   - szybkie wyszukiwanie i dodawanie z paska („jutro 14:30”);

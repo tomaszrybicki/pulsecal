@@ -1,0 +1,98 @@
+/**
+ * Ustawienia aplikacji do kopii zapasowej w Google Calendar (ukryty wpis, patrz sync/google.ts).
+ * Źródłem prawdy zostaje localStorage; tu tylko zbieramy/odtwarzamy i pilnujemy, kiedy coś się zmieniło.
+ * Nigdy nie zapisujemy tokenu Google ani Client ID.
+ */
+import { getTagRules, type TagRule } from "./tagRules";
+
+export type AppSettings = {
+  v: 1;
+  hiddenTags: string[];
+  tagRules: TagRule[];
+  pollSec: number;
+  sidebar: boolean;
+  theme: string;
+};
+
+export type SettingsBackup = { settings: AppSettings; updatedAt: number };
+
+const K = {
+  hidden: "pulsecal:hidden-tags",
+  poll: "pulsecal:poll-sec",
+  sidebar: "pulsecal:sidebar",
+  theme: "pulsecal:theme",
+  rules: "pulsecal:tag-rules",
+};
+/** Ostatnio widziany stan (JSON) — do wykrycia zmian. */
+const SEEN = "pulsecal:settings-seen";
+/** Kiedy ustawienia zmieniły się lokalnie (0 = nigdy — świeże urządzenie, można odtworzyć bez pytania). */
+const UPDATED = "pulsecal:settings-updated";
+/** JSON ostatnio zapisany w Google. */
+const BACKED = "pulsecal:settings-backed";
+
+function readJson<T>(key: string, fallback: T): T {
+  try {
+    const v = localStorage.getItem(key);
+    return v === null ? fallback : (JSON.parse(v) as T);
+  } catch {
+    return fallback;
+  }
+}
+
+export function collectSettings(): AppSettings {
+  const poll = Number(localStorage.getItem(K.poll));
+  return {
+    v: 1,
+    hiddenTags: readJson<string[]>(K.hidden, []),
+    tagRules: getTagRules(),
+    pollSec: Number.isFinite(poll) && poll > 0 ? poll : 30,
+    sidebar: localStorage.getItem(K.sidebar) !== "0",
+    theme: localStorage.getItem(K.theme) || "auto",
+  };
+}
+
+export const settingsJson = (s: AppSettings) => JSON.stringify(s);
+
+export function localUpdatedAt(): number {
+  return Number(localStorage.getItem(UPDATED)) || 0;
+}
+
+/** Wołać po każdej zmianie ustawień; zwraca aktualny JSON. */
+export function noteLocalChange(): string {
+  const json = settingsJson(collectSettings());
+  const seen = localStorage.getItem(SEEN);
+  if (seen === null) {
+    localStorage.setItem(SEEN, json); // pierwsze uruchomienie — to nie jest „zmiana użytkownika"
+  } else if (seen !== json) {
+    localStorage.setItem(SEEN, json);
+    localStorage.setItem(UPDATED, String(Date.now()));
+  }
+  return json;
+}
+
+export function needsBackup(json: string): boolean {
+  return localStorage.getItem(BACKED) !== json;
+}
+
+export function markBackedUp(json: string): void {
+  localStorage.setItem(BACKED, json);
+}
+
+export function isSettings(x: unknown): x is AppSettings {
+  const s = x as AppSettings;
+  return Boolean(s) && s.v === 1 && Array.isArray(s.hiddenTags) && Array.isArray(s.tagRules);
+}
+
+/** Zapisz ustawienia z kopii lokalnie (potem przeładowanie strony, żeby wszystko je wczytało). */
+export function applySettings(b: SettingsBackup): void {
+  const s = b.settings;
+  localStorage.setItem(K.hidden, JSON.stringify(s.hiddenTags));
+  localStorage.setItem(K.rules, JSON.stringify(s.tagRules));
+  localStorage.setItem(K.poll, String(s.pollSec));
+  localStorage.setItem(K.sidebar, s.sidebar ? "1" : "0");
+  localStorage.setItem(K.theme, s.theme);
+  const json = settingsJson(collectSettings());
+  localStorage.setItem(SEEN, json);
+  localStorage.setItem(BACKED, json);
+  localStorage.setItem(UPDATED, String(b.updatedAt));
+}

@@ -15,7 +15,8 @@ import { DEFAULT_GOOGLE_COLOR, GOOGLE_EVENT_COLORS, googleIdForColor, paletteByI
 import { db } from "../db";
 import type { CalEvent } from "../types";
 import { applyTagRules } from "../tagRules";
-import { autoTags, joinTags, splitTags } from "../tags";
+import { isSettings, type AppSettings, type SettingsBackup } from "../settings";
+import { autoTags, htmlToText, joinTags, splitTags } from "../tags";
 import { fromIsoDate, isoDate, addDays } from "../time";
 
 const TOKEN_KEY = "pulsecal:google-token";
@@ -498,6 +499,7 @@ async function listAll(params: Record<string, string>): Promise<GEvent[]> {
 
 /** Zastosuj zdalne wydarzenie lokalnie. Zwraca true, jeśli coś się zmieniło. */
 async function applyRemote(g: GEvent, ignoreEtag = false): Promise<boolean> {
+  if (g.id === SETTINGS_EVENT_ID) return false; // ukryty wpis z ustawieniami — nie pokazujemy go
   const existing = await db.events.where("googleEventId").equals(g.id).first();
 
   if (g.status === "cancelled") {
@@ -644,4 +646,49 @@ export async function listCalendars(): Promise<CalendarInfo[]> {
   return (data.items ?? [])
     .map((c) => ({ id: c.id, summary: c.summary, primary: Boolean(c.primary), color: c.backgroundColor }))
     .sort((a, b) => Number(b.primary) - Number(a.primary) || a.summary.localeCompare(b.summary));
+}
+
+/* ───────────────────────── kopia ustawień w Google ───────────────────────── */
+
+/**
+ * Ustawienia aplikacji trzymamy jako jeden ukryty wpis całodniowy 1.01.2000 (stałe ID, prywatny,
+ * „wolny” czas). Opis = notka dla człowieka + JSON w bloku ```json. Pulsecal go nie pokazuje (applyRemote).
+ */
+export const SETTINGS_EVENT_ID = "pulsecalsettings0";
+const SETTINGS_NOTE =
+  "Ustawienia aplikacji Pulsecal (kopia zapasowa). Nie usuwaj i nie zmieniaj — Pulsecal odczytuje je po " +
+  "połączeniu z Google na nowym urządzeniu.";
+
+export async function readSettingsBackup(): Promise<SettingsBackup | null> {
+  const res = await api(`${calPath()}/${SETTINGS_EVENT_ID}`);
+  if (res.status === 404 || res.status === 410) return null;
+  if (!res.ok) throw new Error(`Odczyt ustawień z Google nieudany (${res.status})`);
+  const g = (await res.json()) as GEvent;
+  if (g.status === "cancelled") return null;
+  const m = /```json\s*([\s\S]*?)```/.exec(htmlToText(g.description || ""));
+  if (!m) return null;
+  try {
+    const data = JSON.parse(m[1]) as { updatedAt?: number; settings?: unknown };
+    return isSettings(data.settings) ? { settings: data.settings, updatedAt: Number(data.updatedAt) || 0 } : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function writeSettingsBackup(settings: AppSettings, updatedAt: number): Promise<void> {
+  const body = {
+    summary: "Pulsecal — ustawienia (nie usuwaj)",
+    description: `${SETTINGS_NOTE}\n\n\`\`\`json\n${JSON.stringify({ updatedAt, settings }, null, 2)}\n\`\`\``,
+    start: { date: "2000-01-01" },
+    end: { date: "2000-01-02" },
+    transparency: "transparent",
+    visibility: "private",
+    status: "confirmed",
+    extendedProperties: { private: { pulseSettings: "1" } },
+  };
+  let res = await api(`${calPath()}/${SETTINGS_EVENT_ID}`, { method: "PATCH", body: JSON.stringify(body) });
+  if (res.status === 404 || res.status === 410) {
+    res = await api(calPath(), { method: "POST", body: JSON.stringify({ ...body, id: SETTINGS_EVENT_ID }) });
+  }
+  if (!res.ok) throw new Error(`Zapis ustawień w Google nieudany (${res.status})`);
 }

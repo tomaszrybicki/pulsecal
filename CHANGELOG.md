@@ -3,6 +3,16 @@
 Każda wersja to jeden commit `vX.Y.Z: …` (treść commita = wpis z tego pliku) i tag `vX.Y.Z`.
 Najnowsze na górze. Opis funkcji aplikacji jest w [FEATURES.md](FEATURES.md).
 
+## [0.16.0] – 2026-11-15: kopia ustawień w Google Calendar
+
+- Kopia ustawień w Google Calendar: ukryte tagi, reguły tagów, interwał odpytywania, panel boczny i motyw
+  zapisują się (kilka sekund po zmianie) w jednym ukrytym wpisie „Pulsecal — ustawienia (nie usuwaj)”
+  z 1 stycznia 2000 (prywatny, czas „wolny”, Pulsecal go nie pokazuje). Opis: notka + ustawienia w JSON.
+- Na nowym urządzeniu po połączeniu z Google ustawienia odtwarzają się same; jeśli na tym urządzeniu były już
+  zmieniane, a w Google jest nowsza kopia — powiadomienie z „Przywróć”.
+- Nigdy nie zapisujemy tokenu Google ani Client ID.
+- Nie sprawdzone jeszcze na prawdziwym koncie Google.
+
 ## [0.15.0] – 2026-11-15: reguły tagów
 
 - Reguły tagów: „słowo albo fraza w tytule lub notatce → tag” (np. „dentysta” → „wizyta”). Edycja w panelu

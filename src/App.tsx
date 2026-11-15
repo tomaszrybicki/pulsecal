@@ -21,6 +21,7 @@ import { useGoogleSync, MIN_POLL_SEC } from "./hooks/useGoogleSync";
 import { useLiveQuery } from "./hooks/useLiveQuery";
 import { DESKTOP_QUERY, useMediaQuery } from "./hooks/useMediaQuery";
 import { useNow } from "./hooks/useNow";
+import { useSettingsBackup } from "./hooks/useSettingsBackup";
 import { useTheme } from "./hooks/useTheme";
 import type { ParsedEntry } from "./quickParse";
 import { getCalendarId, getStoredClientId, preloadGoogle, setStoredClientId, switchCalendar } from "./sync/google";
@@ -146,6 +147,9 @@ export function App() {
   useEffect(() => {
     localStorage.setItem(SIDEBAR_KEY, dockOpen ? "1" : "0");
   }, [dockOpen]);
+
+  // kopia ustawień w Google: po udanej synchronizacji (jest token) i po każdej zmianie ustawień
+  useSettingsBackup(sync.linked && sync.state === "idle", sync.notify, [hiddenTags, rules, pollSec, dockOpen, theme.pref]);
 
   useEffect(() => {
     const onDown = (e: PointerEvent) => {
