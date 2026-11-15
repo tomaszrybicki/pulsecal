@@ -1,9 +1,9 @@
 import { useEffect, useRef } from "react";
-import { PALETTE } from "../colors";
 import { toggleAllDay, whenLabel } from "../draft";
 import type { DraftEvent } from "../types";
 import type { Anchor } from "../hooks/useAnchoredPlacement";
 import { SheetFrame } from "./SheetFrame";
+import { ColorSwatches } from "./ColorSwatches";
 import { TagInput } from "./TagInput";
 
 type Props = {
@@ -66,19 +66,7 @@ export function QuickCard({ draft, onChange, onSave, onDismiss, onMore, onDelete
           </button>
         </div>
         <TagInput value={draft.tags} known={knownTags} maxSuggestions={6} onChange={(tags) => onChange({ ...draft, tags })} />
-        <div className="swatches small">
-          {PALETTE.map((c) => (
-            <button
-              key={c.id}
-              type="button"
-              className="swatch"
-              aria-label={`Kolor ${c.id}`}
-              style={{ background: c.value }}
-              aria-pressed={draft.color === c.value}
-              onClick={() => onChange({ ...draft, color: c.value })}
-            />
-          ))}
-        </div>
+        <ColorSwatches small value={draft.color} onChange={(color) => onChange({ ...draft, color })} />
         <div className="row-actions quick-actions">
           {onDelete && (
             <button type="button" className="danger" onClick={onDelete}>

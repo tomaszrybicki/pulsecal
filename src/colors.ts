@@ -16,8 +16,51 @@ export type PaletteEntry = (typeof PALETTE)[number];
 
 export const DEFAULT_GOOGLE_COLOR = PALETTE[3].value;
 
+/**
+ * Kolory wydarzeń Google Calendar (colorId 1–11) w odcieniach z obecnej aplikacji Google — tak, jak je widzisz
+ * w GCal (etykiety kolorów w Google to te same colorId z nadaną nazwą). Endpoint /colors zwraca starsze,
+ * pastelowe wartości, więc go nie używamy.
+ */
+export const GOOGLE_EVENT_COLORS: Record<string, string> = {
+  "1": "#7986cb", // Lavender
+  "2": "#33b679", // Sage
+  "3": "#8e24aa", // Grape
+  "4": "#e67c73", // Flamingo
+  "5": "#f6bf26", // Banana
+  "6": "#f4511e", // Tangerine
+  "7": "#039be5", // Peacock
+  "8": "#616161", // Graphite
+  "9": "#3f51b5", // Blueberry
+  "10": "#0b8043", // Basil
+  "11": "#d50000", // Tomato
+};
+
+/** colorId Google dla dokładnego koloru Google (do wysłania z powrotem bez zmiany). */
+export function googleIdForColor(value: string): string | undefined {
+  const v = value.toLowerCase();
+  return Object.keys(GOOGLE_EVENT_COLORS).find((k) => GOOGLE_EVENT_COLORS[k] === v);
+}
+
+function hexRgb(hex: string): [number, number, number] | null {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
+  if (!m) return null;
+  const n = parseInt(m[1], 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+
+/**
+ * Kolor tekstu na wpisie. Paleta Pulsecal ma dobrane odcienie; dla innych kolorów (z Google, kolor kalendarza)
+ * liczymy jasność tła tak, jak je rysujemy (82% koloru + 18% bieli) i wybieramy jasny albo ciemny tekst.
+ */
 export function colorInk(value: string): string {
-  return PALETTE.find((c) => c.value === value)?.ink ?? "#1c1917";
+  const own = PALETTE.find((c) => c.value === value)?.ink;
+  if (own) return own;
+  const rgb = hexRgb(value);
+  if (!rgb) return "#1c1917";
+  const [r, g, b] = rgb.map((c) => (c * 0.82 + 255 * 0.18) / 255);
+  const lin = (c: number) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
+  const lum = 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+  return lum < 0.36 ? "#fffaf2" : "#1c1917";
 }
 
 export function paletteByValue(value: string): PaletteEntry | undefined {
@@ -28,17 +71,3 @@ export function paletteById(id: string | undefined): PaletteEntry | undefined {
   return id ? PALETTE.find((c) => c.id === id) : undefined;
 }
 
-/** Google colorId → kolor z palety (najbliższy odcień). */
-export const GOOGLE_COLOR_MAP: Record<string, string> = {
-  "1": "#c9a4ff", // Lavender
-  "2": "#7ddeb2", // Sage
-  "3": "#c9a4ff", // Grape
-  "4": "#ff6b4a", // Flamingo
-  "5": "#f3d36b", // Banana
-  "6": "#ffb070", // Tangerine
-  "7": "#7eb6ff", // Peacock
-  "8": "#c4b5a5", // Graphite
-  "9": "#7eb6ff", // Blueberry
-  "10": "#7ddeb2", // Basil
-  "11": "#ff6b4a", // Tomato
-};

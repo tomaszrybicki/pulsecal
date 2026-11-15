@@ -171,7 +171,8 @@ logowanie Google bez własnego serwera (Google Identity Services).
   - od razu po powrocie do aplikacji i po odzyskaniu internetu;
   - co 10 minut pełne odświeżenie, które wykrywa też wpisy usunięte w Google.
 - **Konflikty:** wygrywa nowsza zmiana. Niewysłana lokalna zmiana nie zostanie nadpisana starszą wersją z Google.
-- **Kolory:** zachowują się po synchronizacji, także między urządzeniami.
+- **Kolory:** zachowują się po synchronizacji, także między urządzeniami. Wpisy z kolorem z Google (także
+  z etykietą koloru) mają dokładnie ten kolor co w Google; wpisy bez koloru — kolor kalendarza.
 - **Kropka statusu:**
   - zielona: zsynchronizowane;
   - pulsująca: synchronizuje;
@@ -213,8 +214,6 @@ Historia wersji jest w [CHANGELOG.md](CHANGELOG.md).
 - **Konflikty z Google:** gdy ten sam wpis zmieni się jednocześnie w Pulsecal i w Google, wygrywa nowsza
   zmiana, a druga przepada. Porządna obsługa konfliktów jest na liście TODO w `HANDOFF.md`.
 - **Planowane** (kolejność w `HANDOFF.md`):
-  - wierniejsze kolory z Google (np. czerwony w Google → czerwony w Pulsecal), zwłaszcza dla wpisów z etykietami
-    kolorów w Google i dla domyślnego koloru kalendarza;
   - przełącznik trybu ciemnego (auto / jasny / ciemny);
   - wybór daty w edycji wpisu z tygodniem od poniedziałku;
   - (później) reguły tagów, np. „tytuł zawiera »dentysta« → tag »wizyta«”;

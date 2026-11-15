@@ -11,7 +11,7 @@
  *   użytkownika (Safari blokuje popupy), więc po wygaśnięciu stan = "expired" i UI pokazuje
  *   „Połącz ponownie" — dane lokalne i kolejka czekają.
  */
-import { DEFAULT_GOOGLE_COLOR, GOOGLE_COLOR_MAP, paletteById, paletteByValue } from "../colors";
+import { DEFAULT_GOOGLE_COLOR, GOOGLE_EVENT_COLORS, googleIdForColor, paletteById, paletteByValue } from "../colors";
 import { db } from "../db";
 import type { CalEvent } from "../types";
 import { autoTags, joinTags, splitTags } from "../tags";
@@ -286,11 +286,47 @@ type GEvent = {
 
 type GList = { items?: GEvent[]; nextPageToken?: string };
 
+/* ── kolory ── */
+
+const CAL_COLOR_KEY = "pulsecal:google-calendar-color";
+/** Zmiana sposobu liczenia kolorów → jednorazowe przekolorowanie już pobranych wpisów (pełny pull bez etagów). */
+const COLOR_RULES_VERSION = "2";
+const COLOR_RULES_KEY = "pulsecal:google-color-rules";
+
+function calendarColor(): string | null {
+  try {
+    const c = JSON.parse(localStorage.getItem(CAL_COLOR_KEY) || "null") as { id: string; color: string } | null;
+    return c && c.id === getCalendarId() ? c.color : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Kolor kalendarza (dla wpisów bez własnego koloru w Google) — raz na kalendarz, z calendarList. */
+async function ensureCalendarColor(): Promise<void> {
+  if (calendarColor()) return;
+  try {
+    const c = await apiJson<{ backgroundColor?: string }>(`/users/me/calendarList/${encodeURIComponent(getCalendarId())}`);
+    if (c.backgroundColor) {
+      localStorage.setItem(CAL_COLOR_KEY, JSON.stringify({ id: getCalendarId(), color: c.backgroundColor.toLowerCase() }));
+    }
+  } catch (err) {
+    if (err instanceof NeedsAuthError) throw err;
+    // brak koloru kalendarza nie blokuje synchronizacji — zostaje domyślny
+  }
+}
+
+/**
+ * Kolor wpisu z Google:
+ * - nasz kolor (pulseColor), jeśli w Google nikt go nie zmienił (colorId nadal pasuje),
+ * - colorId (także z etykietą koloru) → dokładnie ten kolor co w Google,
+ * - brak colorId → kolor kalendarza (tak wygląda w Google), a bez niego domyślny.
+ */
 function remoteColor(g: GEvent): string {
   const own = paletteById(g.extendedProperties?.private?.pulseColor);
-  // jeśli ktoś zmienił kolor w Google, colorId nie zgadza się z naszym — wtedy wygrywa Google
   if (own && (!g.colorId || g.colorId === own.gid)) return own.value;
-  return GOOGLE_COLOR_MAP[g.colorId || ""] || DEFAULT_GOOGLE_COLOR;
+  if (g.colorId && GOOGLE_EVENT_COLORS[g.colorId]) return GOOGLE_EVENT_COLORS[g.colorId];
+  return calendarColor() ?? DEFAULT_GOOGLE_COLOR;
 }
 
 function parseGEvent(g: GEvent): Omit<CalEvent, "id" | "origin" | "pending"> | null {
@@ -331,7 +367,9 @@ function toGEvent(e: CalEvent): Record<string, unknown> {
     description: joinTags(e.notes, e.tags ?? []),
     extendedProperties: { private: { pulseId: e.id, ...(pal ? { pulseColor: pal.id } : {}) } },
   };
-  if (pal) body.colorId = pal.gid;
+  // nasz kolor → jego colorId; dokładny kolor Google → ten sam colorId; kolor kalendarza → bez colorId
+  const gid = pal?.gid ?? googleIdForColor(e.color);
+  if (gid) body.colorId = gid;
   if (e.allDay) {
     body.start = { date: isoDate(new Date(e.start)), dateTime: null };
     body.end = { date: isoDate(addDays(new Date(e.end), 1)), dateTime: null };
@@ -458,7 +496,7 @@ async function listAll(params: Record<string, string>): Promise<GEvent[]> {
 }
 
 /** Zastosuj zdalne wydarzenie lokalnie. Zwraca true, jeśli coś się zmieniło. */
-async function applyRemote(g: GEvent): Promise<boolean> {
+async function applyRemote(g: GEvent, ignoreEtag = false): Promise<boolean> {
   const existing = await db.events.where("googleEventId").equals(g.id).first();
 
   if (g.status === "cancelled") {
@@ -479,7 +517,7 @@ async function applyRemote(g: GEvent): Promise<boolean> {
   };
 
   if (existing) {
-    if (existing.googleEtag && existing.googleEtag === g.etag) return false;
+    if (!ignoreEtag && existing.googleEtag && existing.googleEtag === g.etag) return false;
     // lokalna, niewysłana zmiana nowsza od zdalnej → zostawiamy lokalną (wyśle się przy następnym syncu)
     if (existing.pending && existing.updatedAt >= parsed.updatedAt) return false;
     await db.events.put({
@@ -501,7 +539,7 @@ async function applyRemote(g: GEvent): Promise<boolean> {
   return true;
 }
 
-async function pullFull(from: Date, to: Date): Promise<number> {
+async function pullFull(from: Date, to: Date, ignoreEtag = false): Promise<number> {
   const items = await listAll({
     timeMin: from.toISOString(),
     timeMax: to.toISOString(),
@@ -512,7 +550,7 @@ async function pullFull(from: Date, to: Date): Promise<number> {
   const seen = new Set<string>();
   for (const g of items) {
     seen.add(g.id);
-    if (await applyRemote(g)) changed += 1;
+    if (await applyRemote(g, ignoreEtag)) changed += 1;
   }
   // Usunięte (lub przeniesione poza okno) w Google → usuń lokalną kopię, o ile nie czeka na wysyłkę.
   const stale = await db.events
@@ -562,6 +600,8 @@ export function syncNow(from: Date, to: Date, opts: { forceFull?: boolean } = {}
     if (!readToken()) throw new NeedsAuthError();
 
     const startedAt = Date.now();
+    await ensureCalendarColor();
+    const recolor = localStorage.getItem(COLOR_RULES_KEY) !== COLOR_RULES_VERSION;
     const { pushed, removed, failed, error: pushError } = await pushPending();
 
     const meta = readMeta();
@@ -569,14 +609,15 @@ export function syncNow(from: Date, to: Date, opts: { forceFull?: boolean } = {}
     const fresh = meta && startedAt - meta.fullAt < FULL_EVERY_MS;
     let pulled: number;
     let full = false;
-    if (!opts.forceFull && meta && covered && fresh) {
+    if (!opts.forceFull && !recolor && meta && covered && fresh) {
       pulled = await pullSince(from, to, meta.since - CLOCK_SKEW_MS);
       writeMeta({ ...meta, since: startedAt });
     } else {
       // okno pełnej synchronizacji trochę szersze niż widok, żeby przewijanie nie wymuszało pełnej
       const wideFrom = addDays(from, -14);
       const wideTo = addDays(to, 14);
-      pulled = await pullFull(wideFrom, wideTo);
+      pulled = await pullFull(wideFrom, wideTo, recolor);
+      if (recolor) localStorage.setItem(COLOR_RULES_KEY, COLOR_RULES_VERSION);
       full = true;
       writeMeta({
         from: wideFrom.getTime(),

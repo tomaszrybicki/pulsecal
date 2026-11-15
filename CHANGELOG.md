@@ -3,6 +3,18 @@
 Każda wersja to jeden commit `vX.Y.Z: …` (treść commita = wpis z tego pliku) i tag `vX.Y.Z`.
 Najnowsze na górze. Opis funkcji aplikacji jest w [FEATURES.md](FEATURES.md).
 
+## [0.12.0] – 2026-11-15: wierne kolory z Google Calendar
+
+- Kolory z Google Calendar wiernie: wpis z kolorem (także z etykietą koloru w Google) ma dokładnie ten kolor
+  co w Google, zamiast najbliższego z 6 kolorów Pulsecal (wcześniej np. grafitowy, winogronowy czy borówkowy
+  wyglądały inaczej).
+- Wpisy bez własnego koloru mają kolor kalendarza (jak w Google), a nie domyślny niebieski.
+- Kolor tekstu na wpisie dobiera się do tła (ciemne kolory Google → jasny tekst).
+- Kolor z Google wraca do Google bez zmian (ten sam colorId), także po edycji w Pulsecal.
+- W wyborze koloru obecny kolor z Google jest widoczny jako dodatkowe, zaznaczone kółko.
+- Już pobrane wpisy zostaną jednorazowo przekolorowane przy najbliższej synchronizacji.
+- Nie sprawdzone jeszcze na prawdziwym koncie Google.
+
 ## [0.11.0] – 2026-11-15: tagi z wielkimi literami, „!” → ważne
 
 - Tagi mogą mieć wielkie litery („ADHD”, „Praca”) — zostają tak, jak je wpisano. Porównania ignorują wielkość

@@ -1,10 +1,10 @@
 import { useEffect } from "react";
-import { PALETTE } from "../colors";
 import { toggleAllDay } from "../draft";
 import type { DraftEvent } from "../types";
 import { addDays, dayDiff, endOfDay, parseLocalInput, toDateInput, toLocalInput } from "../time";
 import type { Anchor } from "../hooks/useAnchoredPlacement";
 import { SheetFrame } from "./SheetFrame";
+import { ColorSwatches } from "./ColorSwatches";
 import { TagInput } from "./TagInput";
 
 type Props = {
@@ -115,19 +115,7 @@ export function EventSheet({ draft, onChange, onClose, onDismiss, onSave, onDele
         </label>
         <div className="field">
           Kolor
-          <div className="swatches">
-            {PALETTE.map((c) => (
-              <button
-                key={c.id}
-                type="button"
-                className="swatch"
-                aria-label={`Kolor ${c.id}`}
-                style={{ background: c.value }}
-                aria-pressed={draft.color === c.value}
-                onClick={() => onChange({ ...draft, color: c.value })}
-              />
-            ))}
-          </div>
+          <ColorSwatches value={draft.color} onChange={(color) => onChange({ ...draft, color })} />
         </div>
         <div className="row-actions">
           {onDelete ? (

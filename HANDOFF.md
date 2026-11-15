@@ -51,7 +51,7 @@
   phone), so the month option seems to disappear. Fix idea: always show „mapa” + „miesiąc”; clicking
   „miesiąc” clears `weekSel` and shows the month of `focus`; show the active range as its own extra chip
   („2 tyg. ×”) next to them.
-- [ ] **Colour sync Google → Pulsecal must be faithful** (red in GCal → red/similar in Pulsecal).
+- [x] **Colour sync Google → Pulsecal must be faithful** (red in GCal → red/similar in Pulsecal).
   Current state (`remoteColor()` in `sync/google.ts`, `GOOGLE_COLOR_MAP` in `colors.ts`): an event's
   `colorId` (1–11) maps to the nearest of our 6 palette colours; our own `pulseColor` wins only if `colorId`
   still matches it. Gaps to fix/check:

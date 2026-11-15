@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { PALETTE } from "../colors";
 import type { Anchor } from "../hooks/useAnchoredPlacement";
 import type { CalEvent } from "../types";
 import { SheetFrame } from "./SheetFrame";
+import { ColorSwatches } from "./ColorSwatches";
 import { TagInput } from "./TagInput";
 
 type Props = {
@@ -32,22 +32,14 @@ export function EventMenu({ event, anchor, knownTags, onClose, onPatch, onDelete
   return (
     <SheetFrame anchor={anchor} className="event-menu" backdropClass="light" label="Menu wpisu" onDismiss={onClose}>
       <div className="em-title">{event.title || "(bez tytułu)"}</div>
-      <div className="swatches small">
-        {PALETTE.map((c) => (
-          <button
-            key={c.id}
-            type="button"
-            className="swatch"
-            aria-label={`Kolor ${c.id}`}
-            style={{ background: c.value }}
-            aria-pressed={color === c.value}
-            onClick={() => {
-              setColor(c.value);
-              onPatch({ color: c.value });
-            }}
-          />
-        ))}
-      </div>
+      <ColorSwatches
+        small
+        value={color}
+        onChange={(c) => {
+          setColor(c);
+          onPatch({ color: c });
+        }}
+      />
       <TagInput
         value={tags}
         known={knownTags}
