@@ -35,6 +35,17 @@
   - multi-day bars span several days and must keep one lane across the week, so a per-day sort can't
     fully apply to them; simplest: timed single-day first (sorted), then all-day/multi-day bars below
     (sorted alphabetically), lanes assigned in that order.
+- [ ] **Right-click context menu on an event** (desktop): small popup at the cursor (reuse
+  `useAnchoredPlacement`) with **Usuń**, the **colour** swatches and **tags** (toggle existing tags, add a new
+  one). Changes save immediately via `saveLocal` + `requestSync`. Esc / click outside closes. On touch the
+  long-press is already drag, so a phone equivalent needs a separate decision (e.g. the quick card).
+- [ ] **Tag dots on every event**: each tag shown as a small dot in the tag's colour (`tagColor`) on the
+  event in all views (map blobs, month chips, all-day bars) — replaces the text line `.blob-tags` in the map.
+- [ ] **Hover delete button on every event** (desktop, `@media (hover: hover)`): a small × that deletes
+  immediately, **no confirmation** (owner's wish: less menu diving). Must not start a drag or open the editor
+  (stopPropagation on pointerdown/click). Strongly suggested: an „Cofnij” (undo) toast instead of a
+  confirmation, since `removeLocal` of a Google-synced event becomes a DELETE in Google on the next sync —
+  undo must restore the record before that sync runs (or re-create it).
 
 Versions and commits: see `CHANGELOG.md` and the "Versions and commits" section of `CLAUDE.md`.
 

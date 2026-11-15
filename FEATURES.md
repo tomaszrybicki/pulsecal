@@ -207,6 +207,9 @@ Historia wersji jest w [CHANGELOG.md](CHANGELOG.md).
     z przyciskami „>” (na jutro), „>>” (za tydzień) i „> wszystkie niepilne”;
   - automatyczny tag „ważne” dla wpisów, których tytuł zaczyna się od „!”;
   - w widoku miesiąca: najpierw wpisy z godziną, potem całodniowe, a w obrębie dnia sortowanie alfabetyczne;
+  - menu pod prawym przyciskiem myszy na wpisie: usuń, kolory, tagi;
+  - tagi widoczne na każdym wpisie jako kolorowe kropki;
+  - przycisk usuwania po najechaniu myszą na wpis, bez potwierdzenia;
   - szersza mapa z przewijaniem bez końca;
   - zamykanie okien gestem w dół;
   - szybkie wyszukiwanie i dodawanie z paska („jutro 14:30”);
