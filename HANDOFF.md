@@ -26,6 +26,15 @@
   (e.g. „!zapłacić czynsz”). Decide: strip the `!` from the title or keep it; apply on save in the app
   (QuickCard / EventSheet / quick add) and also to events pulled from Google; don't remove the tag again
   if the user deletes it manually later (only add on create / when the `!` is newly added).
+- [ ] **Month view: alphabetical order of events within a day** (by title, Polish collation:
+  `localeCompare(…, "pl")`).
+- [ ] **Month view: timed events (not all-day) shown first**, all-day after them.
+  Today `layoutWeek()` in `MonthView.tsx` does the opposite: bars (all-day / multi-day) first, then timed
+  by start time. Notes for both items:
+  - decide the order *inside* the timed group: alphabetical (item 3) or by time — ask the owner;
+  - multi-day bars span several days and must keep one lane across the week, so a per-day sort can't
+    fully apply to them; simplest: timed single-day first (sorted), then all-day/multi-day bars below
+    (sorted alphabetically), lanes assigned in that order.
 
 Versions and commits: see `CHANGELOG.md` and the "Versions and commits" section of `CLAUDE.md`.
 

@@ -206,6 +206,7 @@ Historia wersji jest w [CHANGELOG.md](CHANGELOG.md).
   - w widoku miesiąca: okienko ze wszystkimi wpisami dnia zamiast przejścia do mapy oraz „przegląd dnia”
     z przyciskami „>” (na jutro), „>>” (za tydzień) i „> wszystkie niepilne”;
   - automatyczny tag „ważne” dla wpisów, których tytuł zaczyna się od „!”;
+  - w widoku miesiąca: najpierw wpisy z godziną, potem całodniowe, a w obrębie dnia sortowanie alfabetyczne;
   - szersza mapa z przewijaniem bez końca;
   - zamykanie okien gestem w dół;
   - szybkie wyszukiwanie i dodawanie z paska („jutro 14:30”);
