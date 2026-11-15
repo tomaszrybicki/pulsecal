@@ -215,6 +215,8 @@ Historia wersji jest w [CHANGELOG.md](CHANGELOG.md).
     kolorów w Google i dla domyślnego koloru kalendarza;
   - przełącznik trybu ciemnego (auto / jasny / ciemny);
   - wybór daty w edycji wpisu z tygodniem od poniedziałku;
+  - (później) reguły tagów, np. „tytuł zawiera »dentysta« → tag »wizyta«”;
+  - (później) kopia ustawień aplikacji w Google Calendar jako ukryty wpis, do odtworzenia na innym urządzeniu;
   - szersza mapa z przewijaniem bez końca;
   - zamykanie okien gestem w dół;
   - szybkie wyszukiwanie i dodawanie z paska („jutro 14:30”);

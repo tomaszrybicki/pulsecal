@@ -80,6 +80,20 @@
   month view already start on Monday. Options: a small custom picker built from `MiniCalendar` (consistent
   look, Monday first, works with our blob style) for date + a time field/chips for the time; keep native
   inputs on iOS where the wheel picker is good and has no week grid.
+- [ ] **P2 – Tag rules**: rules like „title (or notes) contains word X → add tag Y” (e.g. „dentysta” →
+  `wizyta`). Edited in the sidebar under the tag list / in settings. Apply on save in the app (QuickCard,
+  EventSheet, quick add) and to events pulled from Google; only *add* tags (never remove), and don't re-add
+  a tag the user removed by hand from that event. Match case-insensitively on whole words, Polish letters
+  included. The planned „!” → `ważne` rule can become the first built-in rule.
+- [ ] **P2 – Back up app settings in Google Calendar**: settings are growing (hidden tags, tag rules, poll
+  interval, sidebar, future theme / tag colours), so store a copy as one hidden event with a parseable
+  description (JSON in a fenced block + a human note „Ustawienia Pulsecal — nie usuwaj”).
+  - Hide it: all-day event on a fixed far date (e.g. 1 Jan 2000 or 10 years ahead), `transparency:
+    transparent`, `visibility: private`; fixed event id (e.g. `pulsecalsettings0`) so it is read/written
+    directly by id; skip it in pulls/search/views (filter by that id).
+  - Never store the OAuth token; the Client ID is needed before we can read the backup anyway.
+  - On a new device: after connecting, offer „Przywróć ustawienia z Google?”. Conflicts: newest
+    `updatedAt` wins (whole-object), writes debounced.
 
 Versions and commits: see `CHANGELOG.md` and the "Versions and commits" section of `CLAUDE.md`.
 
