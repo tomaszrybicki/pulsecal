@@ -71,11 +71,15 @@ logowanie Google bez własnego serwera (Google Identity Services).
 
 - **Wiele tagów na wpis**, np. „przypomnienie”, „wizyta”, „remont mieszkania”, „przy komputerze”.
   Tagi mogą mieć spacje i wielkie litery („ADHD”, „Praca”); „Praca” i „praca” to ten sam tag.
-- **Reguły tagów** (panel boczny → „tagi” → „reguły”): „słowo w tytule lub notatce → tag”, np. „dentysta” →
-  „wizyta”. Całe słowa, bez względu na wielkość liter. Działają przy zapisie, w szybkim dodawaniu i dla wpisów
-  z Google; tylko dodają tagi. „Zastosuj do istniejących wpisów” dopisuje tagi wstecz (z „Cofnij”).
-- **Automatyczny tag „ważne”:** tytuł zaczynający się od „!” (np. „!zapłacić czynsz”) dostaje tag „ważne”
-  (raz — jeśli go potem usuniesz, nie wróci).
+- **Reguły tagów** (panel boczny → „tagi” → „reguły”): „zawiera słowo → tag” (słowo w tytule lub notatce, np.
+  „dentysta” → „wizyta”; całe słowa, bez względu na wielkość liter) albo „tytuł zaczyna się od → tag”.
+  Działają przy zapisie, w szybkim dodawaniu i dla wpisów z Google; tylko dodają tagi (tag usunięty ręcznie
+  nie wraca przy kolejnym zapisie).
+- **Odświeżenie tagów:** przycisk „↻” obok „reguły” (albo „Zastosuj do wpisów od dziś” w oknie reguł)
+  przechodzi po wszystkich wpisach od dziś w przód i dopisuje tagi z reguł, z „Cofnij”. Przeszłe wpisy
+  zostają nietknięte.
+- **Domyślna reguła „!” → „ważne”:** tytuł zaczynający się od „!” (np. „!zapłacić czynsz”) dostaje tag „ważne”.
+  To zwykła reguła na liście: można ją usunąć albo zmienić tag (usuń i dodaj własną).
 - **Dodawanie:** w szybkiej karcie i w pełnej edycji jest pole „Tagi”.
   - Wpisz nazwę i naciśnij Enter albo przecinek (można też wkleić „a, b, c”).
   - Pod polem są już używane tagi do dodania jednym tapnięciem.
@@ -144,7 +148,8 @@ logowanie Google bez własnego serwera (Google Identity Services).
   zamyka okienko i od razu działa (np. otwiera inny wpis).
 - **Szybkie akcje na komputerze:**
   - po najechaniu myszą na wpis pojawia się „×” — usuwa od razu, bez pytania; w powiadomieniu jest „Cofnij”;
-  - prawy przycisk myszy na wpisie: menu z kolorami, tagami (zapisują się od razu), „Edytuj” i „Usuń”.
+  - prawy przycisk myszy na wpisie: menu z kolorami, tagami (zapisują się od razu), „Edytuj”, „Usuń” i „OK”
+    (zamyka menu).
 - **Pełna edycja:** tytuł, przełącznik „Cały dzień” (wtedy same daty od–do), start i koniec, notatka, kolor.
   Data wybierana z kalendarzyka z tygodniem od poniedziałku (na iPhonie systemowe kółko), godzina osobno.
   Zmiana startu zachowuje długość wpisu.

@@ -3,7 +3,7 @@
  * Źródłem prawdy zostaje localStorage; tu tylko zbieramy/odtwarzamy i pilnujemy, kiedy coś się zmieniło.
  * Nigdy nie zapisujemy tokenu Google ani Client ID.
  */
-import { getTagRules, type TagRule } from "./tagRules";
+import { getTagRules, withDefaultRules, type TagRule } from "./tagRules";
 import { getMoveThreshold, setMoveThreshold } from "./moves";
 import { getTagColors, reloadTagColors } from "./tags";
 
@@ -18,6 +18,8 @@ export type AppSettings = {
   tagColors?: Record<string, string>;
   /** Po ilu przeniesieniach proponować rozbicie wpisu. */
   moveThreshold?: number;
+  /** 2 = reguły zawierają już domyślną „!” (starsze kopie jej nie mają). */
+  rulesV?: number;
 };
 
 export type SettingsBackup = { settings: AppSettings; updatedAt: number };
@@ -57,6 +59,7 @@ export function collectSettings(): AppSettings {
     theme: localStorage.getItem(K.theme) || "auto",
     tagColors: getTagColors(),
     moveThreshold: getMoveThreshold(),
+    rulesV: 2,
   };
 }
 
@@ -96,7 +99,7 @@ export function isSettings(x: unknown): x is AppSettings {
 export function applySettings(b: SettingsBackup): void {
   const s = b.settings;
   localStorage.setItem(K.hidden, JSON.stringify(s.hiddenTags));
-  localStorage.setItem(K.rules, JSON.stringify(s.tagRules));
+  localStorage.setItem(K.rules, JSON.stringify((s.rulesV ?? 1) < 2 ? withDefaultRules(s.tagRules) : s.tagRules));
   localStorage.setItem(K.poll, String(s.pollSec));
   localStorage.setItem(K.sidebar, s.sidebar ? "1" : "0");
   localStorage.setItem(K.theme, s.theme);

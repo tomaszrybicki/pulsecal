@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { makeRule, type TagRule } from "../tagRules";
+import { makeRule, type RuleKind, type TagRule } from "../tagRules";
 import { tagColor } from "../tags";
 import { SheetFrame } from "./SheetFrame";
 
@@ -16,6 +16,7 @@ type Props = {
 export function TagRulesSheet({ rules, knownTags, onChange, onApplyAll, onClose }: Props) {
   const [word, setWord] = useState("");
   const [tag, setTag] = useState("");
+  const [kind, setKind] = useState<RuleKind>("word");
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -26,7 +27,7 @@ export function TagRulesSheet({ rules, knownTags, onChange, onApplyAll, onClose 
   }, [onClose]);
 
   const add = () => {
-    const r = makeRule(word, tag);
+    const r = makeRule(word, tag, kind);
     if (!r) return;
     onChange([...rules, r]);
     setWord("");
@@ -37,13 +38,16 @@ export function TagRulesSheet({ rules, knownTags, onChange, onApplyAll, onClose 
     <SheetFrame anchor={null} className="rules-sheet" label="Reguły tagów" onDismiss={onClose}>
       <h2>reguły tagów</h2>
       <p className="hint">
-        Gdy tytuł albo notatka zawiera słowo (całe, bez względu na wielkość liter), wpis dostaje tag. Działa przy
-        zapisie, w szybkim dodawaniu i dla wpisów z Google; reguły tylko dodają tagi.
+        Gdy tytuł albo notatka zawiera słowo (całe, bez względu na wielkość liter) albo tytuł zaczyna się od
+        podanego tekstu, wpis dostaje tag. Działa przy zapisie, w szybkim dodawaniu i dla wpisów z Google; reguły
+        tylko dodają tagi.
       </p>
       <ul className="rules-list">
         {rules.map((r) => (
           <li key={r.id}>
-            <span className="rule-word">„{r.word}”</span>
+            <span className="rule-word">
+              {r.kind === "start" && <small>tytuł zaczyna się od </small>}„{r.word}”
+            </span>
             <span aria-hidden>→</span>
             <span className="tag-chip" style={{ ["--tag" as string]: tagColor(r.tag) }}>
               <i className="tag-dot" />
@@ -67,7 +71,16 @@ export function TagRulesSheet({ rules, knownTags, onChange, onApplyAll, onClose 
           add();
         }}
       >
-        <input value={word} placeholder="słowo, np. dentysta" aria-label="Słowo" onChange={(e) => setWord(e.target.value)} />
+        <select value={kind} aria-label="Rodzaj reguły" onChange={(e) => setKind(e.target.value as RuleKind)}>
+          <option value="word">zawiera słowo</option>
+          <option value="start">tytuł zaczyna się od</option>
+        </select>
+        <input
+          value={word}
+          placeholder={kind === "start" ? "np. !" : "słowo, np. dentysta"}
+          aria-label="Słowo"
+          onChange={(e) => setWord(e.target.value)}
+        />
         <span aria-hidden>→</span>
         <input
           value={tag}
@@ -87,7 +100,7 @@ export function TagRulesSheet({ rules, knownTags, onChange, onApplyAll, onClose 
       </form>
       <div className="row-actions">
         <button type="button" className="ghost" disabled={!rules.length} onClick={onApplyAll}>
-          Zastosuj do istniejących wpisów
+          Zastosuj do wpisów od dziś
         </button>
         <button type="button" className="primary" onClick={onClose}>
           Gotowe

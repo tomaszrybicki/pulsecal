@@ -73,7 +73,8 @@ public/                   icons, favicon
 - Times are stored as epoch ms (local time). All-day `end` = **last millisecond of the last day**;
   Google's end is exclusive (the next day), so convert at the boundary (`sync/google.ts`).
 - Tags: local field `CalEvent.tags` (casing as typed; compare via `tagKey()` = lowercase; Dexie v3 `*tags` index).
-  Title starting with „!” → tag „ważne” via `autoTags()` (app saves and Google pulls). Only at the Google boundary
+  Title starting with „!” → tag „ważne” is the default tag rule `default-bang` (kind `start`, `DEFAULT_RULES` in
+  `tagRules.ts`, added once per device; the user can delete it). Only at the Google boundary
   (`parseGEvent`/`toGEvent`) do they become the last description line `Tagi: a, b` via `splitTags`/`joinTags`.
   Filter rule: an event is visible if any of its tags is visible (`isVisible` in `tags.ts`).
 - Never use `new Date("YYYY-MM-DD")`, because it gives UTC. Use `fromIsoDate()` from `time.ts`.

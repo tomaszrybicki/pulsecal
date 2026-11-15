@@ -56,6 +56,9 @@ export function EventMenu({ event, anchor, knownTags, onClose, onPatch, onDelete
         <button type="button" className="ghost" onClick={onEdit}>
           Edytuj
         </button>
+        <button type="button" className="primary" onClick={onClose}>
+          OK
+        </button>
       </div>
     </SheetFrame>
   );

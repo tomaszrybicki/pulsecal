@@ -25,6 +25,8 @@ type Props = {
   theme: ThemePref;
   onTheme: (t: ThemePref) => void;
   onOpenRules: () => void;
+  /** Przejdź po wpisach od dziś i dopisz tagi z reguł. */
+  onApplyRules: () => void;
   /** Kolor tagu (null = automatyczny). */
   onTagColor: (tag: string, color: string | null) => void;
 };
@@ -81,6 +83,15 @@ export function Sidebar(p: Props) {
               )}
               <button type="button" className="link-btn" onClick={p.onOpenRules}>
                 reguły
+              </button>
+              <button
+                type="button"
+                className="link-btn refresh-btn"
+                title="Zastosuj reguły do wpisów od dziś"
+                aria-label="Zastosuj reguły tagów do wpisów od dziś"
+                onClick={p.onApplyRules}
+              >
+                ↻
               </button>
             </span>
           </header>

@@ -2438,6 +2438,10 @@ button.pill-plus:active {
   margin-bottom: 8px;
 }
 
+.rule-add {
+  flex-wrap: wrap;
+}
+
 .rule-add input {
   flex: 1;
   min-width: 0;
@@ -2544,4 +2548,24 @@ button.pill-plus:active {
 
 .sheet.move-prompt textarea {
   font: inherit;
+}
+
+/* ── reguły: odśwież / rodzaj ── */
+
+.refresh-btn {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.rule-add select {
+  font: inherit;
+  border: 0;
+  border-radius: 10px;
+  padding: 6px 8px;
+  background: var(--field);
+  color: var(--ink);
+}
+
+.rule-word small {
+  color: var(--ink-soft);
 }

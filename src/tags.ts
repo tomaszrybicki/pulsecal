@@ -39,19 +39,8 @@ export function normalizeTags(raw: string[]): string[] {
   return out;
 }
 
-/** Tag dodawany automatycznie, gdy tytuł zaczyna się od „!”. */
+/** Tag z domyślnej reguły „!” na początku tytułu (DEFAULT_RULES w tagRules.ts). */
 export const IMPORTANT_TAG = "ważne";
-
-/**
- * „!” na początku tytułu → tag „ważne”. Tylko gdy „!” jest nowy (poprzedni tytuł go nie miał),
- * żeby tag usunięty ręcznie nie wracał przy każdym zapisie.
- */
-export function autoTags(title: string, tags: string[], prevTitle?: string): string[] {
-  const bang = title.trimStart().startsWith("!");
-  const hadBang = prevTitle?.trimStart().startsWith("!") ?? false;
-  if (!bang || hadBang || hasTag(tags, IMPORTANT_TAG)) return tags;
-  return normalizeTags([...tags, IMPORTANT_TAG]);
-}
 
 const ENTITIES: Record<string, string> = { amp: "&", lt: "<", gt: ">", quot: '"', "#39": "'", apos: "'", nbsp: " " };
 

@@ -3,6 +3,16 @@
 Każda wersja to jeden commit `vX.Y.Z: …` (treść commita = wpis z tego pliku) i tag `vX.Y.Z`.
 Najnowsze na górze. Opis funkcji aplikacji jest w [FEATURES.md](FEATURES.md).
 
+## [0.20.0] – 2026-11-15: odświeżanie tagów, reguła „!” i OK w menu
+
+- **Odświeżenie tagów:** przycisk „↻” obok „reguły” w panelu bocznym przechodzi po wszystkich wpisach od dziś
+  w przód i dopisuje tagi z reguł (z „Cofnij”). Przycisk w oknie reguł robi to samo („Zastosuj do wpisów od dziś”).
+  Przeszłe wpisy zostają nietknięte.
+- **„!” → „ważne” jako zwykła reguła:** dotąd zaszyte w kodzie, teraz jest na liście reguł jako domyślna
+  „tytuł zaczyna się od „!” → ważne”. Można ją usunąć; nie wróci sama.
+- **Nowy rodzaj reguły:** „tytuł zaczyna się od” (obok „zawiera słowo”).
+- **Menu pod prawym przyciskiem:** nowy przycisk „OK”, który zamyka menu.
+
 ## [0.19.0] – 2026-11-15: licznik przeniesień i propozycja rozbicia wpisu
 
 - Licznik przeniesień: wpis liczy, ile razy trafił na inny dzień (przeciągnięcie, „>”/„>>”, zmiana daty

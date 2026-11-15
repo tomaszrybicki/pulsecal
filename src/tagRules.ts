@@ -1,17 +1,40 @@
 /**
- * Reguły tagów: „słowo (albo fraza) w tytule lub notatce → tag”, np. „dentysta” → „wizyta”.
+ * Reguły tagów: „słowo (albo fraza) w tytule lub notatce → tag”, np. „dentysta” → „wizyta”,
+ * albo „tytuł zaczyna się od …” (domyślna reguła „!” → „ważne”).
  * Zapisane w localStorage (a kopia w Google — patrz settings.ts). Działają przy zapisie w aplikacji,
  * w szybkim dodawaniu i dla wpisów z Google. Tylko dodają tagi, nigdy nie usuwają.
  */
-import { hasTag, normalizeTag, normalizeTags } from "./tags";
+import { IMPORTANT_TAG, hasTag, normalizeTag, normalizeTags } from "./tags";
 
-export type TagRule = { id: string; word: string; tag: string };
+/** "word" (domyślnie) = całe słowo w tytule lub notatce; "start" = tytuł zaczyna się od tego tekstu. */
+export type RuleKind = "word" | "start";
+export type TagRule = { id: string; word: string; tag: string; kind?: RuleKind };
 
 const KEY = "pulsecal:tag-rules";
+/** Wersja reguł domyślnych już dodanych na tym urządzeniu (żeby usunięta reguła domyślna nie wracała). */
+const DEFAULTS_KEY = "pulsecal:tag-rules-defaults";
+const DEFAULTS_VERSION = 1;
+
+/** Reguły domyślne: „!” na początku tytułu → „ważne” (dawniej zaszyte w kodzie, teraz zwykła reguła). */
+export const DEFAULT_RULES: TagRule[] = [{ id: "default-bang", word: "!", tag: IMPORTANT_TAG, kind: "start" }];
+
+/** Dopisz brakujące reguły domyślne (np. po odtworzeniu starej kopii ustawień). */
+export function withDefaultRules(rules: TagRule[]): TagRule[] {
+  const missing = DEFAULT_RULES.filter((d) => !rules.some((r) => r.id === d.id));
+  return missing.length ? [...missing, ...rules] : rules;
+}
 /** Zdarzenie po zmianie ustawień (kopia zapasowa w Google nasłuchuje). */
 export const SETTINGS_EVENT = "pulsecal:settings";
 
 export function getTagRules(): TagRule[] {
+  if (Number(localStorage.getItem(DEFAULTS_KEY)) < DEFAULTS_VERSION) {
+    localStorage.setItem(DEFAULTS_KEY, String(DEFAULTS_VERSION));
+    localStorage.setItem(KEY, JSON.stringify(withDefaultRules(readRules())));
+  }
+  return readRules();
+}
+
+function readRules(): TagRule[] {
   try {
     const v = JSON.parse(localStorage.getItem(KEY) || "[]") as unknown;
     if (!Array.isArray(v)) return [];
@@ -29,11 +52,12 @@ export function setTagRules(rules: TagRule[]): void {
   window.dispatchEvent(new Event(SETTINGS_EVENT));
 }
 
-export function makeRule(word: string, tag: string): TagRule | null {
+export function makeRule(word: string, tag: string, kind: RuleKind = "word"): TagRule | null {
   const w = word.replace(/\s+/g, " ").trim();
   const t = normalizeTag(tag);
   if (!w || !t) return null;
-  return { id: crypto.randomUUID(), word: w, tag: t };
+  const r: TagRule = { id: crypto.randomUUID(), word: w, tag: t };
+  return kind === "start" ? { ...r, kind } : r;
 }
 
 const cache = new Map<string, RegExp>();
@@ -49,8 +73,12 @@ function wordRe(word: string): RegExp {
   return re;
 }
 
-export function ruleMatches(rule: TagRule, text: string): boolean {
-  return wordRe(rule.word).test(text);
+/** Reguła „start” patrzy tylko na początek tytułu; „word” na cały tytuł i notatkę. */
+export function ruleMatches(rule: TagRule, title: string, notes: string): boolean {
+  if (rule.kind === "start") {
+    return title.trimStart().toLocaleLowerCase("pl").startsWith(rule.word.toLocaleLowerCase("pl"));
+  }
+  return wordRe(rule.word).test(`${title}\n${notes}`);
 }
 
 /**
@@ -65,12 +93,10 @@ export function applyTagRules(
   rules: TagRule[] = getTagRules(),
 ): string[] {
   if (!rules.length) return tags;
-  const now = `${title}\n${notes}`;
-  const before = prev ? `${prev.title}\n${prev.notes}` : null;
   let out = tags;
   for (const r of rules) {
-    if (!ruleMatches(r, now)) continue;
-    if (before !== null && ruleMatches(r, before)) continue;
+    if (!ruleMatches(r, title, notes)) continue;
+    if (prev && ruleMatches(r, prev.title, prev.notes)) continue;
     if (!hasTag(out, r.tag)) out = normalizeTags([...out, r.tag]);
   }
   return out;

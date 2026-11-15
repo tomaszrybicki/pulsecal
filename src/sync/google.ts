@@ -16,7 +16,7 @@ import { db } from "../db";
 import type { CalEvent } from "../types";
 import { applyTagRules } from "../tagRules";
 import { isSettings, type AppSettings, type SettingsBackup } from "../settings";
-import { autoTags, htmlToText, joinTags, splitTags } from "../tags";
+import { htmlToText, joinTags, splitTags } from "../tags";
 import { fromIsoDate, isoDate, addDays, sameDay } from "../time";
 
 const TOKEN_KEY = "pulsecal:google-token";
@@ -514,9 +514,9 @@ async function applyRemote(g: GEvent, ignoreEtag = false): Promise<boolean> {
   const parsed = parseGEvent(g);
   if (!parsed) return false;
 
-  // „!” na początku tytułu (dopisany w Google) → tag „ważne”; wtedy wpis wraca do Google z linią „Tagi: …”
+  // reguły tagów (też domyślna „!” → „ważne”) dla zmian z Google; wtedy wpis wraca do Google z linią „Tagi: …”
   const withAuto = (prev?: { title: string; notes: string }) => {
-    const tags = applyTagRules(parsed.title, parsed.notes, autoTags(parsed.title, parsed.tags, prev?.title), prev);
+    const tags = applyTagRules(parsed.title, parsed.notes, parsed.tags, prev);
     return tags === parsed.tags
       ? { ...parsed, pending: 0 as const }
       : { ...parsed, tags, pending: 1 as const, updatedAt: Date.now() };

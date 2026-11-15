@@ -28,7 +28,7 @@ import { countMove, crossesThreshold, getMoveThreshold, setMoveThreshold } from 
 import type { ParsedEntry } from "./quickParse";
 import { getCalendarId, getStoredClientId, preloadGoogle, setStoredClientId, switchCalendar } from "./sync/google";
 import { applyTagRules, getTagRules, setTagRules, type TagRule } from "./tagRules";
-import { UNTAGGED, autoTags, isVisible, normalizeTags, setTagColor } from "./tags";
+import { UNTAGGED, isVisible, normalizeTags, setTagColor } from "./tags";
 import type { CalEvent, DraftEvent, ViewMode } from "./types";
 import {
   MINUTE,
@@ -191,7 +191,7 @@ export function App() {
       tags: applyTagRules(
         draft.title.trim(),
         draft.notes,
-        autoTags(draft.title.trim(), normalizeTags(draft.tags), existing?.title),
+        normalizeTags(draft.tags),
         existing ? { title: existing.title, notes: existing.notes } : undefined,
       ),
       origin: existing?.origin ?? "local",
@@ -309,9 +309,10 @@ export function App() {
     setTagRules(next);
   };
 
-  /** Reguły dla wszystkich istniejących wpisów (tylko dodają tagi), z „Cofnij”. */
+  /** Reguły dla wpisów od dziś w przód (tylko dodają tagi), z „Cofnij”. Przeszłość zostaje nietknięta. */
   const applyRulesToAll = async () => {
-    const all = await db.events.filter((e) => !e.deleted).toArray();
+    const from = startOfDay(new Date()).getTime();
+    const all = await db.events.where("end").aboveOrEqual(from).filter((e) => !e.deleted).toArray();
     const before: CalEvent[] = [];
     for (const e of all) {
       const tags = applyTagRules(e.title, e.notes, e.tags ?? [], undefined, rules);
@@ -322,7 +323,9 @@ export function App() {
     }
     sync.requestSync(4000);
     sync.notify(
-      before.length ? `Dodano tagi w ${before.length} ${before.length === 1 ? "wpisie" : "wpisach"}` : "Żaden wpis nie pasuje do reguł",
+      before.length
+        ? `Dodano tagi w ${before.length} ${before.length === 1 ? "wpisie" : "wpisach"} (od dziś)`
+        : "Wpisy od dziś mają już tagi z reguł",
       "ok",
       before.length
         ? {
@@ -541,7 +544,7 @@ export function App() {
       end: p.end,
       allDay: p.allDay,
       color: PALETTE[4].value,
-      tags: applyTagRules(p.title, "", autoTags(p.title, p.tags)),
+      tags: applyTagRules(p.title, "", p.tags),
       origin: "local",
       updatedAt: Date.now(),
       deleted: false,
@@ -666,6 +669,7 @@ export function App() {
             closeDrawer();
             setRulesOpen(true);
           }}
+          onApplyRules={() => void applyRulesToAll()}
         />
 
         <main className="map-shell">

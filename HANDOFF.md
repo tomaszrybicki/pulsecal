@@ -116,6 +116,13 @@ Previous sessions: first Cursor IDE (built the MVP), then Claude in a chat sessi
 code audit and rewrote the data and sync layer, then stopped at the owner's request.
 **Start by reading `CLAUDE.md`.**
 
+## v0.20.0: refresh tags + „!” as a rule
+- `TagRule.kind`: `"word"` (default, whole word in title/notes) or `"start"` (title starts with). `ruleMatches(rule, title, notes)`.
+- `autoTags()` is gone; „!” → `ważne` is `DEFAULT_RULES[0]` (`id: "default-bang"`), added once per device
+  (`pulsecal:tag-rules-defaults`). Old settings backups (no `rulesV`) get it re-added on restore.
+- Sidebar „↻” and the rules sheet button run `applyRulesToAll`: events with `end >= start of today`, undo toast.
+- Right-click menu (`EventMenu`) has an „OK” button that closes it.
+
 ## 0. Update 2026-11-15 (Claude Code session)
 - Initial commit made (`9a8ae06`, the Cursor MVP + handoff notes).
 - **Steps 1–3 are done** and `npm run build` passes. The `handoff/wip/src` files now live in `src/`
