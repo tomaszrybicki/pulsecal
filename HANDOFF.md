@@ -77,6 +77,20 @@ and later **quick action buttons**. Done:
   `useAnchoredPlacement` (`place()` = right of cursor, flip left, clamp vertically; measured with offset*).
   App records the last mouse `pointerdown` (capture) and passes it as anchor when `isDesktop` and recent.
 
+## 0f. v0.7.0: scrolling through dates + „dziś”
+- App keeps `mapStart` (map window, 42 days) separate from `focus`. `navigate(day)` = every explicit jump
+  (focus + window around it + scroll token). `onEdge` shifts the window by 14 days; `onVisibleDay` makes
+  `focus` follow the first visible day (label, mini calendar, arrows start from there) without re-scrolling.
+- CalendarMap: the scroll check is synchronous arithmetic (no rAF — a hidden browser pane doesn't run rAF
+  or deliver scroll events, which made testing misleading). After a window shift the same day is put back
+  at the same offset (absolute, `keep` ref) — a relative "-14 columns" double-compensated in Chrome because
+  scroll-snap re-snaps after DOM changes. Initial/navigation scroll runs in a layout effect.
+- Wheel: native non-passive listener on the map (headers/all-day → horizontal; weekSel → `onStep` at edges,
+  one gesture = one step via a lock that extends while inertia events keep coming). MonthView: React onWheel
+  + vertical swipe (capture phase, so chip drag handlers don't swallow it) → `onStep`.
+- Testing tip: in the hidden pane, dispatch `new Event('scroll')` / `WheelEvent` manually.
+- Next: v0.8.0 search (the dock pill still only creates an entry).
+
 ## 1. Original state of `src/` (before this session) (the code you see)
 Unchanged MVP from Cursor. It builds, and these work: the map view (21 days horizontally), the month view,
 adding/editing/deleting in the bottom sheet, IndexedDB, the PWA, and a basic sync with Google.

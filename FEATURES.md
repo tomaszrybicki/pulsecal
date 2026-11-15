@@ -32,9 +32,20 @@ logowanie Google bez własnego serwera (Google Identity Services).
   - Gdy wpisy się nie mieszczą: „+N więcej”.
   - Na telefonie wszystko jako kolorowe pigułki z samą nazwą.
   - Liczba widocznych wierszy dopasowuje się do wysokości ekranu.
-- **Nawigacja:** strzałki ‹ › przy nazwie miesiąca (w miesiącu ±1 miesiąc, w mapie ±7 dni,
-  przy wybranych tygodniach o tyle tygodni, ile wybrano). Przycisk ● wraca do „teraz”.
-  Tapnięcie numeru dnia w miesiącu otwiera ten dzień w mapie.
+- **Nawigacja:**
+  - **przycisk „dziś”** w górnym pasku (i klawisz **T**) wraca do dzisiejszego dnia w obecnym widoku;
+    wybrany zakres tygodni przesuwa się wtedy na bieżący tydzień;
+  - strzałki ‹ › przy nazwie okresu (w miesiącu ±1 miesiąc, w mapie ±7 dni, przy wybranych tygodniach
+    o tyle tygodni, ile wybrano);
+  - przycisk ● na dole wraca do „teraz” w mapie;
+  - tapnięcie numeru dnia w miesiącu otwiera ten dzień w mapie.
+- **Przewijanie przez daty:**
+  - **mapa:** przewijanie w bok nie ma końca — kolejne tygodnie doładowują się same, a widok stoi
+    w miejscu. Nazwa miesiąca w górnym pasku i mały kalendarz pokazują to, co widać na ekranie.
+    Kółkiem myszy nad nagłówkami dni (albo z Shiftem, albo gestem w bok na touchpadzie) przewija się daty;
+    zwykłe kółko nad siatką przewija godziny;
+  - **miesiąc:** kółko myszy albo przesunięcie palcem w górę/dół zmienia miesiąc (jeden gest = jeden krok);
+  - **wybrane tygodnie:** kółko w bok / gest w bok za krawędzią przechodzi do kolejnego zakresu.
 
 ### Panel boczny
 

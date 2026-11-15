@@ -30,6 +30,7 @@ import {
   monthWeeks,
   nextQuarter,
   rangeLabel,
+  sameDay,
   startOfDay,
   startOfWeek,
 } from "./time";
@@ -37,7 +38,11 @@ import {
 const POLL_KEY = "pulsecal:poll-sec";
 const SIDEBAR_KEY = "pulsecal:sidebar";
 const HIDDEN_TAGS_KEY = "pulsecal:hidden-tags";
-const MAP_DAYS = 21;
+/** Okno mapy: 6 tygodni, przesuwane o 2 tygodnie przy krawędzi (przewijanie bez końca). */
+const MAP_DAYS = 42;
+const MAP_SHIFT = 14;
+
+const mapStartFor = (d: Date) => addDays(startOfWeek(d), -MAP_SHIFT);
 
 function readPollSec(): number {
   const v = Number(localStorage.getItem(POLL_KEY));
@@ -60,6 +65,8 @@ export function App() {
   const [focus, setFocus] = useState(() => startOfDay(new Date()));
   // tygodnie wybrane w małym kalendarzu (null = zwykły widok: miesiąc / 21 dni wokół fokusu)
   const [weekSel, setWeekSel] = useState<WeekSelection | null>(null);
+  // początek okna dni w mapie — niezależny od fokusu, żeby przewijanie nie skakało
+  const [mapStart, setMapStart] = useState(() => mapStartFor(new Date()));
   const [scrollToNow, setScrollToNow] = useState(1);
   const [draft, setDraft] = useState<DraftEvent | null>(null);
   // szybka karta (tytuł + kiedy) albo pełny arkusz edycji
@@ -80,11 +87,10 @@ export function App() {
   const sideOpen = isDesktop ? dockOpen : drawerOpen;
 
   const selKey = weekSel ? `${weekSel.start.getTime()}:${weekSel.weeks}` : "";
-  const mapWeekKey = startOfWeek(focus).getTime();
   const mapDays = useMemo(
-    () => (weekSel ? dayRange(weekSel.start, weekSel.weeks * 7) : dayRange(addDays(startOfWeek(focus), -7), MAP_DAYS)),
+    () => (weekSel ? dayRange(weekSel.start, weekSel.weeks * 7) : dayRange(mapStart, MAP_DAYS)),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [selKey, mapWeekKey],
+    [selKey, mapStart.getTime()],
   );
   const monthKey = `${focus.getFullYear()}-${focus.getMonth()}`;
   const gridWeeks = useMemo(
@@ -200,15 +206,22 @@ export function App() {
 
   /* ── nawigacja ── */
 
+  /** Każdy jawny skok (strzałki, dziś, mały kalendarz…): fokus + okno mapy wokół niego + przewinięcie. */
+  const navigate = (d: Date) => {
+    const day = startOfDay(d);
+    setFocus(day);
+    setMapStart(mapStartFor(day));
+    setScrollToNow((n) => n + 1);
+  };
+
   const step = (dir: -1 | 1) => {
     if (weekSel) {
       const start = addDays(weekSel.start, dir * weekSel.weeks * 7);
       setWeekSel({ ...weekSel, start });
-      setFocus(start);
+      navigate(start);
     } else {
-      setFocus((f) => (view === "month" ? addMonths(f, dir) : addDays(f, 7 * dir)));
+      navigate(view === "month" ? addMonths(focus, dir) : addDays(focus, 7 * dir));
     }
-    if (view === "map") setScrollToNow((n) => n + 1);
   };
 
   const closeDrawer = () => setDrawerOpen(false);
@@ -217,17 +230,40 @@ export function App() {
     const day = startOfDay(d);
     const inSel = weekSel && day >= weekSel.start && day < addDays(weekSel.start, weekSel.weeks * 7);
     if (!inSel) setWeekSel(null);
-    setFocus(day);
-    setScrollToNow((n) => n + 1);
+    navigate(day);
+  };
+
+  /** „dziś": wraca do dzisiejszego dnia w obecnym widoku (wybrany zakres tygodni przesuwa się na dziś). */
+  const goToday = () => {
+    const today = startOfDay(new Date());
+    if (weekSel) setWeekSel({ ...weekSel, start: startOfWeek(today) });
+    navigate(today);
   };
 
   const goToNow = () => {
-    const today = startOfDay(new Date());
-    if (weekSel) setWeekSel({ ...weekSel, start: startOfWeek(today) });
-    setFocus(today);
+    goToday();
     setView("map");
-    setScrollToNow((n) => n + 1);
   };
+
+  const clearWeekSel = () => {
+    setWeekSel(null);
+    navigate(focus);
+  };
+
+  // skrót klawiszowy „t" = dziś (jak w Google Calendar), gdy nie piszesz i nie ma otwartego okna
+  const goTodayRef = useRef(goToday);
+  goTodayRef.current = goToday;
+  const sheetOpen = Boolean(draft) || settingsOpen;
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (sheetOpen || e.ctrlKey || e.metaKey || e.altKey) return;
+      const el = e.target as HTMLElement | null;
+      if (el?.closest("input, textarea, select, [contenteditable]")) return;
+      if (e.key === "t" || e.key === "T") goTodayRef.current();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [sheetOpen]);
 
   const gridLabel = weekSel ? `${weekSel.weeks} tyg.` : "miesiąc";
 
@@ -276,6 +312,15 @@ export function App() {
         <div className="brand">
           <strong>pulsecal</strong>
           <span className="period">
+            <button
+              type="button"
+              className="today-btn"
+              title="Wróć do dzisiejszego dnia (T)"
+              aria-label="Dziś"
+              onClick={goToday}
+            >
+              dziś
+            </button>
             <button type="button" className="nav-btn" aria-label="Wstecz" onClick={() => step(-1)}>
               ‹
             </button>
@@ -289,7 +334,7 @@ export function App() {
                 className="nav-btn clear-sel"
                 aria-label="Wyczyść wybrane tygodnie"
                 title="Wróć do zwykłego widoku"
-                onClick={() => setWeekSel(null)}
+                onClick={clearWeekSel}
               >
                 ×
               </button>
@@ -339,8 +384,7 @@ export function App() {
           }}
           onPickWeeks={(start, weeks) => {
             setWeekSel({ start, weeks });
-            setFocus(start);
-            setScrollToNow((n) => n + 1);
+            navigate(start);
             closeDrawer();
           }}
           onCreate={() => {
@@ -368,6 +412,9 @@ export function App() {
               focusDay={focus}
               events={shownEvents}
               scrollToNowToken={scrollToNow}
+              onEdge={weekSel ? undefined : (dir) => setMapStart((s) => addDays(s, dir * MAP_SHIFT))}
+              onVisibleDay={weekSel ? undefined : (d) => setFocus((f) => (sameDay(f, d) ? f : startOfDay(d)))}
+              onStep={weekSel ? step : undefined}
               onSlot={(start) => openDraft(timedDraft(start.getTime(), newColor))}
               onAllDaySlot={(day) => openDraft(allDayDraft(day, newColor))}
               onEvent={(e) => openDraft(draftFromEvent(e), isDesktop ? "full" : "quick")}
@@ -386,6 +433,7 @@ export function App() {
               onAdd={(d) => openDraft(allDayDraft(d, newColor))}
               onEvent={(e) => openDraft(draftFromEvent(e), isDesktop ? "full" : "quick")}
               onMove={(e, start, end) => void moveEvent(e, start, end)}
+              onStep={step}
             />
           )}
 

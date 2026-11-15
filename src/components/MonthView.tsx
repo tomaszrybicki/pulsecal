@@ -1,3 +1,4 @@
+import { motion, useReducedMotion } from "framer-motion";
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { colorInk } from "../colors";
 import { DRAFT_ID } from "../draft";
@@ -19,7 +20,12 @@ type Props = {
   onAdd: (d: Date) => void;
   onEvent: (e: CalEvent) => void;
   onMove: (e: CalEvent, start: number, end: number) => void;
+  /** Kółko myszy / przesunięcie palcem w pionie: poprzedni (-1) / następny (1) miesiąc lub zakres. */
+  onStep: (dir: -1 | 1) => void;
 };
+
+const WHEEL_STEP = 60;
+const SWIPE_MIN = 60;
 
 const DAYNUM_H = 26;
 const MONTH_TAG = ["sty", "lut", "mar", "kwi", "maj", "cze", "lip", "sie", "wrz", "paź", "lis", "gru"];
@@ -82,7 +88,33 @@ function layoutWeek(weekStart: Date, events: CalEvent[]): Seg[] {
   return segs;
 }
 
-export function MonthView({ now, weeks, month, events, onDay, onAdd, onEvent, onMove }: Props) {
+export function MonthView({ now, weeks, month, events, onDay, onAdd, onEvent, onMove, onStep }: Props) {
+  const reduce = useReducedMotion();
+  const wheel = useRef({ acc: 0, last: 0, lock: 0 });
+  const swipe = useRef<{ x: number; y: number; t: number } | null>(null);
+  const slideDir = useRef(0);
+  const prevStart = useRef(weeks[0][0].getTime());
+  if (prevStart.current !== weeks[0][0].getTime()) {
+    slideDir.current = weeks[0][0].getTime() > prevStart.current ? 1 : -1;
+    prevStart.current = weeks[0][0].getTime();
+  }
+
+  const onWheel = (e: React.WheelEvent) => {
+    const w = wheel.current;
+    const t = performance.now();
+    if (t < w.lock) {
+      w.lock = t + 180; // bezwładność touchpada: jeden gest = jeden krok
+      return;
+    }
+    if (t - w.last > 250) w.acc = 0;
+    w.last = t;
+    w.acc += e.deltaY * (e.deltaMode === 1 ? 16 : 1);
+    if (Math.abs(w.acc) < WHEEL_STEP) return;
+    onStep(w.acc > 0 ? 1 : -1);
+    w.acc = 0;
+    w.lock = t + 450;
+  };
+
   const root = useRef<HTMLDivElement>(null);
   const weeksRef = useRef<HTMLDivElement>(null);
   const [rowH, setRowH] = useState(110);
@@ -108,7 +140,7 @@ export function MonthView({ now, weeks, month, events, onDay, onAdd, onEvent, on
     const ro = new ResizeObserver(measure);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [weeks.length]);
+  }, [weeks.length, gridStart.getTime()]);
   // zakres tygodni (nie miesiąc): 1. dzień miesiąca podpisujemy nazwą miesiąca, jak w Google
   const isRange = month === null;
   const cap = Math.max(1, Math.floor((rowH - DAYNUM_H - ROW_GAP * 2) / (LANE_H + ROW_GAP)));
@@ -193,13 +225,39 @@ export function MonthView({ now, weeks, month, events, onDay, onAdd, onEvent, on
   }, [drag, stretch, gridStart]);
 
   return (
-    <div className="month" ref={root}>
+    <div
+      className="month"
+      ref={root}
+      onWheel={onWheel}
+      onTouchStartCapture={(e) => {
+        const t = e.touches[0];
+        swipe.current = e.touches.length === 1 ? { x: t.clientX, y: t.clientY, t: Date.now() } : null;
+      }}
+      onTouchEndCapture={(e) => {
+        const s = swipe.current;
+        const t = e.changedTouches[0];
+        swipe.current = null;
+        if (!s || !t || drag || stretch) return;
+        const dx = t.clientX - s.x;
+        const dy = t.clientY - s.y;
+        if (Date.now() - s.t < 700 && Math.abs(dy) > SWIPE_MIN && Math.abs(dy) > Math.abs(dx) * 1.5) {
+          onStep(dy < 0 ? 1 : -1);
+        }
+      }}
+    >
       <div className="m-head">
         {WEEKDAY_LABELS.map((d) => (
           <div key={d}>{d}</div>
         ))}
       </div>
-      <div className="m-weeks" ref={weeksRef}>
+      <motion.div
+        key={isoDate(gridStart)}
+        className="m-weeks"
+        ref={weeksRef}
+        initial={reduce || !slideDir.current ? false : { opacity: 0.2, y: slideDir.current * 36 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: "spring", stiffness: 380, damping: 30 }}
+      >
         {weeks.map((week, w) => {
           const segs = layoutWeek(week[0], shown);
           const perDay = Array(7).fill(0) as number[];
@@ -263,7 +321,7 @@ export function MonthView({ now, weeks, month, events, onDay, onAdd, onEvent, on
             </div>
           );
         })}
-      </div>
+      </motion.div>
       {drag && (
         <div
           className={`m-ev m-float${isBar(drag.e) ? " bar" : ""}`}

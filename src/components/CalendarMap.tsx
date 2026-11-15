@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { colorInk } from "../colors";
 import { DRAFT_ID } from "../draft";
 import { useDragGesture, type Pt } from "../hooks/useDragGesture";
@@ -32,7 +32,18 @@ type Props = {
   onEvent: (e: CalEvent) => void;
   onMove: (e: CalEvent, start: number, end: number) => void;
   scrollToNowToken: number;
+  /** Okno bez końca: przewinięto blisko krawędzi → App przesuwa okno dni (pozycja na ekranie zostaje). */
+  onEdge?: (dir: -1 | 1) => void;
+  /** Pierwszy widoczny dzień (etykieta miesiąca, mały kalendarz) — po przewinięciu. */
+  onVisibleDay?: (d: Date) => void;
+  /** Stały zakres tygodni: kółko/przesunięcie poza krawędź → poprzedni/następny zakres. */
+  onStep?: (dir: -1 | 1) => void;
 };
+
+/** Ile kolumn od krawędzi zaczynamy doładowywać kolejne dni. */
+const EDGE_COLS = 3;
+const SWIPE_MIN = 60;
+const WHEEL_STEP = 80;
 
 type LaidOut = CalEvent & { col: number; cols: number };
 
@@ -86,6 +97,9 @@ export function CalendarMap({
   onEvent,
   onMove,
   scrollToNowToken,
+  onEdge,
+  onVisibleDay,
+  onStep,
 }: Props) {
   const scroller = useRef<HTMLDivElement>(null);
   const { shown, dropped, settle } = useOptimisticMove(events);
@@ -93,10 +107,146 @@ export function CalendarMap({
   // strefy auto-przewijania: u góry przyklejone nagłówki dni, z lewej kolumna godzin, na dole dock
   const { bind } = useDragGesture({ scroller, edges: { top: 72, left: 90, bottom: 110, right: 40 } });
 
+  // aktualne wartości dla efektów, które nie powinny się uruchamiać przy każdej zmianie
+  const live = useRef({ days, focusDay, now, onEdge, onVisibleDay, onStep });
+  live.current = { days, focusDay, now, onEdge, onVisibleDay, onStep };
+  const lastToken = useRef(scrollToNowToken);
+  const edgeAsked = useRef(false);
+  const lastVisible = useRef(0);
+  /** Dzień widoczny przy lewej krawędzi w chwili prośby o przesunięcie okna + jego odległość od krawędzi. */
+  const keep = useRef<{ t: number; off: number } | null>(null);
+
+  const colWidth = () => scroller.current?.querySelector<HTMLElement>(".hours")?.offsetWidth ?? 180;
+
+  /** Pozycja (w treści przewijanej) lewej krawędzi kolumny dnia o indeksie i. */
+  const colLeft = (el: HTMLElement, i: number) =>
+    (el.querySelector<HTMLElement>(".day-head")?.offsetLeft ?? 68) + i * colWidth();
+
+  // Okno dni przesunięte przez onEdge (nie nawigacja): ten sam dzień wraca w to samo miejsce ekranu,
+  // więc przewijanie wygląda na nieskończone. Ustawiamy pozycję bezwzględnie (a nie „o 14 dni"), bo
+  // przeglądarki różnie same poprawiają scroll po zmianie treści (np. Chrome przez scroll-snap).
+  const firstKey = days[0].getTime();
+  useLayoutEffect(() => {
+    const el = scroller.current;
+    const navigated = lastToken.current !== scrollToNowToken;
+    const k = keep.current;
+    keep.current = null;
+    if (el && k && !navigated) {
+      const i = days.findIndex((d) => d.getTime() === k.t);
+      if (i >= 0) el.scrollLeft = colLeft(el, i) - k.off;
+    }
+    edgeAsked.current = false;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [firstKey, scrollToNowToken]);
+
   useEffect(() => {
     const el = scroller.current;
     if (!el) return;
+    // Synchronicznie i bez mierzenia każdej kolumny (tylko arytmetyka) — tanie, działa też w tle.
+    const check = () => {
+      const { days: ds, onEdge: edge, onVisibleDay: visible } = live.current;
+      const w = colWidth();
+      const gutter = el.querySelector<HTMLElement>(".gutter")?.offsetWidth ?? 52;
+      const i = Math.min(ds.length - 1, Math.max(0, Math.floor((el.scrollLeft + gutter + w / 2 - colLeft(el, 0)) / w)));
+      if (edge && !edgeAsked.current) {
+        const dir = el.scrollLeft < w * EDGE_COLS ? -1 : el.scrollWidth - el.clientWidth - el.scrollLeft < w * EDGE_COLS ? 1 : 0;
+        if (dir) {
+          edgeAsked.current = true;
+          keep.current = { t: ds[i].getTime(), off: colLeft(el, i) - el.scrollLeft };
+          edge(dir);
+        }
+      }
+      if (visible) {
+        const t = ds[i]?.getTime();
+        if (t !== undefined && t !== lastVisible.current) {
+          lastVisible.current = t;
+          visible(ds[i]);
+        }
+      }
+    };
+    el.addEventListener("scroll", check, { passive: true });
+    return () => el.removeEventListener("scroll", check);
+  }, []);
+
+  // Kółko myszy: nad nagłówkami dni / wierszem całodniowym przewija daty (w pionie nie ma tam czego
+  // przewijać). Przy stałym zakresie tygodni kółko/gest w bok za krawędzią zmienia zakres.
+  useEffect(() => {
+    const el = scroller.current;
+    if (!el) return;
+    let acc = 0;
+    let lock = 0;
+    // tolerancja kilku pikseli: zaokrąglenia szerokości kolumn nie mogą blokować zmiany zakresu
+    const atStart = () => el.scrollLeft <= 24;
+    const atEnd = () => el.scrollLeft >= el.scrollWidth - el.clientWidth - 24;
+    const tryStep = (delta: number) => {
+      const step = live.current.onStep;
+      if (!step) return false;
+      const t = performance.now();
+      if (t < lock) {
+        lock = t + 180; // bezwładność touchpada: jeden gest = jeden krok
+        return true;
+      }
+      if ((delta < 0 && !atStart()) || (delta > 0 && !atEnd())) return false;
+      acc += delta;
+      if (Math.abs(acc) < WHEEL_STEP) return true;
+      step(acc > 0 ? 1 : -1);
+      acc = 0;
+      lock = t + 450;
+      return true;
+    };
+    const onWheel = (e: WheelEvent) => {
+      const scale = e.deltaMode === 1 ? 16 : 1;
+      const dx = e.deltaX * scale;
+      const dy = e.deltaY * scale;
+      const overHeads = (e.target as Element | null)?.closest?.(".day-head, .allday");
+      const sideways = Math.abs(dx) > Math.abs(dy) || e.shiftKey;
+      const delta = sideways ? (Math.abs(dx) > Math.abs(dy) ? dx : dy) : overHeads ? dy : 0;
+      if (!delta) return;
+      if (tryStep(delta)) {
+        e.preventDefault();
+        return;
+      }
+      if (overHeads && !sideways) {
+        e.preventDefault();
+        el.scrollLeft += delta;
+      }
+    };
+    let touch: { x: number; y: number; t: number; start: boolean; end: boolean } | null = null;
+    const onTouchStart = (e: TouchEvent) => {
+      const t = e.touches[0];
+      touch =
+        e.touches.length === 1 ? { x: t.clientX, y: t.clientY, t: Date.now(), start: atStart(), end: atEnd() } : null;
+    };
+    const onTouchEnd = (e: TouchEvent) => {
+      const step = live.current.onStep;
+      const t = e.changedTouches[0];
+      if (!step || !touch || !t) return;
+      const dx = t.clientX - touch.x;
+      const dy = t.clientY - touch.y;
+      const quick = Date.now() - touch.t < 700;
+      if (quick && Math.abs(dx) > SWIPE_MIN && Math.abs(dx) > Math.abs(dy) * 1.5) {
+        if (dx < 0 && touch.end) step(1);
+        if (dx > 0 && touch.start) step(-1);
+      }
+      touch = null;
+    };
+    el.addEventListener("wheel", onWheel, { passive: false });
+    el.addEventListener("touchstart", onTouchStart, { passive: true });
+    el.addEventListener("touchend", onTouchEnd, { passive: true });
+    return () => {
+      el.removeEventListener("wheel", onWheel);
+      el.removeEventListener("touchstart", onTouchStart);
+      el.removeEventListener("touchend", onTouchEnd);
+    };
+  }, []);
+
+  // Nawigacja (i pierwsze wyświetlenie): przewiń do fokusu zaraz po wyrenderowaniu, przed malowaniem.
+  useLayoutEffect(() => {
+    const el = scroller.current;
+    if (!el) return;
+    lastToken.current = scrollToNowToken;
     const snapTo = () => {
+      const { days, focusDay, now } = live.current;
       // Pozycja z DOM zamiast dayW * index — szerokość kolumny i odstępy zależą od CSS/ekranu.
       const heads = el.querySelectorAll<HTMLElement>(".day-head");
       const gutter = el.querySelector<HTMLElement>(".gutter")?.offsetWidth ?? 52;
@@ -109,11 +259,9 @@ export function CalendarMap({
       const focusMinutes = sameDay(focusDay, now) ? minutesSinceMidnight(now) : 9 * 60;
       el.scrollTop = Math.max(0, (focusMinutes / 60) * HOUR_H - el.clientHeight * 0.35);
     };
-    const id = window.requestAnimationFrame(() => window.requestAnimationFrame(snapTo));
-    return () => window.cancelAnimationFrame(id);
-    // now is read once per locate/focus change, not every tick
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scrollToNowToken, days, focusDay]);
+    snapTo();
+    // tylko przy nawigacji (token) i przy montowaniu — nie przy przesunięciu okna ani zmianie fokusu z przewijania
+  }, [scrollToNowToken]);
 
   /** Kolumna dnia pod kursorem (poza siatką → najbliższa skrajna). */
   const columnAt = (x: number, selector: string): { index: number; rect: DOMRect } | null => {
@@ -298,9 +446,6 @@ export function CalendarMap({
                 onSlot(atMinutes(d, minutes));
               }}
             >
-              {Array.from({ length: 24 }, (_, h) => (
-                <div key={h} className="hour-line" style={{ top: h * HOUR_H }} />
-              ))}
               {dayEvents.map((e) => {
                 // wpis przechodzący przez północ: rysujemy tylko część z tego dnia
                 const segStart = Math.max(e.start, from);

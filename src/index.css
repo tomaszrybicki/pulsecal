@@ -206,6 +206,9 @@ textarea {
   /* przyklejona kolumna godzin zasłania lewą krawędź — snap ma się zatrzymać za nią */
   scroll-padding-left: var(--gutter);
   -webkit-overflow-scrolling: touch;
+  /* okno dni przesuwamy sami (CalendarMap koryguje scrollLeft); kotwiczenie przeglądarki dodałoby drugie
+     przesunięcie w Chrome, a Safari go nie ma — wyłączamy, żeby było tak samo wszędzie */
+  overflow-anchor: none;
 }
 
 .grid {
@@ -245,7 +248,10 @@ textarea {
   position: relative;
   height: calc(24 * var(--hour));
   border-radius: 28px;
-  background: rgba(255, 250, 242, 0.28);
+  /* linie godzin jako tło (zamiast 24 elementów na każdą kolumnę — okno ma teraz 42 dni) */
+  background:
+    repeating-linear-gradient(to bottom, var(--ink-faint) 0 1px, transparent 1px var(--hour)),
+    rgba(255, 250, 242, 0.28);
   box-shadow: inset 0 0 0 1px var(--ink-faint);
 }
 
@@ -936,7 +942,8 @@ body.is-dragging .map-scroll {
 
 /* wybrane tygodnie / ≤ 7 dni: kolumny wypełniają szerokość */
 .grid.fit {
-  --day-w: max(120px, calc((100cqw - var(--gutter) - 34px) / var(--days)));
+  /* 100cqw obejmuje też pionowy pasek przewijania (do ~16 px) — odejmujemy go, żeby nie było przewijania w bok */
+  --day-w: max(120px, calc((100cqw - var(--gutter) - 34px - 16px) / var(--days)));
 }
 
 .sheet-backdrop.light {
@@ -1781,4 +1788,30 @@ body.is-dragging .map-scroll {
 
 .sheet.floating .grab {
   display: none;
+}
+
+/* ── przycisk „dziś" ── */
+
+.today-btn {
+  flex: none;
+  margin-right: 4px;
+  border: 0;
+  border-radius: 999px;
+  padding: 3px 10px;
+  background: var(--glass);
+  box-shadow: 0 0 0 1px var(--ink-faint);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.today-btn:hover {
+  background: #fffaf2;
+}
+
+.today-btn:active {
+  transform: scale(0.92);
 }

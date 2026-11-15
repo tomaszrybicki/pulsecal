@@ -3,6 +3,17 @@
 Każda wersja to jeden commit `vX.Y.Z: …` (treść commita = wpis z tego pliku) i tag `vX.Y.Z`.
 Najnowsze na górze. Opis funkcji aplikacji jest w [FEATURES.md](FEATURES.md).
 
+## [0.7.0] – 2026-11-15: przewijanie przez daty i „dziś”
+
+- Przycisk „dziś” w górnym pasku i skrót klawiszowy T: powrót do dzisiejszego dnia w obecnym widoku.
+- Mapa: przewijanie w bok bez końca (okno 6 tygodni przesuwa się samo, widok się nie przesuwa).
+  Nazwa miesiąca i mały kalendarz podążają za tym, co widać.
+- Mapa: kółko myszy nad nagłówkami dni przewija daty; Shift + kółko i gest w bok też.
+- Miesiąc: kółko myszy i przesunięcie palcem w pionie zmieniają miesiąc, z animacją przesunięcia.
+- Wybrane tygodnie: kółko / gest w bok za krawędzią przechodzi do następnego / poprzedniego zakresu.
+- Poprawka: przy jednym wybranym tygodniu siatka nie przewija się już o kilkanaście pikseli w bok.
+- Linie godzin rysowane jako tło (szybsze przy dłuższym oknie dni).
+
 ## [0.6.0] – 2026-11-15: okno wpisu przy kursorze
 
 - Na komputerze okno nowego wpisu (i edycji) wyskakuje obok kursora, jak w Google Calendar:
