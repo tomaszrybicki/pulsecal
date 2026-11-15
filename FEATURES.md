@@ -214,6 +214,7 @@ Historia wersji jest w [CHANGELOG.md](CHANGELOG.md).
   - wierniejsze kolory z Google (np. czerwony w Google → czerwony w Pulsecal), zwłaszcza dla wpisów z etykietami
     kolorów w Google i dla domyślnego koloru kalendarza;
   - przełącznik trybu ciemnego (auto / jasny / ciemny);
+  - wybór daty w edycji wpisu z tygodniem od poniedziałku;
   - szersza mapa z przewijaniem bez końca;
   - zamykanie okien gestem w dół;
   - szybkie wyszukiwanie i dodawanie z paska („jutro 14:30”);

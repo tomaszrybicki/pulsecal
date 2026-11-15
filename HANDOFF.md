@@ -74,6 +74,12 @@
   (`--paper`, `--ink`, `--glass`…), replacing hard-coded light colours (`#fffaf2`, `#efe8dc` in `.sheet`,
   `.field`, `.tag-box`, `.search-box`, `.mini-chip`, toasts…), event colours readable on dark (blob
   background mix with black instead of white), the PWA `theme-color` meta. Place: settings sheet or sidebar.
+- [ ] **Date picker: Monday as the first day of the week.** The editor uses native `<input type="date">` /
+  `datetime-local`; their popup calendar follows the browser/OS locale, not the page (Chrome on an English
+  Windows starts on Sunday; `lang="pl"` on `<html>` doesn't change it reliably). The mini calendar and the
+  month view already start on Monday. Options: a small custom picker built from `MiniCalendar` (consistent
+  look, Monday first, works with our blob style) for date + a time field/chips for the time; keep native
+  inputs on iOS where the wheel picker is good and has no week grid.
 
 Versions and commits: see `CHANGELOG.md` and the "Versions and commits" section of `CLAUDE.md`.
 
