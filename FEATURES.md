@@ -217,6 +217,7 @@ Historia wersji jest w [CHANGELOG.md](CHANGELOG.md).
   - wybór daty w edycji wpisu z tygodniem od poniedziałku;
   - (później) reguły tagów, np. „tytuł zawiera »dentysta« → tag »wizyta«”;
   - (później) kopia ustawień aplikacji w Google Calendar jako ukryty wpis, do odtworzenia na innym urządzeniu;
+  - tagi z wielkimi literami (np. „ADHD”, „Praca”), bez rozróżniania wielkości liter przy porównywaniu;
   - szersza mapa z przewijaniem bez końca;
   - zamykanie okien gestem w dół;
   - szybkie wyszukiwanie i dodawanie z paska („jutro 14:30”);

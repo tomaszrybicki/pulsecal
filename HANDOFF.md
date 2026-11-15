@@ -94,6 +94,12 @@
   - Never store the OAuth token; the Client ID is needed before we can read the backup anyway.
   - On a new device: after connecting, offer „Przywróć ustawienia z Google?”. Conflicts: newest
     `updatedAt` wins (whole-object), writes debounced.
+- [ ] **Tags with uppercase letters** (e.g. „ADHD”, „Praca”). Today `normalizeTag()` in `tags.ts` lowercases
+  everything. Change: keep the casing the user typed for display, but compare case-insensitively —
+  key = `toLocaleLowerCase("pl")` for dedupe, the hidden-tags filter, `tagColor()`, `#prefix` matching in
+  quick add and the Dexie `*tags` index (store tags as typed; `tagStats()` groups by key and shows the most
+  common casing). „Praca” and „praca” on two events = one tag. The Google line „Tagi: …” keeps the casing.
+  Existing tags are all lowercase, so no migration needed; update the CLAUDE.md convention line.
 
 Versions and commits: see `CHANGELOG.md` and the "Versions and commits" section of `CLAUDE.md`.
 
