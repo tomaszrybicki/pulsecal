@@ -160,6 +160,7 @@ export function App() {
   }, []);
 
   const saveDraft = async () => {
+    const saving = draft;
     if (!draft?.title.trim()) return;
     const existing = draft.id ? await db.events.get(draft.id) : undefined;
     const event: CalEvent = {
@@ -183,7 +184,8 @@ export function App() {
       pending: 1,
     };
     await saveLocal(event);
-    setDraft(null);
+    // klik obok mógł już otworzyć inny wpis — zamykamy tylko ten, który zapisaliśmy
+    setDraft((cur) => (cur === saving ? null : cur));
     if (!isVisible(event.tags, hiddenTags)) sync.notify("Zapisano. Wpis jest ukryty przez filtr tagów.", "warn");
     sync.requestSync();
   };
@@ -698,6 +700,8 @@ export function App() {
             onClose={() => setDayPanel(null)}
             onOpen={(e) => openDraft(draftFromEvent(e), isDesktop ? "full" : "quick")}
             onShift={(list, days) => void shiftEvents(list, days)}
+            onDelete={(e) => void deleteEvent(e.id)}
+            onContext={eventActions.onContext}
           />
         )}
       </AnimatePresence>

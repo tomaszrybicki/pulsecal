@@ -1810,6 +1810,12 @@ body.is-dragging .map-scroll {
   display: block;
   padding: 0;
   background: transparent;
+  /* okienko przy kursorze nie blokuje reszty ekranu — klik obok działa od razu (SheetFrame zamyka okienko) */
+  pointer-events: none;
+}
+
+.sheet-backdrop.anchored > .sheet {
+  pointer-events: auto;
 }
 
 .sheet.floating {
@@ -2058,20 +2064,21 @@ button.pill-plus:active {
 
 .m-day-more {
   position: absolute;
-  right: 4px;
-  bottom: 2px;
+  right: 3px;
+  bottom: 3px;
   z-index: 2;
-  height: 14px;
+  min-width: 30px;
+  height: 20px;
   border: 0;
-  border-radius: 7px;
-  padding: 0 5px;
-  background: transparent;
+  border-radius: 10px;
+  padding: 0 7px;
+  background: var(--hover);
   color: var(--ink-soft);
-  font-size: 0.6rem;
-  line-height: 14px;
+  font-size: 0.8rem;
+  line-height: 20px;
   letter-spacing: 1px;
   cursor: pointer;
-  opacity: 0.6;
+  opacity: 0.85;
 }
 
 .m-day-more:hover {
@@ -2455,4 +2462,10 @@ button.pill-plus:active {
 .rule-add button:disabled {
   opacity: 0.45;
   cursor: default;
+}
+
+.dp-del {
+  min-width: 30px;
+  color: var(--danger-ink);
+  background: var(--danger-bg);
 }

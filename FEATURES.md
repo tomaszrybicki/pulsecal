@@ -33,8 +33,8 @@ logowanie Google bez własnego serwera (Google Identity Services).
   - Gdy wpisy się nie mieszczą: „+N więcej”.
   - **Przegląd dnia:** „+N więcej” albo przycisk „•••” na dole dnia otwiera okienko ze wszystkimi wpisami dnia.
     Przy każdym: „>” przenosi na następny dzień, „>>” o tydzień (godzina zostaje). „> wszystkie niepilne”
-    przenosi na następny dzień wszystko, co nie ma tagu „pilne” ani „ważne”. Każde przeniesienie można cofnąć
-    przyciskiem „Cofnij” w powiadomieniu.
+    przenosi na następny dzień wszystko, co nie ma tagu „pilne” ani „ważne”. „×” usuwa wpis, prawy przycisk
+    myszy otwiera jego menu. Każde przeniesienie i usunięcie można cofnąć przyciskiem „Cofnij” w powiadomieniu.
   - Na telefonie wszystko jako kolorowe pigułki z samą nazwą.
   - Liczba widocznych wierszy dopasowuje się do wysokości ekranu.
 - **Nawigacja:**
@@ -138,7 +138,8 @@ logowanie Google bez własnego serwera (Google Identity Services).
 - **Komputer:** kliknięcie wpisu od razu otwiera pełną edycję, bez klikania „Więcej”.
   Okno (pełna edycja i karta nowego wpisu) **wyskakuje obok kursora**: z prawej, a przy prawej krawędzi
   ekranu z lewej. Kliknięte miejsce zostaje widoczne, a zmiany widać w kalendarzu na żywo.
-  Ustawienia otwierają się jako panel z prawej.
+  Ustawienia otwierają się jako panel z prawej. Okienka przy kursorze nie blokują ekranu: kliknięcie obok
+  zamyka okienko i od razu działa (np. otwiera inny wpis).
 - **Szybkie akcje na komputerze:**
   - po najechaniu myszą na wpis pojawia się „×” — usuwa od razu, bez pytania; w powiadomieniu jest „Cofnij”;
   - prawy przycisk myszy na wpisie: menu z kolorami, tagami (zapisują się od razu), „Edytuj” i „Usuń”.

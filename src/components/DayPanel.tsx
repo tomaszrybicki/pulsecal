@@ -28,13 +28,16 @@ type Props = {
   onOpen: (e: CalEvent) => void;
   /** Przesuń wpisy o `days` dni (z zachowaniem godziny). */
   onShift: (list: CalEvent[], days: number) => void;
+  onDelete: (e: CalEvent) => void;
+  /** Prawy przycisk myszy na wpisie → menu (kolor, tagi, usuń). */
+  onContext?: (e: CalEvent, pt: { x: number; y: number }) => void;
 };
 
 /**
  * Przegląd dnia: wszystkie wpisy dnia (zamiast „+N więcej" → mapa) z szybkim przekładaniem:
  * „>" na następny dzień, „>>" o tydzień, „> wszystkie niepilne" — wszystko bez tagu „pilne"/„ważne".
  */
-export function DayPanel({ day, events, anchor, onClose, onOpen, onShift }: Props) {
+export function DayPanel({ day, events, anchor, onClose, onOpen, onShift, onDelete, onContext }: Props) {
   const list = [...events].sort(dayOrder);
   const notUrgent = list.filter((e) => !isUrgent(e));
 
@@ -63,7 +66,18 @@ export function DayPanel({ day, events, anchor, onClose, onOpen, onShift }: Prop
       </button>
       <ul className="dp-list">
         {list.map((e) => (
-          <li key={e.id} className={isUrgent(e) ? "urgent" : ""}>
+          <li
+            key={e.id}
+            className={isUrgent(e) ? "urgent" : ""}
+            onContextMenu={
+              onContext
+                ? (ev) => {
+                    ev.preventDefault();
+                    onContext(e, { x: ev.clientX, y: ev.clientY });
+                  }
+                : undefined
+            }
+          >
             <button type="button" className="dp-open" onClick={() => onOpen(e)}>
               <span className="dp-dot" style={{ background: e.color }} aria-hidden />
               <span className="dp-main">
@@ -81,6 +95,9 @@ export function DayPanel({ day, events, anchor, onClose, onOpen, onShift }: Prop
             </button>
             <button type="button" className="dp-shift" title="Za tydzień" aria-label={`${e.title}: za tydzień`} onClick={() => onShift([e], 7)}>
               &gt;&gt;
+            </button>
+            <button type="button" className="dp-shift dp-del" title="Usuń" aria-label={`Usuń ${e.title}`} onClick={() => onDelete(e)}>
+              ×
             </button>
           </li>
         ))}

@@ -3,6 +3,14 @@
 Każda wersja to jeden commit `vX.Y.Z: …` (treść commita = wpis z tego pliku) i tag `vX.Y.Z`.
 Najnowsze na górze. Opis funkcji aplikacji jest w [FEATURES.md](FEATURES.md).
 
+## [0.17.0] – 2026-11-15: klikanie obok okienek, usuwanie w przeglądzie dnia
+
+- Okienka przy kursorze (wpis, menu pod prawym przyciskiem, przegląd dnia) nie blokują już reszty ekranu:
+  kliknięcie obok zamyka okienko i od razu działa — otwiera inny wpis, tworzy wpis w slocie, zaczyna
+  przeciąganie — bez drugiego kliknięcia. Edycja istniejącego wpisu zapisuje się przy takim zamknięciu.
+- Przegląd dnia: większy przycisk „•••” w dniu; przy każdym wpisie przycisk „×” (usuń, z „Cofnij”) i menu
+  pod prawym przyciskiem myszy.
+
 ## [0.16.0] – 2026-11-15: kopia ustawień w Google Calendar
 
 - Kopia ustawień w Google Calendar: ukryte tagi, reguły tagów, interwał odpytywania, panel boczny i motyw
