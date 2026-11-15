@@ -3,6 +3,12 @@
 Każda wersja to jeden commit `vX.Y.Z: …` (treść commita = wpis z tego pliku) i tag `vX.Y.Z`.
 Najnowsze na górze. Opis funkcji aplikacji jest w [FEATURES.md](FEATURES.md).
 
+## [0.20.2] – 2026-11-15: komunikat odświeżania reguł
+
+- **Odświeżanie reguł bez mylącego komunikatu:** „↻” można używać dowolnie wiele razy, np. po dodaniu nowych reguł.
+  Gdy nic nie pasuje, komunikat mówi teraz „Sprawdzono N wpisów od dziś — żadna reguła nie dodała nowego tagu”
+  zamiast „Wpisy od dziś mają już tagi z reguł”, które wyglądało jak blokada po pierwszym odświeżeniu.
+
 ## [0.20.1] – 2026-11-15: zmiany serii z Google
 
 - **Seria zmieniona w Google pojawia się w Pulsecal:** zmiana „wszystkich wydarzeń” albo „tego i następnych”

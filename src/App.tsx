@@ -327,7 +327,7 @@ export function App() {
     sync.notify(
       before.length
         ? `Dodano tagi w ${before.length} ${before.length === 1 ? "wpisie" : "wpisach"} (od dziś)`
-        : "Wpisy od dziś mają już tagi z reguł",
+        : `Sprawdzono ${all.length} ${all.length === 1 ? "wpis" : [2, 3, 4].includes(all.length % 10) && ![12, 13, 14].includes(all.length % 100) ? "wpisy" : "wpisów"} od dziś — żadna reguła nie dodała nowego tagu`,
       "ok",
       before.length
         ? {
