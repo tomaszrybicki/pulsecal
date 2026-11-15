@@ -1,7 +1,8 @@
 import { useEffect } from "react";
 import { toggleAllDay } from "../draft";
 import type { DraftEvent } from "../types";
-import { addDays, dayDiff, endOfDay, parseLocalInput, toDateInput, toLocalInput } from "../time";
+import { addDays, dayDiff, endOfDay, formatClock, parseLocalInput, toDateInput, toLocalInput } from "../time";
+import { DateField, prefersNativeDate } from "./DateField";
 import type { Anchor } from "../hooks/useAnchoredPlacement";
 import { SheetFrame } from "./SheetFrame";
 import { ColorSwatches } from "./ColorSwatches";
@@ -20,6 +21,8 @@ type Props = {
   /** Punkt kliknięcia na komputerze → okno wyskakuje przy kursorze. */
   anchor?: Anchor | null;
 };
+
+const NATIVE_DATE = prefersNativeDate();
 
 export function EventSheet({ draft, onChange, onClose, onDismiss, onSave, onDelete, knownTags, anchor = null }: Props) {
   useEffect(() => {
@@ -70,35 +73,84 @@ export function EventSheet({ draft, onChange, onClose, onDismiss, onSave, onDele
           </span>
           Cały dzień
         </label>
-        {draft.allDay ? (
+        {NATIVE_DATE ? (
+          // iPhone/iPad: natywne pola (kółko wyboru) — bez siatki tygodnia, więc bez problemu z niedzielą
+          draft.allDay ? (
+            <div className="field-row">
+              <label className="field">
+                Od
+                <input type="date" value={toDateInput(draft.start)} onChange={(e) => setDayStart(e.target.value)} />
+              </label>
+              <label className="field">
+                Do
+                <input type="date" value={toDateInput(draft.end)} onChange={(e) => setDayEnd(e.target.value)} />
+              </label>
+            </div>
+          ) : (
+            <>
+              <label className="field">
+                Start
+                <input
+                  type="datetime-local"
+                  value={toLocalInput(draft.start)}
+                  onChange={(e) => setTimedStart(e.target.value)}
+                />
+              </label>
+              <label className="field">
+                Koniec
+                <input
+                  type="datetime-local"
+                  value={toLocalInput(draft.end)}
+                  onChange={(e) => setTimedEnd(e.target.value)}
+                />
+              </label>
+            </>
+          )
+        ) : draft.allDay ? (
           <div className="field-row">
-            <label className="field">
+            <div className="field">
               Od
-              <input type="date" value={toDateInput(draft.start)} onChange={(e) => setDayStart(e.target.value)} />
-            </label>
-            <label className="field">
+              <DateField label="Od" value={draft.start} onChange={(day) => setDayStart(toDateInput(day))} />
+            </div>
+            <div className="field">
               Do
-              <input type="date" value={toDateInput(draft.end)} onChange={(e) => setDayEnd(e.target.value)} />
-            </label>
+              <DateField label="Do" value={draft.end} onChange={(day) => setDayEnd(toDateInput(day))} />
+            </div>
           </div>
         ) : (
           <>
-            <label className="field">
+            <div className="field">
               Start
-              <input
-                type="datetime-local"
-                value={toLocalInput(draft.start)}
-                onChange={(e) => setTimedStart(e.target.value)}
-              />
-            </label>
-            <label className="field">
+              <div className="date-time">
+                <DateField
+                  label="Data startu"
+                  value={draft.start}
+                  onChange={(day) => setTimedStart(`${toDateInput(day)}T${formatClock(new Date(draft.start))}`)}
+                />
+                <input
+                  type="time"
+                  aria-label="Godzina startu"
+                  value={formatClock(new Date(draft.start))}
+                  onChange={(e) => e.target.value && setTimedStart(`${toDateInput(draft.start)}T${e.target.value}`)}
+                />
+              </div>
+            </div>
+            <div className="field">
               Koniec
-              <input
-                type="datetime-local"
-                value={toLocalInput(draft.end)}
-                onChange={(e) => setTimedEnd(e.target.value)}
-              />
-            </label>
+              <div className="date-time">
+                <DateField
+                  label="Data końca"
+                  value={draft.end}
+                  onChange={(day) => setTimedEnd(`${toDateInput(day)}T${formatClock(new Date(draft.end))}`)}
+                />
+                <input
+                  type="time"
+                  aria-label="Godzina końca"
+                  value={formatClock(new Date(draft.end))}
+                  onChange={(e) => e.target.value && setTimedEnd(`${toDateInput(draft.end)}T${e.target.value}`)}
+                />
+              </div>
+            </div>
           </>
         )}
         <div className="field">

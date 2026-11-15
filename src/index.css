@@ -2344,3 +2344,57 @@ button.pill-plus:active {
   color: var(--ink);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
 }
+
+/* ── wybór daty (tydzień od poniedziałku) ── */
+
+.date-time {
+  display: flex;
+  gap: 8px;
+}
+
+.date-time .date-field {
+  flex: 1;
+}
+
+.date-time input[type="time"] {
+  flex: none;
+  width: 110px;
+}
+
+.date-field {
+  position: relative;
+  min-width: 0;
+}
+
+.date-btn {
+  width: 100%;
+  border: 0;
+  border-radius: 16px;
+  padding: 12px 14px;
+  background: var(--field);
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.date-pop {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 5;
+  width: 260px;
+  border-radius: 20px;
+  padding: 8px 10px 10px;
+  background: var(--surface);
+  box-shadow:
+    0 0 0 1px var(--ink-faint),
+    0 18px 40px rgba(0, 0, 0, 0.2);
+}
+
+.date-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  row-gap: 2px;
+  font-size: 0.78rem;
+}

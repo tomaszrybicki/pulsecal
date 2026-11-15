@@ -140,6 +140,7 @@ logowanie Google bez własnego serwera (Google Identity Services).
   - po najechaniu myszą na wpis pojawia się „×” — usuwa od razu, bez pytania; w powiadomieniu jest „Cofnij”;
   - prawy przycisk myszy na wpisie: menu z kolorami, tagami (zapisują się od razu), „Edytuj” i „Usuń”.
 - **Pełna edycja:** tytuł, przełącznik „Cały dzień” (wtedy same daty od–do), start i koniec, notatka, kolor.
+  Data wybierana z kalendarzyka z tygodniem od poniedziałku (na iPhonie systemowe kółko), godzina osobno.
   Zmiana startu zachowuje długość wpisu.
 - **Zamykanie:**
   - kliknięcie obok albo Esc zapisuje zmiany w istniejącym wpisie;
@@ -215,7 +216,6 @@ Historia wersji jest w [CHANGELOG.md](CHANGELOG.md).
 - **Konflikty z Google:** gdy ten sam wpis zmieni się jednocześnie w Pulsecal i w Google, wygrywa nowsza
   zmiana, a druga przepada. Porządna obsługa konfliktów jest na liście TODO w `HANDOFF.md`.
 - **Planowane** (kolejność w `HANDOFF.md`):
-  - wybór daty w edycji wpisu z tygodniem od poniedziałku;
   - (później) reguły tagów, np. „tytuł zawiera »dentysta« → tag »wizyta«”;
   - (później) kopia ustawień aplikacji w Google Calendar jako ukryty wpis, do odtworzenia na innym urządzeniu;
   - szersza mapa z przewijaniem bez końca;

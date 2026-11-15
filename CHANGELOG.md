@@ -3,6 +3,13 @@
 Każda wersja to jeden commit `vX.Y.Z: …` (treść commita = wpis z tego pliku) i tag `vX.Y.Z`.
 Najnowsze na górze. Opis funkcji aplikacji jest w [FEATURES.md](FEATURES.md).
 
+## [0.14.0] – 2026-11-15: wybór daty od poniedziałku
+
+- Wybór daty w pełnej edycji z tygodniem od poniedziałku: własny kalendarzyk zamiast przeglądarkowego
+  (który brał pierwszy dzień tygodnia z języka systemu, np. niedzielę w angielskim Chrome). Godzina ma osobne pole.
+  Zmiana daty startu przesuwa też koniec (długość wpisu zostaje).
+- Na iPhonie/iPadzie zostaje systemowe kółko wyboru daty (nie ma tam siatki tygodnia).
+
 ## [0.13.0] – 2026-11-15: tryb ciemny
 
 - Tryb ciemny: przełącznik „motyw: auto / jasny / ciemny” na dole panelu bocznego. Auto = według ustawień
