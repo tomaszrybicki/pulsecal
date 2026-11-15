@@ -3,7 +3,7 @@ import { eventsInRange, searchEvents } from "../db";
 import { whenLabel } from "../draft";
 import { useLiveQuery } from "../hooks/useLiveQuery";
 import { parseQuickEntry, type ParsedEntry } from "../quickParse";
-import { tagColor } from "../tags";
+import { shownColor, tagColor } from "../tags";
 import type { CalEvent } from "../types";
 import { DAY } from "../time";
 import { SheetFrame } from "./SheetFrame";
@@ -167,7 +167,7 @@ export function SearchSheet({ knownTags, onClose, onOpenEvent, onCreate }: Props
                 onMouseEnter={() => setActive(i)}
                 onClick={() => activate(it)}
               >
-                <span className="sr-dot" style={{ background: it.e.color }} aria-hidden />
+                <span className="sr-dot" style={{ background: shownColor(it.e) }} aria-hidden />
                 <span className="sr-main">
                   <span className="sr-title">{highlight(it.e.title || "(bez tytułu)", query)}</span>
                   <span className="sr-when">{when(it.e)}</span>

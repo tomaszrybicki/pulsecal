@@ -1,7 +1,8 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import type { TagStat } from "../db";
 import type { ThemePref } from "../hooks/useTheme";
-import { UNTAGGED, hasCustomColor, tagColor } from "../tags";
+import { colorInk } from "../colors";
+import { UNTAGGED, hasCustomColor, isPainted, tagColor } from "../tags";
 import { MiniCalendar, type WeekSelection } from "./MiniCalendar";
 
 type Props = {
@@ -29,6 +30,10 @@ type Props = {
   onApplyRules: () => void;
   /** Kolor tagu (null = automatyczny). */
   onTagColor: (tag: string, color: string | null) => void;
+  /** Wpisy z tym tagiem pokazywane w kolorze tagu. */
+  onPaintTag: (tag: string, on: boolean) => void;
+  /** Zmiana nazwy tagu we wszystkich wpisach. */
+  onRenameTag: (from: string, to: string) => void;
 };
 
 const THEMES: [ThemePref, string][] = [
@@ -38,6 +43,18 @@ const THEMES: [ThemePref, string][] = [
 ];
 
 export function Sidebar(p: Props) {
+  // zmiana nazwy tagu: klucz edytowanego wiersza + wpisywana nazwa
+  const [editing, setEditing] = useState<string | null>(null);
+  const [name, setName] = useState("");
+  const startEdit = (key: string, label: string) => {
+    setEditing(key);
+    setName(label);
+  };
+  const commit = (label: string) => {
+    setEditing(null);
+    const next = name.trim();
+    if (next && next !== label) p.onRenameTag(label, next);
+  };
   const rows: { key: string; label: string; count?: number; color: string }[] = [
     ...p.tags.map((t) => ({ key: t.key, label: t.tag, count: t.count, color: tagColor(t.tag) })),
     { key: UNTAGGED, label: "bez tagów", color: "var(--ink-soft)" },
@@ -103,12 +120,46 @@ export function Sidebar(p: Props) {
               const on = !p.hidden.has(r.key);
               return (
                 <li key={r.key} className={on ? "" : "off"}>
-                  <label>
-                    <input type="checkbox" checked={on} onChange={() => p.onToggleTag(r.key)} />
-                    <span className="tag-check" style={{ ["--tag" as string]: r.color }} aria-hidden />
-                    <span className="tag-name">{r.label}</span>
-                    {r.count !== undefined && <span className="tag-count">{r.count}</span>}
-                  </label>
+                  {editing === r.key ? (
+                    <span className="tag-edit">
+                      <span className="tag-check" style={{ ["--tag" as string]: r.color }} aria-hidden />
+                      <input
+                        className="tag-rename"
+                        value={name}
+                        autoFocus
+                        aria-label={`Nowa nazwa tagu ${r.label}`}
+                        onFocus={(e) => e.currentTarget.select()}
+                        onChange={(e) => setName(e.target.value)}
+                        onBlur={() => commit(r.label)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") e.currentTarget.blur();
+                          if (e.key === "Escape") {
+                            e.stopPropagation();
+                            setEditing(null);
+                          }
+                        }}
+                      />
+                    </span>
+                  ) : (
+                    <label>
+                      <input type="checkbox" checked={on} onChange={() => p.onToggleTag(r.key)} />
+                      <span className="tag-check" style={{ ["--tag" as string]: r.color }} aria-hidden />
+                      {r.key === UNTAGGED ? (
+                        <span className="tag-name">{r.label}</span>
+                      ) : (
+                        <button
+                          type="button"
+                          className="tag-name"
+                          title="Zmień nazwę"
+                          aria-label={`${r.label} — zmień nazwę`}
+                          onClick={() => startEdit(r.key, r.label)}
+                        >
+                          {r.label}
+                        </button>
+                      )}
+                      {r.count !== undefined && <span className="tag-count">{r.count}</span>}
+                    </label>
+                  )}
                   {r.key !== UNTAGGED && (
                     <span className="tag-color-ctl">
                       <label className="tag-color" title="Kolor tagu" style={{ background: r.color }}>
@@ -131,6 +182,19 @@ export function Sidebar(p: Props) {
                         </button>
                       )}
                     </span>
+                  )}
+                  {r.key !== UNTAGGED && (
+                    <button
+                      type="button"
+                      className={`paint-btn${isPainted(r.label) ? " on" : ""}`}
+                      style={{ ["--tag" as string]: r.color, ["--tag-ink" as string]: colorInk(r.color) }}
+                      aria-pressed={isPainted(r.label)}
+                      title="Wpisy z tym tagiem w kolorze tagu"
+                      aria-label={`Koloruj wpisy z tagiem ${r.label}`}
+                      onClick={() => p.onPaintTag(r.label, !isPainted(r.label))}
+                    >
+                      koloruj
+                    </button>
                   )}
                   <button
                     type="button"

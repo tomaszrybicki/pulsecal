@@ -5,7 +5,7 @@
  */
 import { getTagRules, withDefaultRules, type TagRule } from "./tagRules";
 import { getMoveThreshold, setMoveThreshold } from "./moves";
-import { getTagColors, reloadTagColors } from "./tags";
+import { getPaintTags, getTagColors, reloadPaintTags, reloadTagColors } from "./tags";
 
 export type AppSettings = {
   v: 1;
@@ -16,6 +16,8 @@ export type AppSettings = {
   theme: string;
   /** Kolory tagów ustawione ręcznie (klucz tagu → #rrggbb). */
   tagColors?: Record<string, string>;
+  /** Tagi, których kolor przejmują wpisy. */
+  paintTags?: string[];
   /** Po ilu przeniesieniach proponować rozbicie wpisu. */
   moveThreshold?: number;
   /** 2 = reguły zawierają już domyślną „!” (starsze kopie jej nie mają). */
@@ -31,6 +33,7 @@ const K = {
   theme: "pulsecal:theme",
   rules: "pulsecal:tag-rules",
   colors: "pulsecal:tag-colors",
+  paint: "pulsecal:tag-paint",
 };
 /** Ostatnio widziany stan (JSON) — do wykrycia zmian. */
 const SEEN = "pulsecal:settings-seen";
@@ -58,6 +61,7 @@ export function collectSettings(): AppSettings {
     sidebar: localStorage.getItem(K.sidebar) !== "0",
     theme: localStorage.getItem(K.theme) || "auto",
     tagColors: getTagColors(),
+    paintTags: getPaintTags(),
     moveThreshold: getMoveThreshold(),
     rulesV: 2,
   };
@@ -105,6 +109,8 @@ export function applySettings(b: SettingsBackup): void {
   localStorage.setItem(K.theme, s.theme);
   localStorage.setItem(K.colors, JSON.stringify(s.tagColors ?? {}));
   reloadTagColors();
+  localStorage.setItem(K.paint, JSON.stringify(s.paintTags ?? []));
+  reloadPaintTags();
   if (s.moveThreshold) setMoveThreshold(s.moveThreshold);
   const json = settingsJson(collectSettings());
   localStorage.setItem(SEEN, json);

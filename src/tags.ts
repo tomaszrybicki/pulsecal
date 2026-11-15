@@ -115,6 +115,12 @@ export function setTagColor(tag: string, color: string | null): void {
   localStorage.setItem(COLORS_KEY, JSON.stringify(next));
 }
 
+/** Podmień wszystkie kolory naraz (cofnięcie zmiany nazwy tagu). */
+export function replaceTagColors(colors: Record<string, string>): void {
+  customColors = { ...colors };
+  localStorage.setItem(COLORS_KEY, JSON.stringify(customColors));
+}
+
 /** Po odtworzeniu ustawień z kopii. */
 export function reloadTagColors(): void {
   customColors = loadColors();
@@ -147,4 +153,51 @@ export function tagColor(tag: string): string {
 
 export function hasCustomColor(tag: string): boolean {
   return tagKey(tag) in customColors;
+}
+
+/* ── tagi kolorujące wpisy ── */
+
+const PAINT_KEY = "pulsecal:tag-paint";
+
+function loadPaint(): string[] {
+  try {
+    const v = JSON.parse(localStorage.getItem(PAINT_KEY) || "[]") as unknown;
+    return Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : [];
+  } catch {
+    return [];
+  }
+}
+
+let paintTags = loadPaint();
+
+/** Klucze tagów, których kolor przejmują wpisy (tylko wygląd — kolor wpisu w bazie i w Google się nie zmienia). */
+export function getPaintTags(): string[] {
+  return paintTags;
+}
+
+export function isPainted(tag: string): boolean {
+  return paintTags.includes(tagKey(tag));
+}
+
+export function setPainted(tag: string, on: boolean): void {
+  const k = tagKey(tag);
+  replacePaintTags(on ? [...paintTags.filter((x) => x !== k), k] : paintTags.filter((x) => x !== k));
+}
+
+export function replacePaintTags(keys: string[]): void {
+  paintTags = [...keys];
+  localStorage.setItem(PAINT_KEY, JSON.stringify(paintTags));
+}
+
+/** Po odtworzeniu ustawień z kopii. */
+export function reloadPaintTags(): void {
+  paintTags = loadPaint();
+}
+
+/** Kolor, w jakim pokazać wpis: kolor pierwszego jego tagu „kolorującego”, inaczej kolor wpisu. */
+export function shownColor(e: { tags?: string[]; color: string }): string {
+  if (paintTags.length) {
+    for (const t of e.tags ?? []) if (paintTags.includes(tagKey(t))) return tagColor(t);
+  }
+  return e.color;
 }

@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { colorInk } from "../colors";
+import { shownColor } from "../tags";
 import { DRAFT_ID } from "../draft";
 import { useDragGesture, type Pt } from "../hooks/useDragGesture";
 import { useOptimisticMove } from "../hooks/useOptimisticMove";
@@ -419,7 +420,7 @@ export function CalendarMap({
                 <button
                   key={e.id}
                   className={`event-blob allday-blob${stateClass(e)}`}
-                  style={blobVars(e.color)}
+                  style={blobVars(shownColor(e))}
                   {...(e.id === DRAFT_ID ? {} : moveAllDay(e))}
                   {...ctx(e)}
                   onClick={(ev) => {
@@ -427,8 +428,10 @@ export function CalendarMap({
                     if (e.id !== DRAFT_ID) onEvent(e);
                   }}
                 >
-                  <strong>{e.title || "(bez tytułu)"}</strong>
-                  <TagDots tags={e.tags} />
+                  <strong>
+                    <TagDots tags={e.tags} />
+                    {e.title || "(bez tytułu)"}
+                  </strong>
                   {onDelete && e.id !== DRAFT_ID && <DelBtn onDelete={() => onDelete(e)} />}
                   {e.id !== DRAFT_ID && sameDay(new Date(e.end), d) && (
                     <span className="resize-edge" aria-hidden {...stretchAllDay(e)} />
@@ -436,7 +439,7 @@ export function CalendarMap({
                 </button>
               ))}
               {ghost && (
-                <div className="event-blob allday-blob drag-ghost" style={blobVars(ghost.e.color)}>
+                <div className="event-blob allday-blob drag-ghost" style={blobVars(shownColor(ghost.e))}>
                   <strong>{ghost.e.title || "(bez tytułu)"}</strong>
                 </div>
               )}
@@ -481,7 +484,7 @@ export function CalendarMap({
                   <button
                     key={e.id}
                     className={`event-blob${stateClass(e)}`}
-                    style={{ top, height, width, left, ...blobVars(e.color) }}
+                    style={{ top, height, width, left, ...blobVars(shownColor(e)) }}
                     {...(draggable ? moveTimed(e) : {})}
                     {...ctx(e)}
                     onClick={(ev) => {
@@ -489,12 +492,14 @@ export function CalendarMap({
                       if (draggable) onEvent(e);
                     }}
                   >
-                    <strong>{e.title || "(bez tytułu)"}</strong>
+                    <strong>
+                      <TagDots tags={e.tags} />
+                      {e.title || "(bez tytułu)"}
+                    </strong>
                     <small>
                       {formatClock(new Date(e.start))}–{formatClock(new Date(e.end))}
                       {e.moves ? <span className="mv" title={`Przeniesiony ${e.moves}×`}> · ↷{e.moves}</span> : null}
                     </small>
-                    <TagDots tags={e.tags} />
                     {onDelete && draggable && <DelBtn onDelete={() => onDelete(e)} />}
                     {draggable && segEnd === e.end && (
                       <>
@@ -514,7 +519,7 @@ export function CalendarMap({
                     height: Math.max(28, ((Math.min(ghost.end, to) - Math.max(ghost.start, from)) / 36e5) * HOUR_H),
                     left: 5,
                     right: 5,
-                    ...blobVars(ghost.e.color),
+                    ...blobVars(shownColor(ghost.e)),
                   }}
                 >
                   <strong>{ghost.e.title || "(bez tytułu)"}</strong>

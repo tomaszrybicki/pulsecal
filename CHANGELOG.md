@@ -3,6 +3,15 @@
 Każda wersja to jeden commit `vX.Y.Z: …` (treść commita = wpis z tego pliku) i tag `vX.Y.Z`.
 Najnowsze na górze. Opis funkcji aplikacji jest w [FEATURES.md](FEATURES.md).
 
+## [0.21.0] – 2026-11-15: zmiana nazwy tagu, koloruj, kropki z lewej
+
+- **Zmiana nazwy tagu:** kliknięcie nazwy tagu w panelu bocznym otwiera pole edycji (Enter zapisuje, Esc anuluje).
+  Nowa nazwa trafia do wszystkich wpisów z tym tagiem, także przeszłych, a także do reguł, filtra, koloru
+  i „koloruj”. Nazwa istniejącego tagu scala oba tagi. Z „Cofnij”.
+- **„koloruj” przy tagu:** wpisy z takim tagiem są pokazywane w kolorze tagu. To tylko wygląd: własny kolor wpisu
+  i kolor w Google zostają, więc po wyłączeniu wszystko wraca.
+- **Kropki tagów z lewej:** na wpisach kropki tagów stoją teraz przed tytułem.
+
 ## [0.20.2] – 2026-11-15: komunikat odświeżania reguł
 
 - **Odświeżanie reguł bez mylącego komunikatu:** „↻” można używać dowolnie wiele razy, np. po dodaniu nowych reguł.

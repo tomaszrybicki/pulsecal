@@ -116,6 +116,14 @@ Previous sessions: first Cursor IDE (built the MVP), then Claude in a chat sessi
 code audit and rewrote the data and sync layer, then stopped at the owner's request.
 **Start by reading `CLAUDE.md`.**
 
+## v0.21.0: rename tag, „koloruj”, dots on the left
+- Sidebar tag name is a button → inline input; `renameTag(from, to)` in App rewrites every event with that
+  tag key (all dates; recurring instances local-only), moves hidden filter / custom colour / paint flag / rules,
+  undo restores snapshots. Same-key rename = casing change only.
+- `tags.ts`: paint tags (`pulsecal:tag-paint`, in settings backup as `paintTags`). `shownColor(e)` is display
+  only — views use it instead of `e.color`; never save it into the event.
+- `TagDots` now sits before the title (month chips, map blobs).
+
 ## v0.20.1: recurring series changed in Google
 - Bug: a series edited in GCal („all events”) didn't show in Pulsecal. Incremental pull used `singleEvents=true`
   + `updatedMin`; changing the series time changes instance IDs, so old copies stayed until the 10-min full pull.

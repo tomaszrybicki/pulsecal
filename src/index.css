@@ -2237,22 +2237,14 @@ button.pill-plus:active {
   box-shadow: 0 0 0 1.5px rgba(255, 250, 242, 0.85);
 }
 
-.event-blob .tag-dots {
-  display: flex;
-  margin-top: 4px;
-}
-
-.allday-blob .tag-dots {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  margin: 0;
-  transform: translateY(-50%);
+/* kropki tagów z lewej, przed tytułem */
+.event-blob strong .tag-dots {
+  margin-right: 5px;
+  vertical-align: 1px;
 }
 
 .m-ev .tag-dots {
-  margin-left: auto;
-  padding-left: 3px;
+  padding-right: 4px;
 }
 
 .m-ev .tag-dots i {
@@ -2568,4 +2560,81 @@ button.pill-plus:active {
 
 .rule-word small {
   color: var(--ink-soft);
+}
+
+/* ── zmiana nazwy tagu ── */
+
+button.tag-name {
+  border: 0;
+  padding: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: text;
+}
+
+button.tag-name:hover {
+  text-decoration: underline dotted var(--ink-soft);
+  text-underline-offset: 3px;
+}
+
+.tag-edit {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 8px;
+}
+
+.side-tags input.tag-rename {
+  position: static;
+  opacity: 1;
+  pointer-events: auto;
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  border-radius: 8px;
+  padding: 3px 6px;
+  background: var(--field);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.86rem;
+}
+
+/* ── tag kolorujący wpisy ── */
+
+.paint-btn {
+  border: 0;
+  border-radius: 999px;
+  padding: 4px 9px;
+  background: transparent;
+  color: var(--ink-soft);
+  font: inherit;
+  font-size: 0.7rem;
+  cursor: pointer;
+  opacity: 0;
+}
+
+.side-tags li:hover .paint-btn,
+.paint-btn:focus-visible,
+.paint-btn.on {
+  opacity: 1;
+}
+
+.paint-btn:hover {
+  background: var(--ink-faint);
+  color: var(--ink);
+}
+
+.paint-btn.on {
+  background: var(--tag);
+  color: var(--tag-ink);
+}
+
+@media (hover: none) {
+  .paint-btn {
+    opacity: 0.9;
+  }
 }

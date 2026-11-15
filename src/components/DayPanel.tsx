@@ -1,3 +1,4 @@
+import { shownColor } from "../tags";
 import { useEffect } from "react";
 import { whenLabel } from "../draft";
 import type { Anchor } from "../hooks/useAnchoredPlacement";
@@ -79,7 +80,7 @@ export function DayPanel({ day, events, anchor, onClose, onOpen, onShift, onDele
             }
           >
             <button type="button" className="dp-open" onClick={() => onOpen(e)}>
-              <span className="dp-dot" style={{ background: e.color }} aria-hidden />
+              <span className="dp-dot" style={{ background: shownColor(e) }} aria-hidden />
               <span className="dp-main">
                 <span className="dp-title">{e.title || "(bez tytułu)"}</span>
                 <span className="dp-when">

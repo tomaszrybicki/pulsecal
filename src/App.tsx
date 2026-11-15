@@ -28,7 +28,19 @@ import { countMove, crossesThreshold, getMoveThreshold, setMoveThreshold } from 
 import type { ParsedEntry } from "./quickParse";
 import { getCalendarId, getStoredClientId, preloadGoogle, setStoredClientId, switchCalendar } from "./sync/google";
 import { applyTagRules, getTagRules, setTagRules, type TagRule } from "./tagRules";
-import { UNTAGGED, isVisible, normalizeTags, setTagColor } from "./tags";
+import {
+  UNTAGGED,
+  getPaintTags,
+  getTagColors,
+  isVisible,
+  normalizeTag,
+  normalizeTags,
+  replacePaintTags,
+  replaceTagColors,
+  setPainted,
+  setTagColor,
+  tagKey,
+} from "./tags";
 import type { CalEvent, DraftEvent, ViewMode } from "./types";
 import {
   MINUTE,
@@ -339,6 +351,68 @@ export function App() {
               })(),
           }
         : undefined,
+    );
+  };
+
+  /**
+   * Zmiana nazwy tagu we wszystkich wpisach (też w przeszłości; wszystkie warianty wielkości liter).
+   * Nazwa już istniejącego tagu = scalenie. Przenosi też filtr, kolor i reguły. Z „Cofnij”.
+   */
+  const renameTag = async (from: string, to: string) => {
+    const name = normalizeTag(to);
+    if (!name || name === from) return;
+    const fromKey = tagKey(from);
+    const toKey = tagKey(name);
+    const affected = await db.events
+      .filter((e) => !e.deleted && (e.tags ?? []).some((t) => tagKey(t) === fromKey))
+      .toArray();
+    const prevRules = rules;
+    const prevHidden = hiddenTags;
+    const prevColors = { ...getTagColors() };
+    const prevPaint = getPaintTags();
+
+    const save = (e: CalEvent) =>
+      // wystąpienie serii z Google: tylko lokalnie (zapis w Google odłączyłby je od serii)
+      e.recurring ? db.events.put(e) : saveLocal(e);
+    for (const e of affected) {
+      const tags = normalizeTags(e.tags.map((t) => (tagKey(t) === fromKey || tagKey(t) === toKey ? name : t)));
+      await save({ ...e, tags });
+    }
+    if (fromKey !== toKey) {
+      if (hiddenTags.has(fromKey)) {
+        setHiddenTags((prev) => {
+          const next = new Set(prev);
+          next.delete(fromKey);
+          next.add(toKey);
+          return next;
+        });
+      }
+      if (prevPaint.includes(fromKey)) replacePaintTags([...prevPaint.filter((k) => k !== fromKey && k !== toKey), toKey]);
+      const color = prevColors[fromKey];
+      if (color && !prevColors[toKey]) setTagColor(name, color);
+      if (color) setTagColor(from, null);
+    }
+    if (rules.some((r) => tagKey(r.tag) === fromKey)) {
+      changeRules(rules.map((r) => (tagKey(r.tag) === fromKey ? { ...r, tag: name } : r)));
+    }
+    setTagColorsVer((v) => v + 1);
+    sync.requestSync(4000);
+    sync.notify(
+      `„${from}” → „${name}” w ${affected.length} ${affected.length === 1 ? "wpisie" : "wpisach"}`,
+      "ok",
+      {
+        label: "Cofnij",
+        run: () =>
+          void (async () => {
+            for (const e of affected) await save(e);
+            changeRules(prevRules);
+            setHiddenTags(prevHidden);
+            replaceTagColors(prevColors);
+            replacePaintTags(prevPaint);
+            setTagColorsVer((v) => v + 1);
+            sync.requestSync();
+          })(),
+      },
     );
   };
 
@@ -672,6 +746,11 @@ export function App() {
             setRulesOpen(true);
           }}
           onApplyRules={() => void applyRulesToAll()}
+          onRenameTag={(from, to) => void renameTag(from, to)}
+          onPaintTag={(tag, on) => {
+            setPainted(tag, on);
+            setTagColorsVer((v) => v + 1);
+          }}
         />
 
         <main className="map-shell">

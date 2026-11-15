@@ -1,6 +1,7 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { colorInk } from "../colors";
+import { shownColor } from "../tags";
 import { DRAFT_ID } from "../draft";
 import { useDragGesture, type Pt } from "../hooks/useDragGesture";
 import { useOptimisticMove } from "../hooks/useOptimisticMove";
@@ -353,8 +354,8 @@ export function MonthView({ now, weeks, month, events, onDay, onDayDetails, onAd
             left: drag.x - drag.dx,
             top: drag.y - drag.dy,
             width: drag.w,
-            ["--blob" as string]: drag.e.color,
-            ["--blob-ink" as string]: colorInk(drag.e.color),
+            ["--blob" as string]: shownColor(drag.e),
+            ["--blob-ink" as string]: colorInk(shownColor(drag.e)),
           }}
         >
           <ChipBody e={drag.e} bar={isBar(drag.e)} />
@@ -368,6 +369,7 @@ function ChipBody({ e, bar }: { e: CalEvent; bar: boolean }) {
   return (
     <>
       {!bar && <i className="dot" />}
+      <TagDots tags={e.tags} max={3} />
       {!e.allDay && <span className="t">{formatClock(new Date(e.start))}</span>}
       <span className="n">{e.title || "(bez tytułu)"}</span>
       {e.moves ? (
@@ -375,7 +377,6 @@ function ChipBody({ e, bar }: { e: CalEvent; bar: boolean }) {
           ↷{e.moves}
         </span>
       ) : null}
-      <TagDots tags={e.tags} max={3} />
     </>
   );
 }
@@ -409,8 +410,8 @@ function MonthChip({
       style={{
         gridColumn: `${seg.col + 1} / span ${seg.span}`,
         gridRow: seg.lane + 2,
-        ["--blob" as string]: e.color,
-        ["--blob-ink" as string]: colorInk(e.color),
+        ["--blob" as string]: shownColor(e),
+        ["--blob-ink" as string]: colorInk(shownColor(e)),
       }}
       title={e.title}
       {...bindProps}

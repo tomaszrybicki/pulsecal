@@ -84,9 +84,15 @@ logowanie Google bez własnego serwera (Google Identity Services).
   - Wpisz nazwę i naciśnij Enter albo przecinek (można też wkleić „a, b, c”).
   - Pod polem są już używane tagi do dodania jednym tapnięciem.
   - × na tagu go usuwa, a Backspace w pustym polu usuwa ostatni.
-- **Na wpisach** tagi widać jako kolorowe kropki (kolor tagu jak w panelu bocznym).
+- **Na wpisach** tagi widać jako kolorowe kropki przed tytułem (kolor tagu jak w panelu bocznym).
 - **Kolor tagu:** w panelu bocznym po najechaniu na tag — kółko z kolorem otwiera wybór koloru, „↺” wraca
   do automatycznego (wyliczanego z nazwy).
+- **„koloruj”:** przy tagu w panelu bocznym. Włączone = wpisy z tym tagiem są pokazywane w kolorze tagu
+  (gdy wpis ma kilka takich tagów, wygrywa pierwszy). To tylko wygląd w Pulsecal: własny kolor wpisu
+  i kolor w Google się nie zmieniają, więc po wyłączeniu wszystko wraca. Zapisuje się w kopii ustawień.
+- **Zmiana nazwy tagu:** kliknięcie nazwy tagu w panelu bocznym → pole edycji, Enter zapisuje, Esc anuluje.
+  Zmienia nazwę we wszystkich wpisach (także przeszłych), w regułach, filtrze, kolorze i „koloruj”.
+  Nazwa istniejącego tagu = scalenie obu tagów. Z „Cofnij”.
 - **Ukrywanie i pokazywanie** w panelu bocznym:
   - odznaczenie tagu ukrywa jego wpisy;
   - „tylko” pokazuje wyłącznie ten tag;
