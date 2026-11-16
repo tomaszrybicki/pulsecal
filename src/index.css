@@ -4832,3 +4832,8 @@ select.jr-status.big {
   text-decoration: underline;
   text-underline-offset: 2px;
 }
+
+/* przegląd dnia: wpisy „low priority” lekko przygaszone */
+.dp-list li.low .dp-title {
+  opacity: 0.72;
+}

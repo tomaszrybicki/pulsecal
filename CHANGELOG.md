@@ -3,6 +3,17 @@
 Każda wersja to jeden commit `vX.Y.Z: …` (treść commita = wpis z tego pliku) i tag `vX.Y.Z`.
 Najnowsze na górze. Opis funkcji aplikacji jest w [FEATURES.md](FEATURES.md).
 
+## [0.30.0] – 2026-11-16: domyślne tagi, low priority, P na następny dzień
+
+- **Domyślne tagi „ważne” i „low priority”:** zawsze są na liście tagów w panelu bocznym i w podpowiedziach,
+  nawet bez wpisów. Mają własne kolory: „ważne” koralowy, „low priority” szary (można zmienić jak każdy inny).
+- **Przegląd dnia:** „> wszystkie niepilne” zamieniony na „> wszystkie low priority”. Przenosi na następny dzień
+  tylko wpisy z tagiem „low priority”, a te są na liście lekko przygaszone.
+- **„P” bez wolnego miejsca:** gdy w godzinach produktywności danego dnia nie ma wolnego miejsca, wpis trafia
+  na następny dzień (albo dalszy, do 2 tygodni naprzód). Powiadomienie mówi, na kiedy, a „Cofnij” przywraca
+  wpis. Liczy się to jako przeniesienie.
+- Dane testowe (dev): trzy wpisy z tagiem „low priority”.
+
 ## [0.29.0] – 2026-11-16: dane testowe w trybie dev
 
 - **Dane testowe (tylko `npm run dev`):** w „ustawienia” → „dane testowe” są przyciski „Dodaj dane testowe” /

@@ -41,6 +41,20 @@ export function normalizeTags(raw: string[]): string[] {
 
 /** Tag z domyślnej reguły „!” na początku tytułu (DEFAULT_RULES w tagRules.ts). */
 export const IMPORTANT_TAG = "ważne";
+/** Wpisy, które „> wszystkie low priority” w przeglądzie dnia przenosi na następny dzień. */
+export const LOW_PRIORITY_TAG = "low priority";
+
+/** Tagi zawsze obecne na liście i w podpowiedziach (nawet bez wpisów), z własnym kolorem domyślnym. */
+export const DEFAULT_TAGS: { tag: string; color: string }[] = [
+  { tag: IMPORTANT_TAG, color: "#ff6b4a" },
+  { tag: LOW_PRIORITY_TAG, color: "#a8a29e" },
+];
+
+/** Lista tagów z bazy + brakujące domyślne (z liczbą 0, na końcu). */
+export function withDefaultTags<T extends { tag: string; key: string; count: number }>(list: T[]): (T | { tag: string; key: string; count: number })[] {
+  const have = new Set(list.map((t) => t.key));
+  return [...list, ...DEFAULT_TAGS.filter((d) => !have.has(tagKey(d.tag))).map((d) => ({ tag: d.tag, key: tagKey(d.tag), count: 0 }))];
+}
 
 const ENTITIES: Record<string, string> = { amp: "&", lt: "<", gt: ">", quot: '"', "#39": "'", apos: "'", nbsp: " " };
 
@@ -148,7 +162,8 @@ export function autoTagColor(tag: string): string {
 
 /** Kolor tagu: ustawiony ręcznie albo automatyczny (#rrggbb — działa też z <input type="color">). */
 export function tagColor(tag: string): string {
-  return customColors[tagKey(tag)] ?? autoTagColor(tag);
+  const k = tagKey(tag);
+  return customColors[k] ?? DEFAULT_TAGS.find((d) => tagKey(d.tag) === k)?.color ?? autoTagColor(tag);
 }
 
 export function hasCustomColor(tag: string): boolean {

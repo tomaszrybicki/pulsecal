@@ -55,6 +55,7 @@ import {
   setPainted,
   setTagColor,
   tagKey,
+  withDefaultTags,
 } from "./tags";
 import type { CalEvent, DraftEvent, ViewMode, WorkField, WorkItem, WorkKind } from "./types";
 import {
@@ -213,7 +214,9 @@ export function App() {
     [] as CalEvent[],
   );
   const pending = useLiveQuery(() => pendingCount(), [], 0);
-  const tagList = useLiveQuery(() => tagStats(), [], [] as TagStat[]);
+  const tagStatsList = useLiveQuery(() => tagStats(), [], [] as TagStat[]);
+  // domyślne tagi („ważne”, „low priority”) są na liście i w podpowiedziach także bez wpisów
+  const tagList: TagStat[] = useMemo(() => withDefaultTags(tagStatsList), [tagStatsList]);
   const knownTags = useMemo(() => tagList.map((t) => t.tag), [tagList]);
 
   /* ── zadania i epiki ── */
@@ -411,6 +414,24 @@ export function App() {
     return t === null ? null : { start: t, end: t + dur };
   };
 
+  /** Kliknięcie „P”: ten dzień, a gdy nie ma w nim wolnego miejsca — kolejne dni (do 2 tygodni naprzód). */
+  const slotFrom = async (day: Date, e: Pick<CalEvent, "id" | "allDay" | "start" | "end">) => {
+    for (let i = 0; i < 14; i++) {
+      const slot = await slotOn(addDays(day, i), e);
+      if (slot) return slot;
+    }
+    return null;
+  };
+
+  /** „jutro” / „śr, 18 listopada” — do powiadomień. */
+  const dayWord = (t: number) => {
+    const d = new Date(t);
+    const today = new Date();
+    if (sameDay(d, today)) return "dziś";
+    if (sameDay(d, addDays(today, 1))) return "jutro";
+    return longDateLabel(d);
+  };
+
   const noSlot = (day: Date) =>
     sync.notify(`Brak wolnego miejsca ${sameDay(day, new Date()) ? "dziś" : longDateLabel(day)} w godzinach ${prodLabel}`, "warn");
 
@@ -425,11 +446,21 @@ export function App() {
       return;
     }
     const day = new Date(cur.start);
-    const slot = await slotOn(day, cur);
+    // brak wolnego miejsca w godzinach produktywności tego dnia → następny dzień (i dalej)
+    const slot = await slotFrom(day, cur);
     if (!slot) return noSlot(day);
-    await saveLocal({ ...cur, allDay: false, start: slot.start, end: slot.end, autoSlot: true });
+    const next = { ...cur, allDay: false, start: slot.start, end: slot.end, autoSlot: true, moves: countMove(cur, slot.start) };
+    await saveLocal(next);
     sync.requestSync(2000);
-    sync.notify(`„${cur.title}” → ${formatClock(new Date(slot.start))}–${formatClock(new Date(slot.end))}`, "ok", {
+    const moved = !sameDay(day, new Date(slot.start));
+    if (crossesThreshold(cur.moves ?? 0, next.moves ?? 0)) promptMoved(next);
+    const time = `${formatClock(new Date(slot.start))}–${formatClock(new Date(slot.end))}`;
+    sync.notify(
+      moved
+        ? `„${cur.title}” → ${dayWord(slot.start)} ${time} (${dayWord(cur.start)} brak wolnego miejsca)`
+        : `„${cur.title}” → ${time}`,
+      "ok",
+      {
       label: "Cofnij",
       run: () =>
         void (async () => {
@@ -448,8 +479,11 @@ export function App() {
       return;
     }
     const day = new Date(d.start);
-    const slot = await slotOn(day, { id: d.id ?? "", allDay: d.allDay, start: d.start, end: d.end });
+    const slot = await slotFrom(day, { id: d.id ?? "", allDay: d.allDay, start: d.start, end: d.end });
     if (!slot) return noSlot(day);
+    if (!sameDay(day, new Date(slot.start))) {
+      sync.notify(`${dayWord(d.start)} brak wolnego miejsca — przeniesione na ${dayWord(slot.start)}`);
+    }
     setDraft((cur) => (cur === d ? { ...d, allDay: false, start: slot.start, end: slot.end, autoSlot: true } : cur));
   };
 

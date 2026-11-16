@@ -32,8 +32,8 @@ logowanie Google bez własnego serwera (Google Identity Services).
   - Kolejność w dniu: najpierw wpisy z godziną, potem całodniowe i kilkudniowe; w każdej grupie alfabetycznie.
   - Gdy wpisy się nie mieszczą: „+N więcej”.
   - **Przegląd dnia:** „+N więcej” albo przycisk „•••” na dole dnia otwiera okienko ze wszystkimi wpisami dnia.
-    Przy każdym: „>” przenosi na następny dzień, „>>” o tydzień (godzina zostaje). „> wszystkie niepilne”
-    przenosi na następny dzień wszystko, co nie ma tagu „pilne” ani „ważne”. „×” usuwa wpis, prawy przycisk
+    Przy każdym: „>” przenosi na następny dzień, „>>” o tydzień (godzina zostaje). „> wszystkie low priority”
+    przenosi na następny dzień wszystko z tagiem „low priority” (takie wpisy są na liście lekko przygaszone). „×” usuwa wpis, prawy przycisk
     myszy otwiera jego menu. Każde przeniesienie i usunięcie można cofnąć przyciskiem „Cofnij” w powiadomieniu.
   - Na telefonie wszystko jako kolorowe pigułki z samą nazwą.
   - Liczba widocznych wierszy dopasowuje się do wysokości ekranu.
@@ -82,6 +82,8 @@ logowanie Google bez własnego serwera (Google Identity Services).
 
 - **Wiele tagów na wpis**, np. „przypomnienie”, „wizyta”, „remont mieszkania”, „przy komputerze”.
   Tagi mogą mieć spacje i wielkie litery („ADHD”, „Praca”); „Praca” i „praca” to ten sam tag.
+- **Domyślne tagi:** „ważne” (koralowy) i „low priority” (szary) są zawsze na liście i w podpowiedziach, nawet
+  bez wpisów. „low priority” przenosi „> wszystkie low priority” w przeglądzie dnia.
 - **Reguły tagów** (panel boczny → „tagi” → „reguły”): „zawiera słowo → tag” (słowo w tytule lub notatce, np.
   „dentysta” → „wizyta”; całe słowa, bez względu na wielkość liter) albo „tytuł zaczyna się od → tag”.
   Działają przy zapisie, w szybkim dodawaniu i dla wpisów z Google; tylko dodają tagi (tag usunięty ręcznie
@@ -209,7 +211,10 @@ logowanie Google bez własnego serwera (Google Identity Services).
   zawsze dostaje najbliższą wolną godzinę w nowym dniu, nawet gdy upuszczono go na konkretną godzinę.
 - „P” jest też w przeglądzie dnia, przy każdym wpisie obok „>” i „>>”.
 - Włączone „P” widać jako zieloną plakietkę na wpisie. Ponowne kliknięcie wyłącza (godzina zostaje).
-  Brak miejsca → powiadomienie, wpis się nie zmienia. Synchronizuje się z Google.
+  Synchronizuje się z Google.
+- Kliknięcie „P”, gdy tego dnia nie ma wolnego miejsca: wpis trafia na następny dzień (albo dalszy, do 2 tygodni
+  naprzód), z powiadomieniem i „Cofnij”. Liczy się jako przeniesienie. Przy przeciąganiu na pełny dzień wpis
+  zostaje tam, gdzie go upuszczono (z powiadomieniem).
 
 ### Zadania i epiki
 

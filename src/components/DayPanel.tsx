@@ -5,13 +5,18 @@ import { whenLabel } from "../draft";
 import type { Anchor } from "../hooks/useAnchoredPlacement";
 import type { CalEvent } from "../types";
 import { formatClock, longDateLabel, sameDay } from "../time";
+import { LOW_PRIORITY_TAG, hasTag } from "../tags";
 import { SheetFrame } from "./SheetFrame";
 
-/** Tagi, które chronią wpis przed „> wszystkie niepilne". */
+/** Tagi wyróżnione (pogrubione) w przeglądzie dnia. */
 export const URGENT_TAGS = ["pilne", "ważne"];
 
 export function isUrgent(e: CalEvent): boolean {
   return (e.tags ?? []).some((t) => URGENT_TAGS.includes(t.toLocaleLowerCase("pl")));
+}
+
+export function isLowPriority(e: CalEvent): boolean {
+  return hasTag(e.tags ?? [], LOW_PRIORITY_TAG);
 }
 
 /** Kolejność jak w widoku miesiąca: najpierw wpisy z godziną, potem całodniowe; w grupach alfabetycznie. */
@@ -39,11 +44,11 @@ type Props = {
 
 /**
  * Przegląd dnia: wszystkie wpisy dnia (zamiast „+N więcej" → mapa) z szybkim przekładaniem:
- * „>" na następny dzień, „>>" o tydzień, „> wszystkie niepilne" — wszystko bez tagu „pilne"/„ważne".
+ * „>" na następny dzień, „>>" o tydzień, „> wszystkie low priority" — wszystko z tagiem „low priority".
  */
 export function DayPanel({ day, events, anchor, onClose, onOpen, onShift, onDelete, onContext, onPlan }: Props) {
   const list = [...events].sort(dayOrder);
-  const notUrgent = list.filter((e) => !isUrgent(e));
+  const low = list.filter(isLowPriority);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -62,17 +67,18 @@ export function DayPanel({ day, events, anchor, onClose, onOpen, onShift, onDele
       <button
         type="button"
         className="dp-all"
-        disabled={!notUrgent.length}
-        title="Przenieś na następny dzień wszystko, co nie ma tagu „pilne” ani „ważne”"
-        onClick={() => onShift(notUrgent, 1)}
+        disabled={!low.length}
+        title={`Przenieś na następny dzień wszystko z tagiem „${LOW_PRIORITY_TAG}”`}
+        onClick={() => onShift(low, 1)}
       >
-        &gt; wszystkie niepilne{notUrgent.length ? ` (${notUrgent.length})` : ""}
+        &gt; wszystkie {LOW_PRIORITY_TAG}
+        {low.length ? ` (${low.length})` : ""}
       </button>
       <ul className="dp-list">
         {list.map((e) => (
           <li
             key={e.id}
-            className={isUrgent(e) ? "urgent" : ""}
+            className={isUrgent(e) ? "urgent" : isLowPriority(e) ? "low" : ""}
             onContextMenu={
               onContext
                 ? (ev) => {

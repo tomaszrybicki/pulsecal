@@ -116,6 +116,14 @@ Previous sessions: first Cursor IDE (built the MVP), then Claude in a chat sessi
 code audit and rewrote the data and sync layer, then stopped at the owner's request.
 **Start by reading `CLAUDE.md`.**
 
+## v0.30.0: default tags, "low priority" day move, P rolls to the next day
+- `tags.ts`: `LOW_PRIORITY_TAG`, `DEFAULT_TAGS` (with default colours used by `tagColor` when no custom colour),
+  `withDefaultTags()` merges them into App's `tagList` (count 0) → sidebar + suggestions.
+- DayPanel: `isLowPriority`; „> wszystkie low priority” shifts only those (rows get `.low`).
+- P click (`planEvent`/`planDraft`) uses `slotFrom()` = `slotOn()` for the day and then up to 13 following days;
+  a different day counts as a move (`countMove` + threshold prompt). Day moves of P events (drag, „>”)
+  still use the target day only.
+
 ## v0.29.0: dev test data
 - `devSeed.ts`: `seedTestData()` (re-creates), `clearSeed()`, `hasSeed()`. Events and items get ids starting
   with `SEED` = "5eed" (still 32 hex, valid Google ids) and `pending: 0`, so they stay local until edited.
