@@ -220,6 +220,8 @@ export function CalendarMap({
   const live = useRef({ days, focusDay, now, onEdge, onVisibleDay, onStep });
   live.current = { days, focusDay, now, onEdge, onVisibleDay, onStep };
   const lastToken = useRef(scrollToNowToken);
+  /** Krok wstecz przy stałym zakresie tygodni: po zmianie zakresu pokaż jego koniec, nie początek. */
+  const landAtEnd = useRef(false);
   const edgeAsked = useRef(false);
   const lastVisible = useRef(0);
   /** Dzień widoczny przy lewej krawędzi w chwili prośby o przesunięcie okna + jego odległość od krawędzi. */
@@ -298,6 +300,8 @@ export function CalendarMap({
       if ((delta < 0 && !atStart()) || (delta > 0 && !atEnd())) return false;
       acc += delta;
       if (Math.abs(acc) < WHEEL_STEP) return true;
+      // wstecz → lądujemy na końcu poprzedniego zakresu (dalsze kręcenie wstecz przewija go od końca)
+      if (acc < 0) landAtEnd.current = true;
       step(acc > 0 ? 1 : -1);
       acc = 0;
       lock = t + 450;
@@ -309,8 +313,14 @@ export function CalendarMap({
       const dy = e.deltaY * scale;
       const target = e.target as Element | null;
       // pasmo całodniowe z większą liczbą wpisów niż się mieści — kółko przewija samo pasmo
-      const band = target?.closest?.(".allday");
-      if (band && band.scrollHeight > band.clientHeight + 1 && Math.abs(dy) >= Math.abs(dx) && !e.shiftKey) return;
+      // pasmo całodniowe z większą liczbą wpisów: kółko przewija pasmo tego dnia, dopóki się da w tę stronę —
+      // na górze / na dole przewija już daty (wcześniej kółko „utykało” w jedną stronę)
+      const band = target?.closest?.(".allday") as HTMLElement | null;
+      if (band && Math.abs(dy) >= Math.abs(dx) && !e.shiftKey) {
+        const canDown = band.scrollTop + band.clientHeight < band.scrollHeight - 1;
+        const canUp = band.scrollTop > 0;
+        if ((dy > 0 && canDown) || (dy < 0 && canUp)) return;
+      }
       const overHeads = target?.closest?.(".day-head, .allday");
       const sideways = Math.abs(dx) > Math.abs(dy) || e.shiftKey;
       const delta = sideways ? (Math.abs(dx) > Math.abs(dy) ? dx : dy) : overHeads ? dy : 0;
@@ -339,7 +349,10 @@ export function CalendarMap({
       const quick = Date.now() - touch.t < 700;
       if (quick && Math.abs(dx) > SWIPE_MIN && Math.abs(dx) > Math.abs(dy) * 1.5) {
         if (dx < 0 && touch.end) step(1);
-        if (dx > 0 && touch.start) step(-1);
+        if (dx > 0 && touch.start) {
+          landAtEnd.current = true;
+          step(-1);
+        }
       }
       touch = null;
     };
@@ -379,6 +392,10 @@ export function CalendarMap({
         const bandBottom = band ? band.getBoundingClientRect().bottom - box.top : HEAD_H;
         const nowY = (minutesSinceMidnight(now) / 60) * HOUR_H;
         el.scrollTop = Math.max(0, hoursTop + nowY - (bandBottom + el.clientHeight) / 2);
+      }
+      if (landAtEnd.current) {
+        landAtEnd.current = false;
+        el.scrollLeft = el.scrollWidth;
       }
     };
     snapTo();

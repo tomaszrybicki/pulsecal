@@ -5680,3 +5680,121 @@ body.plan-dragging .sheet-backdrop {
   min-width: 32px;
   font-weight: 700;
 }
+
+/* ── zwarta lista tagów: niższe wiersze, akcje po najechaniu jako nakładka z prawej ── */
+
+.side-tags header {
+  margin: 14px 6px 4px;
+}
+
+.side-tags li {
+  position: relative;
+  border-radius: 8px;
+}
+
+.side-tags label {
+  gap: 8px;
+  padding: 3px 6px;
+  font-size: 0.8rem;
+}
+
+.side-tags .tag-check {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+}
+
+.side-tags .tag-check::after {
+  left: 3px;
+  top: -1px;
+  width: 4px;
+  height: 8px;
+}
+
+.side-tags .tag-count {
+  font-size: 0.68rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* „koloruj” włączone — mała plakietka zamiast przycisku */
+.tag-painted {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  margin-right: 6px;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px var(--ink-faint);
+}
+
+.tag-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  flex: none;
+}
+
+.tag-actions .paint-btn,
+.tag-actions .solo-btn {
+  padding: 2px 7px;
+  font-size: 0.66rem;
+}
+
+.tag-actions .tag-color {
+  width: 14px;
+  height: 14px;
+}
+
+.tag-del {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.tag-del:hover {
+  background: var(--danger-bg);
+  color: var(--danger-ink);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  /* bez najechania akcje nie zajmują miejsca — nazwa tagu ma całą szerokość */
+  .tag-actions {
+    position: absolute;
+    right: 2px;
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 1px 2px 1px 8px;
+    border-radius: 8px;
+    background: var(--paper);
+    box-shadow: -10px 0 10px -6px var(--paper);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.12s;
+  }
+
+  .side-tags li:hover .tag-actions,
+  .tag-actions:focus-within {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* w nakładce wszystko widoczne od razu (przyciski miały własne opacity: 0) */
+  .tag-actions .tag-color,
+  .tag-actions .paint-btn,
+  .tag-actions .solo-btn {
+    opacity: 1;
+  }
+}
+
+@media (hover: none) {
+  .tag-del {
+    opacity: 0.8;
+  }
+}

@@ -4,7 +4,7 @@ import type { ThemePref } from "../hooks/useTheme";
 import type { ViewMode } from "../types";
 import { ALMOST_DONE, progressColor } from "../work";
 import { colorInk } from "../colors";
-import { UNTAGGED, hasCustomColor, isPainted, tagColor } from "../tags";
+import { DEFAULT_TAGS, UNTAGGED, hasCustomColor, isPainted, tagColor, tagKey } from "../tags";
 import { MiniCalendar, type WeekSelection } from "./MiniCalendar";
 
 type Props = {
@@ -17,7 +17,6 @@ type Props = {
   selection: WeekSelection | null;
   onPickDay: (d: Date) => void;
   onPickWeeks: (start: Date, weeks: number) => void;
-  onCreate: () => void;
   /** Przełącznik widoku (w szufladzie na telefonie — w górnym pasku brak miejsca). */
   viewSwitch: ReactNode;
   tags: TagStat[];
@@ -36,6 +35,8 @@ type Props = {
   onPaintTag: (tag: string, on: boolean) => void;
   /** Zmiana nazwy tagu we wszystkich wpisach. */
   onRenameTag: (from: string, to: string) => void;
+  /** Usunięcie tagu ze wszystkich wpisów (z „Cofnij”). */
+  onDeleteTag: (tag: string) => void;
   view: ViewMode;
   /** Odnośniki na dole panelu: kalendarz (ostatni widok kalendarza) / zadania. */
   onView: (v: "calendar" | "tasks") => void;
@@ -87,16 +88,6 @@ export function Sidebar(p: Props) {
     <>
       {p.mode === "drawer" && p.open && <div className="side-backdrop" onClick={p.onClose} aria-hidden />}
       <aside className={`sidebar ${p.mode}${p.open ? " open" : ""}`} aria-label="Panel boczny" aria-hidden={!p.open}>
-        {/* Przyciski funkcyjne — tu dochodzą kolejne akcje. */}
-        <div className="side-actions">
-          <button type="button" className="create-btn" onClick={p.onCreate}>
-            <span className="pill-plus" aria-hidden>
-              +
-            </span>
-            nowy wpis
-          </button>
-        </div>
-
         {p.mode === "drawer" && (
           <div className="side-views" role="group" aria-label="Widok">
             {p.viewSwitch}
@@ -127,7 +118,7 @@ export function Sidebar(p: Props) {
 
         <section className="side-tags">
           <header>
-            <h3>tagi</h3>
+            <h3 title="Wpis z kilkoma tagami jest widoczny, jeśli choć jeden z nich jest zaznaczony.">tagi</h3>
             <span className="side-links">
               {p.hidden.size > 0 && (
                 <button type="button" className="link-btn" onClick={p.onShowAll}>
@@ -196,58 +187,71 @@ export function Sidebar(p: Props) {
                       {r.count !== undefined && <span className="tag-count">{r.count}</span>}
                     </label>
                   )}
-                  {r.key !== UNTAGGED && (
-                    <span className="tag-color-ctl">
-                      <label className="tag-color" title="Kolor tagu" style={{ background: r.color }}>
-                        <input
-                          type="color"
-                          aria-label={`Kolor tagu ${r.label}`}
-                          value={r.color}
-                          onChange={(e) => p.onTagColor(r.label, e.target.value)}
-                        />
-                      </label>
-                      {hasCustomColor(r.label) && (
-                        <button
-                          type="button"
-                          className="tag-color-reset"
-                          title="Kolor automatyczny"
-                          aria-label={`Kolor automatyczny dla ${r.label}`}
-                          onClick={() => p.onTagColor(r.label, null)}
-                        >
-                          ↺
-                        </button>
-                      )}
-                    </span>
+                  {r.key !== UNTAGGED && isPainted(r.label) && (
+                    <span className="tag-painted" style={{ background: r.color }} title="Wpisy w kolorze tagu" aria-hidden />
                   )}
-                  {r.key !== UNTAGGED && (
+                  <span className="tag-actions">
+                    {r.key !== UNTAGGED && (
+                      <span className="tag-color-ctl">
+                        <label className="tag-color" title="Kolor tagu" style={{ background: r.color }}>
+                          <input
+                            type="color"
+                            aria-label={`Kolor tagu ${r.label}`}
+                            value={r.color}
+                            onChange={(e) => p.onTagColor(r.label, e.target.value)}
+                          />
+                        </label>
+                        {hasCustomColor(r.label) && (
+                          <button
+                            type="button"
+                            className="tag-color-reset"
+                            title="Kolor automatyczny"
+                            aria-label={`Kolor automatyczny dla ${r.label}`}
+                            onClick={() => p.onTagColor(r.label, null)}
+                          >
+                            ↺
+                          </button>
+                        )}
+                      </span>
+                    )}
+                    {r.key !== UNTAGGED && (
+                      <button
+                        type="button"
+                        className={`paint-btn${isPainted(r.label) ? " on" : ""}`}
+                        style={{ ["--tag" as string]: r.color, ["--tag-ink" as string]: colorInk(r.color) }}
+                        aria-pressed={isPainted(r.label)}
+                        title="Wpisy z tym tagiem w kolorze tagu"
+                        aria-label={`Koloruj wpisy z tagiem ${r.label}`}
+                        onClick={() => p.onPaintTag(r.label, !isPainted(r.label))}
+                      >
+                        koloruj
+                      </button>
+                    )}
                     <button
                       type="button"
-                      className={`paint-btn${isPainted(r.label) ? " on" : ""}`}
-                      style={{ ["--tag" as string]: r.color, ["--tag-ink" as string]: colorInk(r.color) }}
-                      aria-pressed={isPainted(r.label)}
-                      title="Wpisy z tym tagiem w kolorze tagu"
-                      aria-label={`Koloruj wpisy z tagiem ${r.label}`}
-                      onClick={() => p.onPaintTag(r.label, !isPainted(r.label))}
+                      className="solo-btn"
+                      title="Pokaż tylko ten"
+                      aria-label={`Pokaż tylko: ${r.label}`}
+                      onClick={() => p.onSoloTag(r.key)}
                     >
-                      koloruj
+                      tylko
                     </button>
-                  )}
-                  <button
-                    type="button"
-                    className="solo-btn"
-                    title="Pokaż tylko ten"
-                    aria-label={`Pokaż tylko: ${r.label}`}
-                    onClick={() => p.onSoloTag(r.key)}
-                  >
-                    tylko
-                  </button>
+                    {r.key !== UNTAGGED && !DEFAULT_TAGS.some((d) => tagKey(d.tag) === r.key) && (
+                      <button
+                        type="button"
+                        className="tag-del"
+                        title="Usuń tag ze wszystkich wpisów"
+                        aria-label={`Usuń tag ${r.label}`}
+                        onClick={() => p.onDeleteTag(r.label)}
+                      >
+                        ×
+                      </button>
+                    )}
+                  </span>
                 </li>
               );
             })}
           </ul>
-          {p.tags.length > 1 && (
-            <p className="hint">Wpis z kilkoma tagami jest widoczny, jeśli choć jeden z nich jest zaznaczony.</p>
-          )}
         </section>
 
         {/* Odnośniki do funkcji — tu dochodzą kolejne (zawsze na dole panelu). */}

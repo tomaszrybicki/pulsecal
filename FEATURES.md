@@ -71,7 +71,6 @@ logowanie Google bez własnego serwera (Google Identity Services).
 
 - **Gdzie:** przycisk ☰ w lewym górnym rogu. Na komputerze panel jest stałą kolumną z lewej
   (aplikacja pamięta, czy był otwarty). Na telefonie wysuwa się jako szuflada.
-- **Przyciski funkcyjne:** na górze „nowy wpis”. Tu będą dochodzić kolejne przyciski.
 - **Przełącznik widoku na telefonie:** „mapa”, „miesiąc” i „2 tyg.” są w szufladzie (jak w aplikacji Google Calendar),
   bo w górnym pasku telefonu brakuje miejsca. Na komputerze zostają w górnym pasku.
 - **Mały kalendarz** z numerami tygodni:
@@ -93,6 +92,10 @@ logowanie Google bez własnego serwera (Google Identity Services).
 
 - **Wiele tagów na wpis**, np. „przypomnienie”, „wizyta”, „remont mieszkania”, „przy komputerze”.
   Tagi mogą mieć spacje i wielkie litery („ADHD”, „Praca”); „Praca” i „praca” to ten sam tag.
+- **Lista tagów w panelu** jest zwarta. Przyciski (kolor, „koloruj”, „tylko”, ×) pokazują się po najechaniu
+  jako nakładka z prawej; włączone „koloruj” widać jako mały kwadracik w kolorze tagu.
+- **Usuwanie tagu:** „×” przy tagu usuwa go ze wszystkich wpisów (też jego filtr, kolor, „koloruj” i reguły,
+  które go dodają), z „Cofnij”. Domyślnych tagów nie da się usunąć.
 - **Domyślne tagi:** „ważne” (koralowy) i „low priority” (szary) są zawsze na liście i w podpowiedziach, nawet
   bez wpisów. „low priority” przenosi „> wszystkie low priority” w przeglądzie dnia.
 - **Reguły tagów** (panel boczny → „tagi” → „reguły”): „zawiera słowo → tag” (słowo w tytule lub notatce, np.

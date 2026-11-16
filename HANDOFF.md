@@ -116,6 +116,15 @@ Previous sessions: first Cursor IDE (built the MVP), then Claude in a chat sessi
 code audit and rewrote the data and sync layer, then stopped at the owner's request.
 **Start by reading `CLAUDE.md`.**
 
+## v0.37.0: no "nowy wpis" button, compact tags, delete tag, map wheel fix
+- Sidebar: `side-actions` / `onCreate` removed. Tag row actions live in `.tag-actions` (absolute overlay on
+  hover for fine pointers, in flow on touch); `.tag-painted` marks painted tags; `tag-del` (not for
+  `DEFAULT_TAGS`) → App `deleteTag()` (like `renameTag`: events incl. past, hidden filter, colour, paint,
+  rules; undo restores snapshots).
+- CalendarMap wheel over an overflowing `.allday` cell: native scroll only while the cell can scroll in that
+  direction, otherwise dates scroll (it used to get stuck). `landAtEnd` ref: stepping back a week range lands
+  at the end of the previous range.
+
 ## v0.36.0: hold "zaplanuj" to drag a task onto the calendar, "?" estimate
 - `PlanButton` (TasksView, also used in WorkItemSheet): click → `onPlan`; hold `HOLD_MS` 380 without moving →
   `onPlanHold(task, x, y)` → App `startPlanDrag`.

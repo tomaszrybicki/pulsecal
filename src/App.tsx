@@ -919,6 +919,53 @@ export function App() {
     );
   };
 
+  /**
+   * Usunięcie tagu ze wszystkich wpisów (też w przeszłości). Znika też jego filtr, kolor, „koloruj” i reguły,
+   * które go dodają (inaczej wróciłby przy następnym zapisie). Z „Cofnij”.
+   */
+  const deleteTag = async (tag: string) => {
+    const key = tagKey(tag);
+    const affected = await db.events.filter((e) => !e.deleted && (e.tags ?? []).some((t) => tagKey(t) === key)).toArray();
+    const prevRules = rules;
+    const prevHidden = hiddenTags;
+    const prevColors = { ...getTagColors() };
+    const prevPaint = getPaintTags();
+    // wystąpienie serii z Google: tylko lokalnie (zapis w Google odłączyłby je od serii)
+    const save = (e: CalEvent) => (e.recurring ? db.events.put(e) : saveLocal(e));
+    for (const e of affected) await save({ ...e, tags: e.tags.filter((t) => tagKey(t) !== key) });
+    if (hiddenTags.has(key)) {
+      setHiddenTags((prev) => {
+        const next = new Set(prev);
+        next.delete(key);
+        return next;
+      });
+    }
+    if (prevPaint.includes(key)) replacePaintTags(prevPaint.filter((k) => k !== key));
+    if (prevColors[key]) setTagColor(tag, null);
+    const dropped = rules.filter((r) => tagKey(r.tag) === key).length;
+    if (dropped) changeRules(rules.filter((r) => tagKey(r.tag) !== key));
+    setTagColorsVer((v) => v + 1);
+    sync.requestSync(4000);
+    const n = affected.length;
+    sync.notify(
+      `Usunięto tag „${tag}” z ${n} ${n === 1 ? "wpisu" : "wpisów"}${dropped ? ` i ${dropped} ${dropped === 1 ? "regułę" : "reguły"}` : ""}`,
+      "ok",
+      {
+        label: "Cofnij",
+        run: () =>
+          void (async () => {
+            for (const e of affected) await save(e);
+            changeRules(prevRules);
+            setHiddenTags(prevHidden);
+            replaceTagColors(prevColors);
+            replacePaintTags(prevPaint);
+            setTagColorsVer((v) => v + 1);
+            sync.requestSync();
+          })(),
+      },
+    );
+  };
+
   const eventActions = {
     onDelete: isDesktop ? (e: CalEvent) => void deleteEvent(e.id) : undefined,
     onContext: isDesktop ? (e: CalEvent, pt: Anchor) => setMenu({ e, anchor: pt }) : undefined,
@@ -1215,10 +1262,6 @@ export function App() {
             navigate(start);
             closeDrawer();
           }}
-          onCreate={() => {
-            closeDrawer();
-            openDraft(timedDraft(nextQuarter().getTime(), newColor), editorMode);
-          }}
           viewSwitch={viewChips(closeDrawer)}
           view={view}
           onView={(v) => {
@@ -1252,6 +1295,7 @@ export function App() {
           }}
           onApplyRules={() => void applyRulesToAll()}
           onRenameTag={(from, to) => void renameTag(from, to)}
+          onDeleteTag={(tag) => void deleteTag(tag)}
           onPaintTag={(tag, on) => {
             setPainted(tag, on);
             setTagColorsVer((v) => v + 1);

@@ -3,6 +3,21 @@
 Każda wersja to jeden commit `vX.Y.Z: …` (treść commita = wpis z tego pliku) i tag `vX.Y.Z`.
 Najnowsze na górze. Opis funkcji aplikacji jest w [FEATURES.md](FEATURES.md).
 
+## [0.37.0] – 2026-11-16: zwarte tagi, usuwanie tagu, kółko w mapie
+
+- **Bez przycisku „nowy wpis”** w panelu bocznym. Nowy wpis dodasz przyciskiem „+” na dole, kliknięciem w kalendarz
+  albo przez szukanie.
+- **Zwarta lista tagów:** niższe wiersze i mniejsza czcionka. Przyciski (kolor, „koloruj”, „tylko”, usuń) pokazują
+  się dopiero po najechaniu, jako nakładka z prawej, więc nazwy tagów mają całą szerokość. Włączone „koloruj”
+  widać jako mały kwadracik w kolorze tagu.
+- **Usuwanie tagu:** „×” przy tagu (po najechaniu) usuwa go ze wszystkich wpisów. Znika też jego filtr, kolor,
+  „koloruj” i reguły, które go dodają. Z „Cofnij”. Domyślne tagi („ważne”, „low priority”) zostają.
+- **Poprawka przewijania dat kółkiem w mapie:** nad paskiem dnia z wieloma wpisami całodniowymi kółko przewijało
+  tylko ten pasek i na jego górze / dole „utykało”. Teraz, gdy pasek dnia nie ma już dokąd się przewinąć, kółko
+  przewija daty.
+- **Zakres tygodni w mapie:** cofając kółkiem przed początek zakresu, lądujesz na końcu poprzedniego zakresu, a nie
+  na jego początku.
+
 ## [0.36.0] – 2026-11-16: przeciąganie zadania na kalendarz, estymata pod tytułem
 
 - **„+ zaplanuj” tuż za nazwą zadania:** na liście zadań i w zawartości epiku. Ikonki opisu i komentarzy są dalej.
