@@ -5798,3 +5798,150 @@ body.plan-dragging .sheet-backdrop {
     opacity: 0.8;
   }
 }
+
+/* ── epik na kalendarzu: baner na dwa wiersze — nazwa + przesuwający się pasek zadań (jak w TV) ── */
+
+.epic-banner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 8px;
+  padding: 0;
+  background: color-mix(in srgb, var(--epic) 85%, black);
+  color: #fffaf2;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--epic) 60%, white);
+}
+
+.epic-banner:hover {
+  filter: brightness(1.08);
+}
+
+.eb-title {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  padding: 0 8px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.eb-mark {
+  flex: none;
+  font-size: 0.7em;
+  opacity: 0.85;
+}
+
+/* pasek z wiadomościami: jaśniejszy pas, tekst płynie w lewo bez końca (dwie kopie, przesunięcie o połowę) */
+.eb-ticker {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  background: rgba(0, 0, 0, 0.22);
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 10px, #000 calc(100% - 14px), transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0, #000 10px, #000 calc(100% - 14px), transparent 100%);
+}
+
+.eb-track {
+  display: inline-flex;
+  animation: eb-ticker var(--ticker-dur, 14s) linear infinite;
+  will-change: transform;
+}
+
+.epic-banner:hover .eb-track {
+  animation-play-state: paused;
+}
+
+.eb-run {
+  display: inline-flex;
+  flex: none;
+}
+
+.eb-item {
+  flex: none;
+  padding: 0 6px;
+}
+
+.eb-item::after {
+  content: "•";
+  margin-left: 12px;
+  opacity: 0.55;
+}
+
+.eb-item.done {
+  opacity: 0.6;
+}
+
+@keyframes eb-ticker {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .eb-track {
+    animation: none;
+  }
+}
+
+/* miesiąc: dwa pasy (2 × 18 px + odstęp) */
+.m-banner {
+  margin: 0 2px;
+  font-size: 0.7rem;
+  line-height: 18px;
+}
+
+.m-banner .eb-title,
+.m-banner .eb-ticker {
+  height: 19px;
+  line-height: 19px;
+}
+
+.m-banner .eb-ticker {
+  font-size: 0.64rem;
+}
+
+/* mapa: na górze pasma całodniowego, wysokość dwóch pasków */
+.allday-banner {
+  width: 100%;
+  height: 51px;
+  margin-bottom: 3px;
+  font-size: 0.78rem;
+}
+
+.allday-banner .eb-title {
+  height: 27px;
+  line-height: 27px;
+}
+
+.allday-banner .eb-ticker {
+  height: 24px;
+  line-height: 24px;
+  font-size: 0.72rem;
+}
+
+/* przypięte epiki da się przeciągać na kalendarz */
+.pin-epic {
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.pin-epic:active {
+  cursor: grab;
+}

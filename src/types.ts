@@ -107,6 +107,8 @@ export interface WorkItem {
   seriesId?: string;
   /** Status ustawiony ręcznie — wtedy nie zmienia się sam po zakończeniu wpisu. */
   statusManual?: boolean;
+  /** Epik na kalendarzu: dzień (lokalna północ), w którym jest pokazany jako baner z paskiem zadań. */
+  showOn?: number | null;
 }
 
 export type SyncState = "off" | "idle" | "syncing" | "expired" | "offline" | "error";

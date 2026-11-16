@@ -116,6 +116,17 @@ Previous sessions: first Cursor IDE (built the MVP), then Claude in a chat sessi
 code audit and rewrote the data and sync layer, then stopped at the owner's request.
 **Start by reading `CLAUDE.md`.**
 
+## v0.38.0: epic banner on the calendar, "dziś" from tasks
+- `WorkItem.showOn` (local midnight, item backup). App `epicBanners` (`Banner[]`: title, colour, day, subtree
+  tasks — not done first) → `MonthView` / `CalendarMap` `banners` + `onOpenEpic`.
+- `EpicBanner.tsx`: two-row button, ticker = two copies of the task run in `.eb-track`, CSS `translateX(-50%)`
+  loop (`--ticker-dur` from text length), paused on hover, static with reduced motion.
+- Month: `layoutWeek(..., reserved)` pre-fills two lanes per banner at the top of the day; `perDay` counts them.
+  Map: banners at the top of `.allday` cells.
+- Drag: `PinnedRow` (mouse: 6 px move; touch: 380 ms hold) → `onDragEpic` → `startPlanDrag(epic, x, y, "show")`
+  (same drag engine as tasks; `mode: "show"` → `showEpicOn()` with undo instead of a draft).
+- WorkItemSheet: „na kalendarzu” field for epics. `goToday` leaves the tasks view.
+
 ## v0.37.1: test data only in the Claude preview
 - `DevSeed` settings section removed. `main.tsx` (dev only, dynamic import → not in the prod bundle) calls
   `devAutoSeed()`: `?seed=1` sets `pulsecal:dev-autoseed`, `?seed=0` clears it and removes seed data; with the

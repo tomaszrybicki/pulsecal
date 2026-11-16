@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { CalendarMap } from "./components/CalendarMap";
 import { DayPanel } from "./components/DayPanel";
 import { EpicContext, EpicOpenContext, type EpicInfo } from "./components/EpicTag";
+import type { Banner } from "./components/EpicBanner";
 import { EventMenu } from "./components/EventMenu";
 import { EventSheet } from "./components/EventSheet";
 import type { WeekSelection } from "./components/MiniCalendar";
@@ -65,6 +66,7 @@ import { formatMinutes, storedEstimate } from "./estimate";
 import {
   SLEEPY_DAYS,
   remainingEstimate,
+  subtreeIds,
   buildTree,
   epicColor,
   lastTouched,
@@ -248,6 +250,24 @@ export function App() {
   const tree = useMemo(
     () => buildTree(items, [...epicEvents, ...linkedEvents].sort((a, b) => a.start - b.start)),
     [items, epicEvents, linkedEvents],
+  );
+  // epiki na kalendarzu: baner z nazwą i paskiem zadań (niezrobione najpierw, z pod-epikami)
+  const epicBanners = useMemo<Banner[]>(
+    () =>
+      items
+        .filter((i) => i.kind === "epic" && i.showOn)
+        .map((e) => ({
+          id: e.id,
+          title: e.title,
+          color: epicColor(e.id),
+          day: startOfDay(new Date(e.showOn!)).getTime(),
+          tasks: [...subtreeIds(e.id, tree)]
+            .map((id) => tree.byId.get(id))
+            .filter((t): t is WorkItem => Boolean(t) && t!.kind === "task")
+            .sort((a, b) => Number(a.status === "done") - Number(b.status === "done") || a.order - b.order)
+            .map((t) => ({ title: t.title, done: t.status === "done" })),
+        })),
+    [items, tree],
   );
 
   // zadanie ↔ wpis (links.ts): zadania dla wpisów w epikach, wspólny epik i nazwa, status „zrobione” po wpisie
@@ -752,15 +772,33 @@ export function App() {
 
   /* ── przytrzymanie „zaplanuj”: zadanie przeciągane na dzień w kalendarzu ── */
 
-  const [planDrag, setPlanDrag] = useState<{ task: WorkItem; x: number; y: number; label: string } | null>(null);
+  // mode „plan” = zadanie → nowy wpis; „show” = przypięty epik → baner epiku na kalendarzu (showOn)
+  const [planDrag, setPlanDrag] = useState<{
+    task: WorkItem;
+    x: number;
+    y: number;
+    label: string;
+    mode: "plan" | "show";
+  } | null>(null);
   const planDragRef = useRef(planDrag);
   planDragRef.current = planDrag;
   const planDragFrom = useRef<ViewMode>("tasks");
 
-  const startPlanDrag = (task: WorkItem, x: number, y: number) => {
+  const startPlanDrag = (task: WorkItem, x: number, y: number, mode: "plan" | "show" = "plan") => {
     planDragFrom.current = view;
     if (view === "tasks") setView(lastCalView.current);
-    setPlanDrag({ task, x, y, label: "" });
+    if (mode === "show") closeDrawer();
+    setPlanDrag({ task, x, y, label: "", mode });
+  };
+
+  /** Epik upuszczony na dzień: baner epiku na kalendarzu (z „Cofnij”). */
+  const showEpicOn = (epic: WorkItem, day: Date) => {
+    const prev = epic.showOn ?? null;
+    patchItem(epic.id, { showOn: startOfDay(day).getTime() });
+    sync.notify(`„${epic.title}” na kalendarzu: ${longDateLabel(day)}`, "ok", {
+      label: "Cofnij",
+      run: () => patchItem(epic.id, { showOn: prev }),
+    });
   };
 
   /** Dzień pod punktem: kolumna godzin w mapie (z godziną, co 15 min) albo dzień w miesiącu / pasmo całodniowe. */
@@ -797,14 +835,16 @@ export function App() {
       raf = requestAnimationFrame(() => {
         const t = planTargetAt(x, y);
         mark(t?.el ?? null);
+        const show = planDragRef.current?.mode === "show";
         const label = t
-          ? `${longDateLabel(t.day)}${t.minutes === null ? " · cały dzień" : `, ${formatClock(atMinutes(t.day, t.minutes))}`}`
+          ? `${longDateLabel(t.day)}${t.minutes === null || show ? (show ? "" : " · cały dzień") : `, ${formatClock(atMinutes(t.day, t.minutes))}`}`
           : "";
         setPlanDrag((p) => p && { ...p, x, y, label });
       });
     };
     const finish = (e: PointerEvent | null) => {
       const task = planDragRef.current?.task;
+      const mode = planDragRef.current?.mode;
       const t = e ? planTargetAt(e.clientX, e.clientY) : null;
       mark(null);
       setPlanDrag(null);
@@ -812,6 +852,10 @@ export function App() {
       if (!t) {
         // upuszczone obok kalendarza — wracamy tam, skąd zaczęło się przeciąganie
         if (planDragFrom.current === "tasks") setView("tasks");
+        return;
+      }
+      if (mode === "show") {
+        showEpicOn(task, t.day);
         return;
       }
       setWorkOpen(null);
@@ -1013,6 +1057,8 @@ export function App() {
   /** „dziś": wraca do dzisiejszego dnia w obecnym widoku (wybrany zakres tygodni przesuwa się na dziś). */
   const goToday = () => {
     const today = startOfDay(new Date());
+    // z widoku zadań „dziś” wraca do kalendarza
+    if (view === "tasks") setView(lastCalView.current);
     if (weekSel) setWeekSel({ ...weekSel, start: startOfWeek(today) });
     navigate(today);
   };
@@ -1274,6 +1320,10 @@ export function App() {
             closeDrawer();
             setWorkOpen(id);
           }}
+          onDragEpic={(id, x, y) => {
+            const epic = tree.byId.get(id);
+            if (epic) startPlanDrag(epic, x, y, "show");
+          }}
           onOpenPrefs={() => {
             closeDrawer();
             setPrefsOpen(true);
@@ -1330,6 +1380,8 @@ export function App() {
               onVisibleDay={weekSel ? undefined : (d) => setFocus((f) => (sameDay(f, d) ? f : startOfDay(d)))}
               onStep={weekSel ? step : undefined}
               {...eventActions}
+              banners={epicBanners}
+              onOpenEpic={openEpicFromTag}
               onSlot={(start) => openDraft(timedDraft(start.getTime(), newColor))}
               onAllDaySlot={(day) => openDraft(allDayDraft(day, newColor))}
               onEvent={(e) => openDraft(draftFromEvent(e), editorMode)}
@@ -1351,6 +1403,8 @@ export function App() {
               onMove={(e, start, end) => void moveEvent(e, start, end)}
               onStep={step}
               {...eventActions}
+              banners={epicBanners}
+              onOpenEpic={openEpicFromTag}
             />
           )}
 
@@ -1379,7 +1433,10 @@ export function App() {
 
       {planDrag && (
         <div className="plan-ghost" style={{ transform: `translate(${planDrag.x + 14}px, ${planDrag.y + 12}px)` }} aria-hidden>
-          <b>◷ {planDrag.task.title || "(bez nazwy)"}</b>
+          <b>
+            {planDrag.mode === "show" ? "◆ " : "◷ "}
+            {planDrag.task.title || "(bez nazwy)"}
+          </b>
           <span>{planDrag.label || "upuść na dzień w kalendarzu · Esc anuluje"}</span>
         </div>
       )}

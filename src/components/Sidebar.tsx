@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import type { TagStat } from "../db";
 import type { ThemePref } from "../hooks/useTheme";
 import type { ViewMode } from "../types";
@@ -44,6 +44,8 @@ type Props = {
   openTasks: number;
   pinned: PinnedEpic[];
   onOpenEpic: (id: string) => void;
+  /** Przeciągnięcie przypiętego epiku na dzień w kalendarzu (App). */
+  onDragEpic?: (id: string, x: number, y: number) => void;
   onOpenPrefs: () => void;
 };
 
@@ -109,7 +111,11 @@ export function Sidebar(p: Props) {
             <ul>
               {p.pinned.map((e) => (
                 <li key={e.id}>
-                  <PinnedRow e={e} onOpen={() => p.onOpenEpic(e.id)} />
+                  <PinnedRow
+                    e={e}
+                    onOpen={() => p.onOpenEpic(e.id)}
+                    onDrag={p.onDragEpic ? (x, y) => p.onDragEpic!(e.id, x, y) : undefined}
+                  />
                 </li>
               ))}
             </ul>
@@ -302,7 +308,47 @@ function NavIcon({ d }: { d: string }) {
 }
 
 /** Przypięty epik: pasek postępu w kolorze zależnym od postępu; „śpi” (zZz) albo pulsuje, gdy blisko końca. */
-function PinnedRow({ e, onOpen }: { e: PinnedEpic; onOpen: () => void }) {
+/**
+ * Przypięty epik: klik → szczegóły. Przeciągnięcie (mysz: ruch o kilka px, dotyk: przytrzymanie) → epik na kalendarz.
+ */
+function PinnedRow({ e, onOpen, onDrag }: { e: PinnedEpic; onOpen: () => void; onDrag?: (x: number, y: number) => void }) {
+  const start = useRef<{ x: number; y: number; mouse: boolean } | null>(null);
+  const timer = useRef<number | null>(null);
+  const dragged = useRef(false);
+  const stop = () => {
+    if (timer.current !== null) window.clearTimeout(timer.current);
+    timer.current = null;
+    start.current = null;
+  };
+  const begin = (x: number, y: number) => {
+    stop();
+    dragged.current = true;
+    onDrag?.(x, y);
+  };
+  const dragProps = onDrag
+    ? {
+        onPointerDown: (ev: React.PointerEvent) => {
+          dragged.current = false;
+          if (ev.button !== 0) return;
+          const mouse = ev.pointerType === "mouse";
+          start.current = { x: ev.clientX, y: ev.clientY, mouse };
+          if (!mouse) {
+            const { clientX, clientY } = ev;
+            timer.current = window.setTimeout(() => begin(clientX, clientY), 380);
+          }
+        },
+        onPointerMove: (ev: React.PointerEvent) => {
+          const s = start.current;
+          if (!s) return;
+          const dist = Math.hypot(ev.clientX - s.x, ev.clientY - s.y);
+          if (s.mouse && dist > 6) begin(ev.clientX, ev.clientY);
+          else if (!s.mouse && dist > 8) stop();
+        },
+        onPointerUp: stop,
+        onPointerCancel: stop,
+        onContextMenu: (ev: React.MouseEvent) => ev.preventDefault(),
+      }
+    : {};
   const ratio = e.total ? e.done / e.total : 0;
   const complete = e.total > 0 && e.done === e.total;
   const almost = !complete && e.total > 0 && ratio >= ALMOST_DONE;
@@ -313,8 +359,15 @@ function PinnedRow({ e, onOpen }: { e: PinnedEpic; onOpen: () => void }) {
       type="button"
       className={`pin-epic${mood}`}
       style={{ ["--fill" as string]: progressColor(ratio), ["--epic" as string]: e.color }}
-      title={`${e.title}: ${e.total ? `${e.done}/${e.total} zadań zrobionych` : "brak zadań"}${e.remaining ? `, zostało ~${e.remaining}` : ""}${state}`}
-      onClick={onOpen}
+      title={`${e.title}: ${e.total ? `${e.done}/${e.total} zadań zrobionych` : "brak zadań"}${e.remaining ? `, zostało ~${e.remaining}` : ""}${state}${onDrag ? " · przeciągnij na kalendarz" : ""}`}
+      {...dragProps}
+      onClick={() => {
+        if (dragged.current) {
+          dragged.current = false;
+          return;
+        }
+        onOpen();
+      }}
     >
       <span className="pin-epic-head">
         <span className="pin-epic-dot" aria-hidden />

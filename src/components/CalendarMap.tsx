@@ -6,6 +6,7 @@ import { useDragGesture, type Pt } from "../hooks/useDragGesture";
 import { useOptimisticMove } from "../hooks/useOptimisticMove";
 import { DelBtn, PlanBtn } from "./DelBtn";
 import { EstSuffix } from "./EstimatePicker";
+import { EpicBanner, type Banner } from "./EpicBanner";
 import { EpicTag } from "./EpicTag";
 import { TagDots } from "./TagDots";
 import type { CalEvent } from "../types";
@@ -82,6 +83,9 @@ type Props = {
   onContext?: (e: CalEvent, pt: { x: number; y: number }) => void;
   /** „P” po najechaniu: najbliższa wolna godzina w godzinach produktywności. */
   onPlan?: (e: CalEvent) => void;
+  /** Epiki na kalendarzu (baner na górze pasma całodniowego) i otwarcie epiku po kliknięciu. */
+  banners?: Banner[];
+  onOpenEpic?: (id: string) => void;
 };
 
 /** Ile kolumn od krawędzi zaczynamy doładowywać kolejne dni. */
@@ -147,6 +151,8 @@ export function CalendarMap({
   onDelete,
   onContext,
   onPlan,
+  banners = [],
+  onOpenEpic,
 }: Props) {
   const scroller = useRef<HTMLDivElement>(null);
   const { shown, dropped, settle } = useOptimisticMove(events);
@@ -581,6 +587,11 @@ export function CalendarMap({
                 if (ev.target === ev.currentTarget) onAllDaySlot(d);
               }}
             >
+              {banners
+                .filter((b) => b.day === from)
+                .map((b) => (
+                  <EpicBanner key={`banner-${b.id}`} b={b} className="allday-banner" onOpen={(id) => onOpenEpic?.(id)} />
+                ))}
               {allDay.map((e) => (
                 <button
                   key={e.id}

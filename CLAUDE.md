@@ -79,6 +79,7 @@ src/
     WorkFieldsSheet.tsx   custom fields (text / number / select), definitions in settings backup
     EpicTag.tsx           EpicContext + epic label on calendar events
     EpicPicker.tsx        epic select for events with "+ nowy epik…" (QuickCard, EventSheet, EventMenu)
+    EpicBanner.tsx        epic shown on a day (showOn): two rows, title + ticker of its tasks
     Comments.tsx          comments on tasks/epics (WorkItem.comments, newest first, edit/delete)
     PrefsSheet.tsx        "ustawienia": productive hours, P slot length, move threshold, always full editor
 public/                   icons, favicon

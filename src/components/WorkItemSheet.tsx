@@ -57,6 +57,7 @@ function dirty(a: WorkItem, b: WorkItem): boolean {
     JSON.stringify(a.fields ?? {}) !== JSON.stringify(b.fields ?? {}) ||
     JSON.stringify(a.comments ?? []) !== JSON.stringify(b.comments ?? []) ||
     Boolean(a.statusManual) !== Boolean(b.statusManual) ||
+    (a.showOn ?? null) !== (b.showOn ?? null) ||
     Boolean(a.pinned) !== Boolean(b.pinned)
   );
 }
@@ -304,6 +305,37 @@ export function WorkItemSheet(props: Props) {
                 </select>
               </span>
             </label>
+            {d.kind === "epic" && (
+              <div className="ji-field">
+                <span>na kalendarzu</span>
+                {d.showOn ? (
+                  <span className="ji-due">
+                    <DateField label="Dzień epiku na kalendarzu" value={d.showOn} onChange={(day) => setD({ ...d, showOn: day })} />
+                    <button
+                      type="button"
+                      className="ji-clear"
+                      aria-label="Zdejmij epik z kalendarza"
+                      onClick={() => setD({ ...d, showOn: null })}
+                    >
+                      ×
+                    </button>
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    className="ji-set"
+                    title="Albo przeciągnij przypięty epik z panelu bocznego na dzień w kalendarzu"
+                    onClick={() => {
+                      const t = new Date(now);
+                      t.setHours(0, 0, 0, 0);
+                      setD({ ...d, showOn: t.getTime() });
+                    }}
+                  >
+                    + pokaż
+                  </button>
+                )}
+              </div>
+            )}
             <div className="ji-field">
               <span>termin</span>
               {d.due ? (

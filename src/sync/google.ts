@@ -820,6 +820,7 @@ type ItemData = Pick<
   | "eventId"
   | "seriesId"
   | "statusManual"
+  | "showOn"
 >;
 
 function itemBody(i: WorkItem): Record<string, unknown> {
@@ -843,6 +844,7 @@ function itemBody(i: WorkItem): Record<string, unknown> {
     eventId: i.eventId,
     seriesId: i.seriesId,
     statusManual: Boolean(i.statusManual),
+    showOn: i.showOn ?? null,
   };
   return {
     summary: `Pulsecal — ${i.kind === "epic" ? "epik" : "zadanie"}: ${i.title}`,
@@ -890,6 +892,7 @@ function parseItem(g: GEvent): ItemData | null {
       eventId: typeof d.eventId === "string" && d.eventId ? d.eventId : undefined,
       seriesId: typeof d.seriesId === "string" && d.seriesId ? d.seriesId : undefined,
       statusManual: d.statusManual === true,
+      showOn: Number(d.showOn) || null,
     };
   } catch {
     return null;

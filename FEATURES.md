@@ -53,7 +53,8 @@ logowanie Google bez własnego serwera (Google Identity Services).
 - **Widok domyślny:** najedź na przycisk widoku i kliknij gwiazdkę ☆ — aplikacja będzie się otwierać w tym
   widoku (mapa, miesiąc albo 2 tygodnie). Osobno na każdym urządzeniu; na telefonie gwiazdki są w szufladzie.
 - **Nawigacja:**
-  - **przycisk „dziś”** w górnym pasku (i klawisz **T**) wraca do dzisiejszego dnia w obecnym widoku;
+  - **przycisk „dziś”** w górnym pasku (i klawisz **T**) wraca do dzisiejszego dnia w obecnym widoku
+    (z widoku zadań — do kalendarza);
     wybrany zakres tygodni przesuwa się wtedy na bieżący tydzień;
   - strzałki ‹ › przy nazwie okresu (w miesiącu ±1 miesiąc, w mapie ±7 dni, przy wybranych tygodniach
     o tyle tygodni, ile wybrano);
@@ -287,6 +288,11 @@ Prosta „jira” do spraw osobistych — trzeci widok „zadania” (obok „ma
   najnowszego z datą, „edytuj” i „usuń” (z potwierdzeniem). Zapisują się od razu; niedodany komentarz dodaje się
   przy zamknięciu okna. Na liście i na tablicy przy zadaniu jest dymek z liczbą komentarzy, a szukanie
   przeszukuje też komentarze.
+- **Epik na kalendarzu:** przeciągnij przypięty epik z panelu bocznego na dzień (mysz: chwyć i przesuń,
+  telefon: przytrzymaj). Tego dnia epik jest specjalnym wpisem całodniowym na dwa wiersze: nazwa, a pod nią
+  przesuwający się pasek z nazwami zadań (jak pasek wiadomości w TV; niezrobione najpierw, zrobione z ✓).
+  Najechanie zatrzymuje pasek, klik otwiera epik. W szczegółach epiku „na kalendarzu”: zmiana dnia, „×” zdejmuje,
+  „+ pokaż” stawia na dziś. W miesiącu (dwa pasy na górze dnia) i w mapie (góra pasma całodniowego).
 - **Przypięte epiki:** pinezka przy epiku w panelu epików albo „przypnij” w szczegółach epiku. Przypięte epiki
   są w panelu bocznym jako paski postępu (zrobione zadania / wszystkie, z pod-epikami); kolor od koralowego
   (mało) do zielonego (gotowe). Od 80% pasek pulsuje, a gdy w epiku nic się nie zmieniło od 7 dni, przygasa

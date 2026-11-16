@@ -3,6 +3,20 @@
 Każda wersja to jeden commit `vX.Y.Z: …` (treść commita = wpis z tego pliku) i tag `vX.Y.Z`.
 Najnowsze na górze. Opis funkcji aplikacji jest w [FEATURES.md](FEATURES.md).
 
+## [0.38.0] – 2026-11-16: epik na kalendarzu z paskiem zadań
+
+- **„dziś” z widoku zadań** przenosi do kalendarza (ostatniego widoku: mapa, miesiąc albo 2 tyg.).
+- **Epik na kalendarzu:** przeciągnij przypięty epik z panelu bocznego na dzień w kalendarzu (mysz: chwyć
+  i przesuń, telefon: przytrzymaj).
+  - Epik pojawia się tego dnia jako specjalny wpis całodniowy na dwa wiersze: u góry nazwa epiku, pod nią
+    przesuwający się pasek z nazwami jego zadań, jak pasek wiadomości w telewizji. Niezrobione są pierwsze,
+    zrobione mają ✓.
+  - Po najechaniu myszą pasek się zatrzymuje, a kliknięcie otwiera szczegóły epiku.
+  - Działa w miesiącu (dwa pasy na górze dnia) i w mapie (na górze pasma całodniowego).
+- **Szczegóły epiku: „na kalendarzu”** — dzień do zmiany, „×” zdejmuje epik z kalendarza, „+ pokaż” stawia go
+  na dziś.
+- Dzień epiku jest w kopii zadań w Google.
+
 ## [0.37.1] – 2026-11-16: dane testowe tylko w podglądzie Claude
 
 - **Bez przycisku „dane testowe”** w ustawieniach. Dane testowe są teraz zawsze dodawane w przeglądarce podglądu Claude

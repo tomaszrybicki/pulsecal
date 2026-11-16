@@ -7,6 +7,7 @@ import { useDragGesture, type Pt } from "../hooks/useDragGesture";
 import { useOptimisticMove } from "../hooks/useOptimisticMove";
 import { DelBtn, PlanBtn } from "./DelBtn";
 import { EstSuffix } from "./EstimatePicker";
+import { EpicBanner, type Banner } from "./EpicBanner";
 import { EpicTag } from "./EpicTag";
 import { TagDots } from "./TagDots";
 import type { CalEvent } from "../types";
@@ -35,6 +36,9 @@ type Props = {
   onContext?: (e: CalEvent, pt: { x: number; y: number }) => void;
   /** „P” po najechaniu: najbliższa wolna godzina w godzinach produktywności. */
   onPlan?: (e: CalEvent) => void;
+  /** Epiki na kalendarzu (baner na dwa pasy) i otwarcie epiku po kliknięciu. */
+  banners?: Banner[];
+  onOpenEpic?: (id: string) => void;
 };
 
 const WHEEL_STEP = 60;
@@ -66,7 +70,7 @@ function isBar(e: CalEvent): boolean {
 }
 
 /** Układ tygodnia jak w Google Calendar: wielodniowe/całodniowe paski na górze, potem wpisy wg godziny. */
-function layoutWeek(weekStart: Date, events: CalEvent[]): Seg[] {
+function layoutWeek(weekStart: Date, events: CalEvent[], reserved: number[] = []): Seg[] {
   const weekEnd = addDays(weekStart, 7);
   const segs: Seg[] = [];
   for (const e of events) {
@@ -88,7 +92,9 @@ function layoutWeek(weekStart: Date, events: CalEvent[]): Seg[] {
   // Paski kilkudniowe muszą mieć jeden pas przez cały tydzień, więc trafiają pod wszystkie wpisy z godziną.
   const byTitle = (a: Seg, b: Seg) => (a.e.title || "").localeCompare(b.e.title || "", "pl", { sensitivity: "base" });
   segs.sort((a, b) => Number(a.bar) - Number(b.bar) || a.col - b.col || byTitle(a, b) || b.span - a.span);
+  // pasy zajęte przez banery epików (po dwa na epik, na górze dnia)
   const lanes: boolean[][] = [];
+  for (let l = 0; l < Math.max(0, ...reserved); l++) lanes.push(Array.from({ length: 7 }, (_, c) => (reserved[c] ?? 0) > l));
   for (const s of segs) {
     let lane = lanes.findIndex((used) => !used.slice(s.col, s.col + s.span).some(Boolean));
     if (lane === -1) {
@@ -101,7 +107,7 @@ function layoutWeek(weekStart: Date, events: CalEvent[]): Seg[] {
   return segs;
 }
 
-export function MonthView({ now, weeks, month, events, onDay, onDayDetails, onAdd, onEvent, onMove, onStep, onDelete, onContext, onPlan }: Props) {
+export function MonthView({ now, weeks, month, events, onDay, onDayDetails, onAdd, onEvent, onMove, onStep, onDelete, onContext, onPlan, banners = [], onOpenEpic }: Props) {
   const reduce = useReducedMotion();
   const wheel = useRef({ acc: 0, last: 0, lock: 0 });
   const swipe = useRef<{ x: number; y: number; t: number } | null>(null);
@@ -272,8 +278,10 @@ export function MonthView({ now, weeks, month, events, onDay, onDayDetails, onAd
         transition={{ type: "spring", stiffness: 380, damping: 30 }}
       >
         {weeks.map((week, w) => {
-          const segs = layoutWeek(week[0], shown);
-          const perDay = Array(7).fill(0) as number[];
+          const weekBanners = week.map((d) => banners.filter((b) => b.day === startOfDay(d).getTime()));
+          const reserved = weekBanners.map((l) => l.length * 2);
+          const segs = layoutWeek(week[0], shown, reserved);
+          const perDay = [...reserved];
           for (const s of segs) for (let c = s.col; c < s.col + s.span; c++) perDay[c] += 1;
           const dayLimit = perDay.map((n) => (n > cap ? cap - 1 : cap));
           const visible = (s: Seg) => s.lane < Math.min(...dayLimit.slice(s.col, s.col + s.span));
@@ -321,6 +329,17 @@ export function MonthView({ now, weeks, month, events, onDay, onDayDetails, onAd
                   </div>
                 );
               })}
+              {weekBanners.flatMap((list, c) =>
+                list.map((b, i) => (
+                  <EpicBanner
+                    key={`banner-${b.id}`}
+                    b={b}
+                    className="m-banner"
+                    style={{ gridColumn: c + 1, gridRow: `${2 + i * 2} / span 2` }}
+                    onOpen={(id) => onOpenEpic?.(id)}
+                  />
+                )),
+              )}
               {segs.filter(visible).map((s) => (
                 <MonthChip
                   key={`${s.e.id}-${w}`}
