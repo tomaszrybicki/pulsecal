@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { CalEvent, Priority, WorkField, WorkItem, WorkKind } from "../types";
+import type { CalEvent, Priority, WorkComment, WorkField, WorkItem, WorkKind } from "../types";
 import { whenLabel } from "../draft";
 import { formatClock, formatDayShort } from "../time";
 import {
@@ -20,6 +20,7 @@ import {
 import { DateField } from "./DateField";
 import { SheetFrame } from "./SheetFrame";
 import { InlineCreate, PriorityIcon, ProgressBar, TypeIcon } from "./TasksView";
+import { Comments } from "./Comments";
 
 type Props = {
   item: WorkItem;
@@ -47,7 +48,8 @@ function dirty(a: WorkItem, b: WorkItem): boolean {
     priorityOf(a) !== priorityOf(b) ||
     (a.due ?? null) !== (b.due ?? null) ||
     (a.estimate ?? null) !== (b.estimate ?? null) ||
-    JSON.stringify(a.fields ?? {}) !== JSON.stringify(b.fields ?? {})
+    JSON.stringify(a.fields ?? {}) !== JSON.stringify(b.fields ?? {}) ||
+    JSON.stringify(a.comments ?? []) !== JSON.stringify(b.comments ?? [])
   );
 }
 
@@ -60,6 +62,8 @@ const stamp = (t: number) => (t ? `${formatDayShort(new Date(t))}, ${formatClock
 export function WorkItemSheet(props: Props) {
   const { item, tree, now, fields, onSave, onDelete, onClose, onOpenItem, onOpenEvent, onPlan, onCreate, onEditFields } = props;
   const [d, setD] = useState(item);
+  // niewysłany komentarz — zamknięcie okna go dodaje, żeby nie przepadł
+  const [note, setNote] = useState("");
   const children = tree.children.get(item.id) ?? [];
   const events = tree.events.get(item.id) ?? [];
   // epik z zawartością nie może stać się zadaniem (zawartość nie miałaby gdzie być)
@@ -69,6 +73,16 @@ export function WorkItemSheet(props: Props) {
   /** Zapisz zmiany (bez zamykania) — także przed przejściem do zadania / wpisu z listy epiku. */
   const commit = () => {
     const t = { ...d, title: d.title.trim() || item.title };
+    if (note.trim()) {
+      t.comments = [{ id: crypto.randomUUID().slice(0, 8), text: note.trim(), at: Date.now() }, ...(t.comments ?? [])];
+      setNote("");
+    }
+    if (dirty(t, item)) onSave(t);
+  };
+  /** Komentarze zapisują się od razu (razem z resztą zmian w oknie). */
+  const setComments = (comments: WorkComment[]) => {
+    setD({ ...d, comments });
+    const t = { ...d, title: d.title.trim() || item.title, comments };
     if (dirty(t, item)) onSave(t);
   };
   const save = () => {
@@ -195,6 +209,8 @@ export function WorkItemSheet(props: Props) {
               </button>
             </section>
           )}
+
+          <Comments comments={d.comments ?? []} draft={note} onDraft={setNote} onChange={setComments} />
         </div>
 
         <aside className="ji-side">

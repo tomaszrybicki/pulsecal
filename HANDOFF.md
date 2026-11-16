@@ -116,6 +116,14 @@ Previous sessions: first Cursor IDE (built the MVP), then Claude in a chat sessi
 code audit and rewrote the data and sync layer, then stopped at the owner's request.
 **Start by reading `CLAUDE.md`.**
 
+## v0.24.0: comments on tasks and epics
+- `WorkItem.comments?: WorkComment[]` (`{id, text, at, edited?}`), stored newest first; in the item backup JSON
+  (`ItemData.comments`, validated in `parseItem`). The whole item JSON lives in one event description, so very
+  long comment threads make that description big (not tested against Google's size limit).
+- `Comments.tsx` in `WorkItemSheet`: comment changes save immediately (`setComments` → `onSave`); the unsent
+  draft is kept in the sheet (`note`) and `commit()` turns it into a comment on close/navigation.
+- `CommentCount` (exported from `TasksView`) on list rows and board cards; task search includes comments.
+
 ## v0.23.0: Jira-like tasks view, priority & custom fields
 - `TasksView` rewritten: `EpicPanel` (filter), toolbar (search, group, sort, hide done, "pola"), `ListView`
   (CSS-grid table, groups by epic/status/priority), `BoardView` (HTML5 drag & drop between status columns;

@@ -4053,3 +4053,86 @@ select.jr-status.big {
     scroll-snap-align: start;
   }
 }
+
+/* komentarze do zadań i epików */
+
+.ji-comments .cm-new textarea,
+.cm-item textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--ink-faint);
+  border-radius: 12px;
+  padding: 9px 11px;
+  background: var(--field);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  resize: vertical;
+}
+
+.cm-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.cm-actions .hint {
+  margin: 0 auto 0 0;
+  font-size: 0.72rem;
+}
+
+.cm-list {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cm-item {
+  border-left: 3px solid var(--ink-faint);
+  padding: 2px 0 2px 10px;
+}
+
+.cm-meta {
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+}
+
+.cm-text {
+  margin: 3px 0 2px;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.cm-links {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.74rem;
+  color: var(--ink-soft);
+}
+
+.cm-links .link-btn {
+  font-size: 0.74rem;
+}
+
+.cm-links .danger-link {
+  color: var(--danger-ink);
+}
+
+.jr-comments {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: 6px;
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+  flex: none;
+}

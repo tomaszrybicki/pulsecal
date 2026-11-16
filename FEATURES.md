@@ -210,8 +210,12 @@ Prosta „jira” do spraw osobistych — trzeci widok „zadania” (obok „ma
 - **Wpis w epiku:** pole „Epik” w szybkiej karcie, w pełnej edycji i w menu pod prawym przyciskiem, z opcją
   „+ nowy epik…” (nazwa wpisywana na miejscu, wpis od razu do niego trafia). Wpis w epiku ma w kalendarzu
   etykietę z nazwą epiku w kolorze epiku.
+- **Komentarze** (w szczegółach, pod opisem): „Dodaj komentarz…” (Ctrl+Enter albo „Dodaj”), lista od
+  najnowszego z datą, „edytuj” i „usuń” (z potwierdzeniem). Zapisują się od razu; niedodany komentarz dodaje się
+  przy zamknięciu okna. Na liście i na tablicy przy zadaniu jest dymek z liczbą komentarzy, a szukanie
+  przeszukuje też komentarze.
 - **Kopia w Google:** każde zadanie i epik to osobny ukryty wpis 2 stycznia 2000 („Pulsecal — epik: …”),
-  razem z priorytetem, terminem, szacunkiem i własnymi polami. Przypisanie wpisu do epiku też synchronizuje się
+  razem z priorytetem, terminem, szacunkiem, własnymi polami i komentarzami. Przypisanie wpisu do epiku też synchronizuje się
   z Google (w ukrytych danych wpisu).
 
 ### Synchronizacja z Google Calendar

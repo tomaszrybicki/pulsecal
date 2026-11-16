@@ -811,6 +811,7 @@ type ItemData = Pick<
   | "due"
   | "estimate"
   | "fields"
+  | "comments"
 >;
 
 function itemBody(i: WorkItem): Record<string, unknown> {
@@ -829,6 +830,7 @@ function itemBody(i: WorkItem): Record<string, unknown> {
     due: i.due ?? null,
     estimate: i.estimate ?? null,
     fields: i.fields ?? {},
+    comments: i.comments ?? [],
   };
   return {
     summary: `Pulsecal — ${i.kind === "epic" ? "epik" : "zadanie"}: ${i.title}`,
@@ -867,6 +869,11 @@ function parseItem(g: GEvent): ItemData | null {
       due: Number(d.due) || null,
       estimate: d.estimate === null || d.estimate === undefined || Number.isNaN(Number(d.estimate)) ? null : Number(d.estimate),
       fields: d.fields && typeof d.fields === "object" ? (d.fields as Record<string, string>) : {},
+      comments: Array.isArray(d.comments)
+        ? d.comments
+            .filter((c) => c && typeof c.text === "string" && typeof c.id === "string")
+            .map((c) => ({ id: c.id, text: c.text, at: Number(c.at) || 0, ...(c.edited ? { edited: Number(c.edited) } : {}) }))
+        : [],
     };
   } catch {
     return null;

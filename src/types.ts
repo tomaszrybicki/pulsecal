@@ -55,6 +55,16 @@ export interface WorkField {
 }
 
 /** Zadanie albo epik (work.ts). */
+/** Komentarz do zadania / epiku (najnowszy na górze listy). */
+export interface WorkComment {
+  id: string;
+  text: string;
+  /** Dodano (epoch ms). */
+  at: number;
+  /** Ostatnia edycja (epoch ms). */
+  edited?: number;
+}
+
 export interface WorkItem {
   id: string;
   kind: WorkKind;
@@ -80,6 +90,7 @@ export interface WorkItem {
   estimate?: number | null;
   /** Własne pola: id pola → wartość. */
   fields?: Record<string, string>;
+  comments?: WorkComment[];
 }
 
 export type SyncState = "off" | "idle" | "syncing" | "expired" | "offline" | "error";

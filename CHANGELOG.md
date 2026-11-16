@@ -3,6 +3,16 @@
 Każda wersja to jeden commit `vX.Y.Z: …` (treść commita = wpis z tego pliku) i tag `vX.Y.Z`.
 Najnowsze na górze. Opis funkcji aplikacji jest w [FEATURES.md](FEATURES.md).
 
+## [0.24.0] – 2026-11-16: komentarze do zadań i epików
+
+- **Komentarze do zadań i epików:** w szczegółach, pod opisem, sekcja „komentarze” jak w Jirze — pole
+  „Dodaj komentarz…” (Ctrl+Enter albo „Dodaj”), lista od najnowszego z datą, „edytuj” (z dopiskiem
+  „edytowano”) i „usuń” (z potwierdzeniem). Komentarz zapisuje się od razu; wpisany, a niedodany komentarz
+  dodaje się przy zamknięciu okna, żeby nie przepadł.
+- **Licznik komentarzy** (dymek z liczbą) przy zadaniu na liście i na karcie na tablicy.
+- **Szukanie** w zadaniach przeszukuje też komentarze.
+- Komentarze są w kopii zadań w Google.
+
 ## [0.23.0] – 2026-11-16: zadania jak w Jirze, priorytet i własne pola
 
 - **Zadania w układzie Jiry:** po lewej panel epików z postępem (kliknięcie filtruje), u góry pasek z szukaniem,

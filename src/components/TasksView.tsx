@@ -88,6 +88,7 @@ export function TasksView({ tree, now, onOpen, onCreate, onPatch, onOpenEvent, o
         !q ||
         i.title.toLocaleLowerCase("pl").includes(q) ||
         i.description.toLocaleLowerCase("pl").includes(q) ||
+        (i.comments ?? []).some((c) => c.text.toLocaleLowerCase("pl").includes(q)) ||
         itemKey(i).toLowerCase().includes(q),
     )
     .sort((a, b) => {
@@ -502,6 +503,7 @@ function ListView({
                           ≡
                         </span>
                       )}
+                      <CommentCount item={t} />
                     </button>
                     {groupBy !== "epic" && (
                       <span className="c-epic">
@@ -626,6 +628,7 @@ function BoardView({
                       <span className={`jr-due${isOverdue(t, now) ? " overdue" : ""}`}>{formatDayShort(new Date(t.due))}</span>
                     ) : null}
                     <span className="jr-card-right">
+                      <CommentCount item={t} />
                       {t.estimate != null && <span className="jr-est">{t.estimate}</span>}
                       <PriorityIcon p={priorityOf(t)} />
                     </span>
@@ -750,5 +753,25 @@ export function InlineCreate({
         }}
       />
     </form>
+  );
+}
+
+/** Dymek z liczbą komentarzy (nic, gdy ich brak). */
+export function CommentCount({ item }: { item: WorkItem }) {
+  const n = item.comments?.length ?? 0;
+  if (!n) return null;
+  return (
+    <span className="jr-comments" title={`Komentarze: ${n}`}>
+      <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden>
+        <path
+          d="M3 2.5h10a1.5 1.5 0 0 1 1.5 1.5v6a1.5 1.5 0 0 1-1.5 1.5H7l-3.5 3v-3H3A1.5 1.5 0 0 1 1.5 10V4A1.5 1.5 0 0 1 3 2.5z"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.4"
+          strokeLinejoin="round"
+        />
+      </svg>
+      {n}
+    </span>
   );
 }
