@@ -43,6 +43,16 @@ export interface DraftEvent {
 
 export type WorkKind = "epic" | "task";
 export type WorkStatus = "todo" | "doing" | "done";
+export type Priority = "highest" | "high" | "medium" | "low" | "lowest";
+
+/** Własne pole zadań (definicja; wartości w WorkItem.fields). */
+export interface WorkField {
+  id: string;
+  name: string;
+  type: "text" | "number" | "select";
+  /** Tylko dla „select”. */
+  options: string[];
+}
 
 /** Zadanie albo epik (work.ts). */
 export interface WorkItem {
@@ -61,6 +71,15 @@ export interface WorkItem {
   pending: 0 | 1;
   /** 1 = kopia jest już w Google. */
   remote?: 0 | 1;
+  /** Numer do klucza „PC-12”. */
+  num?: number;
+  priority?: Priority;
+  /** Termin: północ lokalna (epoch ms). */
+  due?: number | null;
+  /** Szacunek (punkty / godziny — jak kto liczy). */
+  estimate?: number | null;
+  /** Własne pola: id pola → wartość. */
+  fields?: Record<string, string>;
 }
 
 export type SyncState = "off" | "idle" | "syncing" | "expired" | "offline" | "error";

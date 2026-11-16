@@ -4,6 +4,7 @@ import type { CalEvent } from "../types";
 import { SheetFrame } from "./SheetFrame";
 import { ColorSwatches } from "./ColorSwatches";
 import { TagInput } from "./TagInput";
+import { EpicPicker } from "./EpicPicker";
 
 type Props = {
   event: CalEvent;
@@ -14,12 +15,13 @@ type Props = {
   onPatch: (patch: Partial<Pick<CalEvent, "color" | "tags" | "epicId">>) => void;
   /** Epiki do wyboru (work.ts). */
   epics?: { id: string; label: string }[];
+  onCreateEpic?: (name: string) => string;
   onDelete: () => void;
   onEdit: () => void;
 };
 
 /** Menu pod prawym przyciskiem myszy na wpisie: kolor, tagi, edycja, usuń — bez wchodzenia w edycję. */
-export function EventMenu({ event, anchor, knownTags, onClose, onPatch, onDelete, onEdit, epics = [] }: Props) {
+export function EventMenu({ event, anchor, knownTags, onClose, onPatch, onDelete, onEdit, epics = [], onCreateEpic }: Props) {
   const [color, setColor] = useState(event.color);
   const [tags, setTags] = useState(event.tags ?? []);
   const [epicId, setEpicId] = useState(event.epicId ?? "");
@@ -52,23 +54,17 @@ export function EventMenu({ event, anchor, knownTags, onClose, onPatch, onDelete
           onPatch({ tags: t });
         }}
       />
-      {epics.length > 0 && (
-        <select
+      {onCreateEpic && (
+        <EpicPicker
           className="em-epic"
-          aria-label="Epik"
-          value={epicId}
-          onChange={(e) => {
-            setEpicId(e.target.value);
-            onPatch({ epicId: e.target.value || undefined });
+          value={epicId || undefined}
+          epics={epics}
+          onCreateEpic={onCreateEpic}
+          onChange={(id) => {
+            setEpicId(id ?? "");
+            onPatch({ epicId: id });
           }}
-        >
-          <option value="">— bez epiku —</option>
-          {epics.map((o) => (
-            <option key={o.id} value={o.id}>
-              {o.label}
-            </option>
-          ))}
-        </select>
+        />
       )}
       <div className="row-actions">
         <button type="button" className="danger" onClick={onDelete}>

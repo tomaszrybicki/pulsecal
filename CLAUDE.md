@@ -66,9 +66,11 @@ src/
     SheetFrame.tsx        shared window shell: bottom sheet / popover at the cursor (desktop) / top palette
     SyncIndicator.tsx, Toast.tsx, sheetMotion.ts
     SettingsSheet.tsx     Client ID, calendar, polling interval
-    TasksView.tsx         "zadania" view: epic/task tree, status pills, progress, quick add
-    WorkItemSheet.tsx     task/epic details (status, parent epic, big description, epic contents)
+    TasksView.tsx         "zadania" view, Jira-like: epic panel, list (grouped table) / board (drag between statuses)
+    WorkItemSheet.tsx     Jira-like issue details: title, description, epic contents | status + fields panel
+    WorkFieldsSheet.tsx   custom fields (text / number / select), definitions in settings backup
     EpicTag.tsx           EpicContext + epic label on calendar events
+    EpicPicker.tsx        epic select for events with "+ nowy epik…" (QuickCard, EventSheet, EventMenu)
 public/                   icons, favicon
 ```
 

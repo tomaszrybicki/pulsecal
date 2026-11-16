@@ -5,6 +5,7 @@ import type { Anchor } from "../hooks/useAnchoredPlacement";
 import { SheetFrame } from "./SheetFrame";
 import { ColorSwatches } from "./ColorSwatches";
 import { TagInput } from "./TagInput";
+import { EpicPicker } from "./EpicPicker";
 
 type Props = {
   draft: DraftEvent;
@@ -19,6 +20,8 @@ type Props = {
   moves?: number;
   /** Punkt kliknięcia na komputerze → karta wyskakuje przy kursorze. */
   anchor?: Anchor | null;
+  epics?: { id: string; label: string }[];
+  onCreateEpic?: (name: string) => string;
 };
 
 /**
@@ -26,7 +29,19 @@ type Props = {
  * Nowy wpis → kursor od razu w tytule. Istniejący → tytuł to pole edycji (zmiana nazwy jednym tapnięciem).
  * Miejsce na przyszłe szybkie akcje: wiersz `.quick-actions`.
  */
-export function QuickCard({ draft, onChange, onSave, onDismiss, onMore, onDelete, knownTags, anchor = null, moves }: Props) {
+export function QuickCard({
+  draft,
+  onChange,
+  onSave,
+  onDismiss,
+  onMore,
+  onDelete,
+  knownTags,
+  anchor = null,
+  moves,
+  epics = [],
+  onCreateEpic,
+}: Props) {
   const isNew = !draft.id;
   const input = useRef<HTMLInputElement>(null);
 
@@ -70,6 +85,15 @@ export function QuickCard({ draft, onChange, onSave, onDismiss, onMore, onDelete
         </div>
         <TagInput value={draft.tags} known={knownTags} maxSuggestions={6} onChange={(tags) => onChange({ ...draft, tags })} />
         <ColorSwatches small value={draft.color} onChange={(color) => onChange({ ...draft, color })} />
+        {onCreateEpic && (
+          <EpicPicker
+            className="quick-epic"
+            value={draft.epicId}
+            epics={epics}
+            onCreateEpic={onCreateEpic}
+            onChange={(epicId) => onChange({ ...draft, epicId })}
+          />
+        )}
         <div className="row-actions quick-actions">
           {onDelete && (
             <button type="button" className="danger" onClick={onDelete}>

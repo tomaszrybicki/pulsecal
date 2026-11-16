@@ -187,24 +187,32 @@ logowanie Google bez własnego serwera (Google Identity Services).
 
 ### Zadania i epiki
 
-Prosta „jira” do spraw osobistych — trzeci widok „zadania” (obok „mapa” i „miesiąc”).
+Prosta „jira” do spraw osobistych — trzeci widok „zadania” (obok „mapa” i „miesiąc”), w układzie jak w Jirze.
 
 - **Epik** to większa sprawa (np. „remont kuchni”). W epiku mogą być zadania, mniejsze epiki i wpisy z kalendarza.
-- **Dodawanie:** pole u góry — nazwa i Enter (albo „+ zadanie”) dodaje zadanie, „+ epik” dodaje epik.
-  W rozwiniętym epiku „+ dodaj” dodaje do niego.
-- **Status:** do zrobienia → w toku → zrobione. Kliknięcie w pastylkę statusu przestawia na następny.
-  U góry liczniki i „ukryj zrobione”.
-- **Postęp epiku:** pasek i „zrobione/wszystkie”, razem z pod-epikami. Liczą się zadania (zrobione) i wpisy
-  z kalendarza w epiku (odbyte = już się skończyły).
-- **Szczegóły** (kliknięcie nazwy): nazwa, rodzaj (zadanie / epik), status, epik nadrzędny (przenoszenie),
-  duże pole opisu. W epiku też jego zawartość, wpisy z kalendarza i „+ zaplanuj w kalendarzu” (nowy wpis
-  od razu w tym epiku). Zamknięcie zapisuje zmiany.
+  Każde zadanie i epik ma klucz jak w Jirze: PC-1, PC-2…
+- **Panel epików** (po lewej): drzewo epików z paskiem postępu. Kliknięcie filtruje widok do epiku (z jego
+  pod-epikami), „⋯” otwiera szczegóły, „+ epik” dodaje nowy. Na telefonie zamiast panelu jest lista wyboru.
+- **Lista:** tabela z kolumnami typ, klucz, podsumowanie, epik, priorytet, termin, szacunek, status.
+  Grupowanie: po epiku (domyślnie; nagłówek grupy z kluczem, statusem i postępem epiku, a pod zadaniami wpisy
+  z kalendarza w tym epiku), po statusie, po priorytecie albo bez grup. Sortowanie: kolejność, priorytet, termin.
+  Szukanie (nazwa, opis, klucz) i „ukryj zrobione”. Status zmienia się od razu z listy.
+- **Tablica:** kolumny do zrobienia / w toku / zrobione z kartami (nazwa, epik, klucz, termin, szacunek,
+  priorytet). Przeciągnięcie karty do innej kolumny zmienia status. „+ utwórz” w każdej kolumnie i grupie.
+- **Szczegóły** (kliknięcie nazwy), jak zgłoszenie w Jirze: po lewej nazwa, duży opis i (w epiku) zawartość,
+  wpisy z kalendarza, „+ utwórz” i „+ zaplanuj w kalendarzu”; po prawej status i panel „szczegóły”: rodzaj,
+  priorytet (od najwyższego do najniższego), termin (po terminie na czerwono), szacunek, epik nadrzędny,
+  własne pola, daty utworzenia i zmiany. Zamknięcie zapisuje zmiany.
+- **Własne pola** („pola” w pasku albo w szczegółach): tekst, liczba albo lista wyboru (np. „kontekst: dom,
+  praca”). Pokazują się w szczegółach każdego zadania; definicje są w kopii ustawień w Google.
+- **Postęp epiku:** zadania zrobione + wpisy z kalendarza już odbyte, razem z pod-epikami.
 - **Usuwanie:** zawartość epiku przechodzi piętro wyżej, wpisy z kalendarza zostają (bez epiku). Z „Cofnij”.
-- **Wpis w epiku:** pole „Epik” w edycji wpisu i w menu pod prawym przyciskiem. Wpis w epiku ma w kalendarzu
-  (miesiąc, mapa, przegląd dnia) etykietę z nazwą epiku w kolorze epiku.
+- **Wpis w epiku:** pole „Epik” w szybkiej karcie, w pełnej edycji i w menu pod prawym przyciskiem, z opcją
+  „+ nowy epik…” (nazwa wpisywana na miejscu, wpis od razu do niego trafia). Wpis w epiku ma w kalendarzu
+  etykietę z nazwą epiku w kolorze epiku.
 - **Kopia w Google:** każde zadanie i epik to osobny ukryty wpis 2 stycznia 2000 („Pulsecal — epik: …”),
-  więc zadania wracają na nowym urządzeniu po połączeniu z Google. Przypisanie wpisu do epiku też
-  synchronizuje się z Google (w ukrytych danych wpisu).
+  razem z priorytetem, terminem, szacunkiem i własnymi polami. Przypisanie wpisu do epiku też synchronizuje się
+  z Google (w ukrytych danych wpisu).
 
 ### Synchronizacja z Google Calendar
 

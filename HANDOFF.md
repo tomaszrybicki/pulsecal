@@ -116,6 +116,17 @@ Previous sessions: first Cursor IDE (built the MVP), then Claude in a chat sessi
 code audit and rewrote the data and sync layer, then stopped at the owner's request.
 **Start by reading `CLAUDE.md`.**
 
+## v0.23.0: Jira-like tasks view, priority & custom fields
+- `TasksView` rewritten: `EpicPanel` (filter), toolbar (search, group, sort, hide done, "pola"), `ListView`
+  (CSS-grid table, groups by epic/status/priority), `BoardView` (HTML5 drag & drop between status columns;
+  touch has no drag — status is changed in details). View prefs in localStorage (`pulsecal:jira-*`).
+- `WorkItem`: `num` (key `PC-N`, `nextNum` + `lastNum` ref against duplicates; old items numbered once by an
+  effect in App), `priority`, `due` (local midnight), `estimate`, `fields` (custom values). All in the item backup.
+- Custom field definitions: `work.ts` `getWorkFields/setWorkFields` (`pulsecal:work-fields`), settings backup
+  `workFields`.
+- `patchItem(id, patch)` in App chains writes and reads the current DB row (fast clicks don't lose updates).
+- Old `.wk-row`/`.tasks-*` CSS from v0.22 is now unused (left in `index.css`).
+
 ## v0.22.0: tasks and epics („zadania”)
 - New view `tasks` (`TasksView`), details `WorkItemSheet`, model in `work.ts`, Dexie v4: `items` table +
   `epicId` index on events. Events get `epicId` (EventSheet field, EventMenu select, label via `EpicTag`).

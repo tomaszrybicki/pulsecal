@@ -7,6 +7,7 @@ import type { Anchor } from "../hooks/useAnchoredPlacement";
 import { SheetFrame } from "./SheetFrame";
 import { ColorSwatches } from "./ColorSwatches";
 import { TagInput } from "./TagInput";
+import { EpicPicker } from "./EpicPicker";
 
 type Props = {
   draft: DraftEvent;
@@ -24,11 +25,25 @@ type Props = {
   anchor?: Anchor | null;
   /** Epiki do wyboru (work.ts). */
   epics?: { id: string; label: string }[];
+  /** Nowy epik z poziomu wpisu → jego ID. */
+  onCreateEpic?: (name: string) => string;
 };
 
 const NATIVE_DATE = prefersNativeDate();
 
-export function EventSheet({ draft, onChange, onClose, onDismiss, onSave, onDelete, knownTags, anchor = null, moves, epics = [] }: Props) {
+export function EventSheet({
+  draft,
+  onChange,
+  onClose,
+  onDismiss,
+  onSave,
+  onDelete,
+  knownTags,
+  anchor = null,
+  moves,
+  epics = [],
+  onCreateEpic,
+}: Props) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onDismiss();
@@ -162,21 +177,16 @@ export function EventSheet({ draft, onChange, onClose, onDismiss, onSave, onDele
           Tagi
           <TagInput value={draft.tags} known={knownTags} onChange={(tags) => onChange({ ...draft, tags })} />
         </div>
-        {(epics.length > 0 || draft.epicId) && (
-          <label className="field">
+        {onCreateEpic && (
+          <div className="field">
             Epik
-            <select
-              value={draft.epicId ?? ""}
-              onChange={(e) => onChange({ ...draft, epicId: e.target.value || undefined })}
-            >
-              <option value="">— bez epiku —</option>
-              {epics.map((o) => (
-                <option key={o.id} value={o.id}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
-          </label>
+            <EpicPicker
+              value={draft.epicId}
+              epics={epics}
+              onCreateEpic={onCreateEpic}
+              onChange={(epicId) => onChange({ ...draft, epicId })}
+            />
+          </div>
         )}
         <label className="field">
           Notatka

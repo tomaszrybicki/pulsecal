@@ -4,6 +4,8 @@
  * Nigdy nie zapisujemy tokenu Google ani Client ID.
  */
 import { getTagRules, withDefaultRules, type TagRule } from "./tagRules";
+import type { WorkField } from "./types";
+import { getWorkFields, setWorkFields } from "./work";
 import { getMoveThreshold, setMoveThreshold } from "./moves";
 import { getPaintTags, getTagColors, reloadPaintTags, reloadTagColors } from "./tags";
 
@@ -20,6 +22,8 @@ export type AppSettings = {
   paintTags?: string[];
   /** Po ilu przeniesieniach proponować rozbicie wpisu. */
   moveThreshold?: number;
+  /** Własne pola zadań (definicje). */
+  workFields?: WorkField[];
   /** 2 = reguły zawierają już domyślną „!” (starsze kopie jej nie mają). */
   rulesV?: number;
 };
@@ -64,6 +68,7 @@ export function collectSettings(): AppSettings {
     paintTags: getPaintTags(),
     moveThreshold: getMoveThreshold(),
     rulesV: 2,
+    workFields: getWorkFields(),
   };
 }
 
@@ -112,6 +117,7 @@ export function applySettings(b: SettingsBackup): void {
   localStorage.setItem(K.paint, JSON.stringify(s.paintTags ?? []));
   reloadPaintTags();
   if (s.moveThreshold) setMoveThreshold(s.moveThreshold);
+  if (Array.isArray(s.workFields)) setWorkFields(s.workFields);
   const json = settingsJson(collectSettings());
   localStorage.setItem(SEEN, json);
   localStorage.setItem(BACKED, json);

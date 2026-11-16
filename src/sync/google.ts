@@ -797,7 +797,20 @@ const ITEM_NOTE =
 
 type ItemData = Pick<
   WorkItem,
-  "id" | "kind" | "title" | "description" | "status" | "parentId" | "order" | "createdAt" | "updatedAt"
+  | "id"
+  | "kind"
+  | "title"
+  | "description"
+  | "status"
+  | "parentId"
+  | "order"
+  | "createdAt"
+  | "updatedAt"
+  | "num"
+  | "priority"
+  | "due"
+  | "estimate"
+  | "fields"
 >;
 
 function itemBody(i: WorkItem): Record<string, unknown> {
@@ -811,6 +824,11 @@ function itemBody(i: WorkItem): Record<string, unknown> {
     order: i.order,
     createdAt: i.createdAt,
     updatedAt: i.updatedAt,
+    num: i.num,
+    priority: i.priority,
+    due: i.due ?? null,
+    estimate: i.estimate ?? null,
+    fields: i.fields ?? {},
   };
   return {
     summary: `Pulsecal — ${i.kind === "epic" ? "epik" : "zadanie"}: ${i.title}`,
@@ -842,6 +860,13 @@ function parseItem(g: GEvent): ItemData | null {
       order: Number(d.order) || 0,
       createdAt: Number(d.createdAt) || 0,
       updatedAt: Number(d.updatedAt) || 0,
+      num: Number(d.num) || undefined,
+      priority: ["highest", "high", "medium", "low", "lowest"].includes(String(d.priority))
+        ? d.priority
+        : "medium",
+      due: Number(d.due) || null,
+      estimate: d.estimate === null || d.estimate === undefined || Number.isNaN(Number(d.estimate)) ? null : Number(d.estimate),
+      fields: d.fields && typeof d.fields === "object" ? (d.fields as Record<string, string>) : {},
     };
   } catch {
     return null;

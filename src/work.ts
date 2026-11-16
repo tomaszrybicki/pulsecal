@@ -4,7 +4,7 @@
  * Lokalnie tabela `items` (Dexie), kopia w Google jako ukryte wpisy 2.01.2000 (sync/google.ts).
  */
 import { db, newEventId } from "./db";
-import type { CalEvent, WorkItem, WorkKind, WorkStatus } from "./types";
+import type { CalEvent, Priority, WorkField, WorkItem, WorkKind, WorkStatus } from "./types";
 
 export const STATUSES: WorkStatus[] = ["todo", "doing", "done"];
 
@@ -20,9 +20,41 @@ export function nextStatus(s: WorkStatus): WorkStatus {
   return STATUSES[(STATUSES.indexOf(s) + 1) % STATUSES.length];
 }
 
-export function newItem(kind: WorkKind, title: string, parentId = ""): WorkItem {
+export const PRIORITIES: Priority[] = ["highest", "high", "medium", "low", "lowest"];
+
+export const PRIORITY_LABEL: Record<Priority, string> = {
+  highest: "najwyższy",
+  high: "wysoki",
+  medium: "średni",
+  low: "niski",
+  lowest: "najniższy",
+};
+
+export const PRIORITY_ICON: Record<Priority, string> = {
+  highest: "⇈",
+  high: "↑",
+  medium: "=",
+  low: "↓",
+  lowest: "⇊",
+};
+
+export const priorityOf = (i: WorkItem): Priority => i.priority ?? "medium";
+
+/** Klucz jak w Jira: „PC-12”. */
+export const KEY_PREFIX = "PC";
+export const itemKey = (i: WorkItem): string => (i.num ? `${KEY_PREFIX}-${i.num}` : "");
+
+export function nextNum(items: Iterable<WorkItem>): number {
+  let max = 0;
+  for (const i of items) max = Math.max(max, i.num ?? 0);
+  return max + 1;
+}
+
+export function newItem(kind: WorkKind, title: string, parentId = "", num?: number): WorkItem {
   const now = Date.now();
   return {
+    num,
+    priority: "medium",
     id: newEventId(),
     kind,
     title: title.trim(),
@@ -150,4 +182,37 @@ export function epicOptions(tree: Tree, exclude?: Set<string>): { id: string; la
     .filter((i) => i.kind === "epic" && !exclude?.has(i.id))
     .map((i) => ({ id: i.id, label: epicPath(i.id, tree.byId) }))
     .sort((a, b) => a.label.localeCompare(b.label, "pl"));
+}
+
+/* ── własne pola ── */
+
+const FIELDS_KEY = "pulsecal:work-fields";
+
+export function getWorkFields(): WorkField[] {
+  try {
+    const v = JSON.parse(localStorage.getItem(FIELDS_KEY) || "[]") as unknown;
+    if (!Array.isArray(v)) return [];
+    return v
+      .filter((f): f is WorkField => f && typeof f.id === "string" && typeof f.name === "string")
+      .map((f) => ({
+        id: f.id,
+        name: f.name,
+        type: f.type === "number" || f.type === "select" ? f.type : "text",
+        options: Array.isArray(f.options) ? f.options.filter((o) => typeof o === "string") : [],
+      }));
+  } catch {
+    return [];
+  }
+}
+
+export function setWorkFields(fields: WorkField[]): void {
+  localStorage.setItem(FIELDS_KEY, JSON.stringify(fields));
+}
+
+/** Termin minął (i zadanie nie jest zrobione). */
+export function isOverdue(i: WorkItem, now: number): boolean {
+  if (!i.due || i.status === "done") return false;
+  const end = new Date(i.due);
+  end.setDate(end.getDate() + 1);
+  return end.getTime() <= now;
 }

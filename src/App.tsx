@@ -15,6 +15,7 @@ import { Sidebar } from "./components/Sidebar";
 import { TagRulesSheet } from "./components/TagRulesSheet";
 import { TasksView } from "./components/TasksView";
 import { WorkItemSheet } from "./components/WorkItemSheet";
+import { WorkFieldsSheet } from "./components/WorkFieldsSheet";
 import { SyncIndicator } from "./components/SyncIndicator";
 import { Toast } from "./components/Toast";
 import { PALETTE } from "./colors";
@@ -44,8 +45,18 @@ import {
   setTagColor,
   tagKey,
 } from "./tags";
-import type { CalEvent, DraftEvent, ViewMode, WorkItem, WorkKind } from "./types";
-import { buildTree, epicColor, epicOptions, epicPath, newItem, nextStatus, saveItem } from "./work";
+import type { CalEvent, DraftEvent, ViewMode, WorkField, WorkItem, WorkKind } from "./types";
+import {
+  buildTree,
+  epicColor,
+  epicOptions,
+  epicPath,
+  getWorkFields,
+  newItem,
+  nextNum,
+  saveItem,
+  setWorkFields,
+} from "./work";
 import {
   MINUTE,
   addDays,
@@ -170,6 +181,25 @@ export function App() {
   }, [tree]);
   const epicChoices = useMemo(() => epicOptions(tree), [tree]);
   const [workOpen, setWorkOpen] = useState<string | null>(null);
+  const [workFields, setWorkFieldsState] = useState<WorkField[]>(getWorkFields);
+  const [fieldsOpen, setFieldsOpen] = useState(false);
+  const changeWorkFields = (next: WorkField[]) => {
+    setWorkFields(next);
+    setWorkFieldsState(next);
+  };
+
+  // zadania sprzed kluczy „PC-N” (v0.22.0) dostają numery raz, w kolejności utworzenia
+  const numbering = useRef(false);
+  useEffect(() => {
+    const missing = items.filter((i) => !i.num).sort((a, b) => a.createdAt - b.createdAt);
+    if (!missing.length || numbering.current) return;
+    numbering.current = true;
+    let n = nextNum(items);
+    void (async () => {
+      for (const i of missing) await saveItem({ ...i, num: n++ });
+      numbering.current = false;
+    })();
+  }, [items]);
   const workItem = workOpen ? tree.byId.get(workOpen) : undefined;
 
   const sync = useGoogleSync({ from: range.from, to: range.to, pollSec });
@@ -200,6 +230,7 @@ export function App() {
     theme.pref,
     tagColorsVer,
     moveThreshold,
+    workFields,
   ]);
 
   useEffect(() => {
@@ -381,18 +412,28 @@ export function App() {
 
   /* ── zadania i epiki: akcje ── */
 
-  const createItem = (kind: WorkKind, title: string, parentId: string) => {
-    if (!title.trim()) return;
-    void saveItem(newItem(kind, title, parentId));
+  /** Nowe zadanie/epik (z kolejnym numerem PC-N); `patch` = np. status kolumny tablicy. Zwraca ID. */
+  // ostatnio nadany numer — dwa szybkie „Enter” nie mogą dostać tego samego klucza, zanim baza się odświeży
+  const lastNum = useRef(0);
+  const createItem = (kind: WorkKind, title: string, parentId: string, patch: Partial<WorkItem> = {}): string => {
+    const num = Math.max(nextNum(tree.byId.values()), lastNum.current + 1);
+    lastNum.current = num;
+    const item = { ...newItem(kind, title, parentId, num), ...patch };
+    if (!item.title) return "";
+    void saveItem(item);
     sync.requestSync(3000);
+    return item.id;
   };
 
-  // kliknięcia w status po kolei, każde od aktualnego stanu w bazie (szybkie dwa kliknięcia = dwa kroki)
-  const statusChain = useRef(Promise.resolve());
-  const cycleStatus = (id: string) => {
-    statusChain.current = statusChain.current.then(async () => {
+  /** Z poziomu wpisu w kalendarzu: nowy epik na najwyższym poziomie. */
+  const createEpicNamed = (name: string) => createItem("epic", name, "");
+
+  // szybkie zmiany z listy / tablicy po kolei, każda od aktualnego stanu w bazie
+  const patchChain = useRef(Promise.resolve());
+  const patchItem = (id: string, patch: Partial<WorkItem>) => {
+    patchChain.current = patchChain.current.then(async () => {
       const cur = await db.items.get(id);
-      if (cur && !cur.deleted) await saveItem({ ...cur, status: nextStatus(cur.status) });
+      if (cur && !cur.deleted) await saveItem({ ...cur, ...patch });
     });
     sync.requestSync(3000);
   };
@@ -606,7 +647,7 @@ export function App() {
   const goTodayRef = useRef(goToday);
   goTodayRef.current = goToday;
   const sheetOpen =
-    Boolean(draft) || settingsOpen || searchOpen || rulesOpen || Boolean(dayPanel) || Boolean(menu) || Boolean(workOpen);
+    Boolean(draft) || settingsOpen || searchOpen || rulesOpen || Boolean(dayPanel) || Boolean(menu) || Boolean(workOpen) || fieldsOpen;
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (sheetOpen || e.ctrlKey || e.metaKey || e.altKey) return;
@@ -854,8 +895,9 @@ export function App() {
               now={now.getTime()}
               onOpen={(i) => setWorkOpen(i.id)}
               onCreate={createItem}
-              onStatus={(i) => cycleStatus(i.id)}
+              onPatch={(i, p) => patchItem(i.id, p)}
               onOpenEvent={openEventFromWork}
+              onEditFields={() => setFieldsOpen(true)}
             />
           ) : view === "map" ? (
             <CalendarMap
@@ -923,6 +965,8 @@ export function App() {
             knownTags={knownTags}
             anchor={anchor}
             moves={events.find((e) => e.id === draft.id)?.moves}
+            epics={epicChoices}
+            onCreateEpic={createEpicNamed}
             onChange={setDraft}
             onSave={() => void saveDraft()}
             onDismiss={dismissDraft}
@@ -938,6 +982,7 @@ export function App() {
             anchor={anchor}
             moves={events.find((e) => e.id === draft.id)?.moves}
             epics={epicChoices}
+            onCreateEpic={createEpicNamed}
             onChange={setDraft}
             onClose={() => setDraft(null)}
             onDismiss={dismissDraft}
@@ -973,6 +1018,7 @@ export function App() {
             anchor={menu.anchor}
             knownTags={knownTags}
             epics={epicChoices}
+            onCreateEpic={createEpicNamed}
             onClose={() => setMenu(null)}
             onPatch={(p) => void patchEvent(menu.e.id, p)}
             onDelete={() => {
@@ -1003,7 +1049,16 @@ export function App() {
             onOpenItem={(i) => setWorkOpen(i.id)}
             onOpenEvent={openEventFromWork}
             onPlan={planInEpic}
+            fields={workFields}
+            onCreate={createItem}
+            onEditFields={() => setFieldsOpen(true)}
           />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {fieldsOpen && (
+          <WorkFieldsSheet key="fields" fields={workFields} onChange={changeWorkFields} onClose={() => setFieldsOpen(false)} />
         )}
       </AnimatePresence>
 

@@ -208,3 +208,9 @@ export function chunkWeeks(days: Date[]): Date[][] {
   for (let i = 0; i < days.length; i += 7) out.push(days.slice(i, i + 7));
   return out;
 }
+
+/** „17 lis” (z rokiem, gdy inny niż bieżący). */
+export function formatDayShort(d: Date): string {
+  const y = d.getFullYear() !== new Date().getFullYear() ? ` ${d.getFullYear()}` : "";
+  return `${d.getDate()} ${MONTH_SHORT[d.getMonth()]}${y}`;
+}

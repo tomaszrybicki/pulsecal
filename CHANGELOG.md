@@ -3,6 +3,21 @@
 Każda wersja to jeden commit `vX.Y.Z: …` (treść commita = wpis z tego pliku) i tag `vX.Y.Z`.
 Najnowsze na górze. Opis funkcji aplikacji jest w [FEATURES.md](FEATURES.md).
 
+## [0.23.0] – 2026-11-16: zadania jak w Jirze, priorytet i własne pola
+
+- **Zadania w układzie Jiry:** po lewej panel epików z postępem (kliknięcie filtruje), u góry pasek z szukaniem,
+  grupowaniem, sortowaniem i „ukryj zrobione”, a w środku do wyboru:
+  - **lista:** tabela (typ, klucz, podsumowanie, epik, priorytet, termin, szacunek, status), grupowana po epiku,
+    statusie albo priorytecie, ze zmianą statusu prosto z wiersza;
+  - **tablica:** kolumny do zrobienia / w toku / zrobione; przeciągnięcie karty zmienia status.
+- **Klucze jak w Jirze:** PC-1, PC-2… (istniejące zadania dostały numery same).
+- **Nowe pola:** priorytet (od najwyższego do najniższego), termin (po terminie na czerwono), szacunek.
+- **Własne pola:** „pola” — tekst, liczba albo lista wyboru (np. „kontekst: dom, praca”), w szczegółach każdego
+  zadania.
+- **Szczegóły jak zgłoszenie w Jirze:** po lewej nazwa, opis i zawartość epiku, po prawej status i panel pól.
+- **Epik z poziomu wpisu:** pole „Epik” jest teraz też w szybkiej karcie, a w każdym miejscu można wybrać
+  „+ nowy epik…” i od razu utworzyć epik dla wpisu.
+
 ## [0.22.0] – 2026-11-16: zadania i epiki
 
 - **Zadania i epiki:** nowy widok „zadania” (obok „mapa” i „miesiąc”), prosta „jira” do spraw osobistych.
