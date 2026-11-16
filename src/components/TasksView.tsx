@@ -30,6 +30,8 @@ type Props = {
   onCreate: (kind: WorkKind, title: string, parentId: string, patch?: Partial<WorkItem>) => void;
   onPatch: (item: WorkItem, patch: Partial<WorkItem>) => void;
   onOpenEvent: (e: CalEvent) => void;
+  /** „zaplanuj” przy zadaniu bez wpisu: nowy wpis z nazwą zadania, powiązany z nim. */
+  onPlanTask: (task: WorkItem) => void;
   onEditFields: () => void;
 };
 
@@ -67,7 +69,7 @@ const PRIORITY_RANK: Record<Priority, number> = { highest: 0, high: 1, medium: 2
  * Widok „zadania” w układzie Jiry: po lewej panel epików (filtr), u góry pasek narzędzi,
  * w środku lista (pogrupowana) albo tablica ze statusami. Szczegóły zadania — WorkItemSheet.
  */
-export function TasksView({ tree, now, onOpen, onCreate, onPatch, onOpenEvent, onEditFields }: Props) {
+export function TasksView({ tree, now, onOpen, onCreate, onPatch, onOpenEvent, onPlanTask, onEditFields }: Props) {
   const [tab, setTab] = usePref<Tab>("pulsecal:jira-tab", "list");
   const [groupBy, setGroupBy] = usePref<GroupBy>("pulsecal:jira-group", "epic");
   const [sortBy, setSortBy] = usePref<SortBy>("pulsecal:jira-sort", "rank");
@@ -214,6 +216,7 @@ export function TasksView({ tree, now, onOpen, onCreate, onPatch, onOpenEvent, o
             onOpen={onOpen}
             onCreate={onCreate}
             onPatch={onPatch}
+            onPlanTask={onPlanTask}
             onOpenEvent={onOpenEvent}
           />
         ) : (
@@ -369,6 +372,7 @@ function ListView({
   onCreate,
   onPatch,
   onOpenEvent,
+  onPlanTask,
 }: {
   tree: Tree;
   now: number;
@@ -382,6 +386,7 @@ function ListView({
   onCreate: Props["onCreate"];
   onPatch: Props["onPatch"];
   onOpenEvent: Props["onOpenEvent"];
+  onPlanTask: Props["onPlanTask"];
 }) {
   const [folded, setFolded] = useState<ReadonlySet<string>>(new Set());
   const fold = (k: string) =>
@@ -524,7 +529,7 @@ function ListView({
                         )}
                         <CommentCount item={t} />
                       </button>
-                      <WhenChip task={t} tree={tree} now={now} onOpenEvent={onOpenEvent} />
+                      <WhenChip task={t} tree={tree} now={now} onOpenEvent={onOpenEvent} onPlan={onPlanTask} />
                     </span>
                     {groupBy !== "epic" && (
                       <span className="c-epic">
@@ -801,14 +806,24 @@ function WhenChip({
   tree,
   now,
   onOpenEvent,
+  onPlan,
 }: {
   task: WorkItem;
   tree: Tree;
   now: number;
   onOpenEvent?: (e: CalEvent) => void;
+  /** Zadanie bez wpisu: widoczny przycisk „zaplanuj”. */
+  onPlan?: (task: WorkItem) => void;
 }) {
   const e = taskWhen(task.id, tree, now);
-  if (!e) return null;
+  if (!e) {
+    if (!onPlan || task.status === "done") return null;
+    return (
+      <button type="button" className="jr-when jr-plan" title="Nowy wpis w kalendarzu z nazwą tego zadania" onClick={() => onPlan(task)}>
+        + zaplanuj
+      </button>
+    );
+  }
   const label = `${task.seriesId ? "↻" : "◷"} ${whenShort(e, now)}${e.estimate ? ` · ${estimateLabel(e.estimate)}` : ""}`;
   const past = e.end < now;
   if (!onOpenEvent) return <span className={`jr-when static${past ? " past" : ""}`}>{label}</span>;

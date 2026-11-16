@@ -3,6 +3,14 @@
 Każda wersja to jeden commit `vX.Y.Z: …` (treść commita = wpis z tego pliku) i tag `vX.Y.Z`.
 Najnowsze na górze. Opis funkcji aplikacji jest w [FEATURES.md](FEATURES.md).
 
+## [0.35.0] – 2026-11-16: P od teraz, zaplanuj przy zadaniach
+
+- **„P” nigdy w przeszłość:** kliknięcie „P” na wpisie z przeszłości (np. wczorajszym albo dzisiejszym, który już
+  minął) szuka najbliższego wolnego terminu od teraz: dziś po obecnej godzinie, a gdy nie ma miejsca — w kolejnych
+  dniach. Wcześniej wpis mógł trafić na wolną godzinę w swoim dawnym dniu.
+- **„+ zaplanuj” przy każdym zadaniu bez terminu:** na liście zadań i w zawartości epiku. Otwiera nowy wpis
+  z nazwą zadania, w jego epiku, powiązany z zadaniem. Zadania z terminem pokazują zamiast tego datę ◷.
+
 ## [0.34.0] – 2026-11-16: mapa w stylu Google Calendar, wczoraj i dziś
 
 - **Mapa przebudowana w stylu Google Calendar:**

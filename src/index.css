@@ -5521,3 +5521,32 @@ button.jr-when:hover {
     transition: none;
   }
 }
+
+/* „+ zaplanuj” przy zadaniu bez wpisu (lista zadań, zawartość epiku) */
+.jr-plan {
+  color: var(--ink);
+  background: color-mix(in srgb, #ff6b4a 14%, var(--field));
+}
+
+button.jr-plan:hover {
+  background: color-mix(in srgb, #ff6b4a 26%, var(--field));
+}
+
+.wk-mini li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.wk-mini li > .wk-open {
+  flex: 1;
+  min-width: 0;
+}
+
+.wk-mini li > .jr-plan {
+  width: auto;
+  flex: none;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.74rem;
+}

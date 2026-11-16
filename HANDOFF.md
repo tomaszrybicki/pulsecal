@@ -116,6 +116,11 @@ Previous sessions: first Cursor IDE (built the MVP), then Claude in a chat sessi
 code audit and rewrote the data and sync layer, then stopped at the owner's request.
 **Start by reading `CLAUDE.md`.**
 
+## v0.35.0: P never in the past, "zaplanuj" on task rows
+- `planEvent` / `planDraft` search from `max(event day, today)`; `findFreeSlot` already starts at now for today.
+- `WhenChip onPlan` → „+ zaplanuj” for unscheduled, not-done tasks (TasksView list, prop `onPlanTask`);
+  WorkItemSheet epic contents rows have the same button (`.wk-open` + `.jr-plan`).
+
 ## v0.34.0: map restyled like Google Calendar
 - Flat grid: `.map-scroll` overrides at the end of index.css (`--map-line`, `--today-tint`, `--past-tint`);
   heads / band / hours share a 1px `border-left` per day, heads and band are opaque (no bleed-through).

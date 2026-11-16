@@ -234,6 +234,8 @@ logowanie Google bez własnego serwera (Google Identity Services).
 - „P” jest też w przeglądzie dnia, przy każdym wpisie obok „>” i „>>”.
 - Włączone „P” widać jako zieloną plakietkę na wpisie. Ponowne kliknięcie wyłącza (godzina zostaje).
   Synchronizuje się z Google.
+- „P” nigdy nie planuje w przeszłość: dla wpisu z minionego dnia (albo dzisiejszego, który już minął) szuka
+  od teraz — dziś po obecnej godzinie, potem w kolejnych dniach.
 - Kliknięcie „P”, gdy tego dnia nie ma wolnego miejsca: wpis trafia na następny dzień (albo dalszy, do 2 tygodni
   naprzód), z powiadomieniem i „Cofnij”. Liczy się jako przeniesienie. Przy przeciąganiu na pełny dzień wpis
   zostaje tam, gdzie go upuszczono (z powiadomieniem).
@@ -245,7 +247,8 @@ Prosta „jira” do spraw osobistych — trzeci widok „zadania” (obok „ma
 - **Epik** to większa sprawa (np. „remont kuchni”). W epiku są **zadania** i mniejsze epiki. Każde zadanie i epik
   ma klucz jak w Jirze: PC-1, PC-2… Przycisk „?” w widoku zadań krótko to wyjaśnia.
 - **Zadanie może mieć termin w kalendarzu** (◷ przy nazwie; klik otwiera wpis), ale nie musi:
-  - „+ zaplanuj” w szczegółach zadania tworzy wpis z nazwą zadania, w jego epiku, powiązany z zadaniem;
+  - „+ zaplanuj” przy każdym zadaniu bez terminu (lista zadań, zawartość epiku, szczegóły zadania) tworzy wpis
+    z nazwą zadania, w jego epiku, powiązany z zadaniem;
   - dowolny wpis dodany do epiku (pole „Epik”) pojawia się w epiku jako zadanie z datą — ze statusem,
     priorytetem, komentarzami i własnymi polami (istniejące wpisy w epikach dostały zadania same);
   - status zadania z wpisem jest automatyczny: „zrobione”, gdy wpis się skończy. Zmieniony ręcznie zostaje

@@ -505,7 +505,8 @@ export function App() {
       sync.notify(`„${cur.title}”: „P” wyłączone, godzina zostaje`);
       return;
     }
-    const day = new Date(cur.start);
+    // wpis z przeszłości: szukamy od dziś (i nie wcześniej niż teraz), nie w jego dawnym dniu
+    const day = new Date(Math.max(startOfDay(new Date(cur.start)).getTime(), startOfDay(new Date()).getTime()));
     // brak wolnego miejsca w godzinach produktywności tego dnia → następny dzień (i dalej)
     const slot = await slotFrom(day, cur);
     if (!slot) return noSlot(day);
@@ -538,7 +539,7 @@ export function App() {
       setDraft((cur) => (cur === d ? { ...d, autoSlot: false } : cur));
       return;
     }
-    const day = new Date(d.start);
+    const day = new Date(Math.max(startOfDay(new Date(d.start)).getTime(), startOfDay(new Date()).getTime()));
     const slot = await slotFrom(day, { id: d.id ?? "", allDay: d.allDay, start: d.start, end: d.end });
     if (!slot) return noSlot(day);
     if (!sameDay(day, new Date(slot.start))) {
@@ -1170,6 +1171,7 @@ export function App() {
               onCreate={createItem}
               onPatch={(i, p) => patchItem(i.id, p)}
               onOpenEvent={openEventFromWork}
+              onPlanTask={planTask}
               onEditFields={() => setFieldsOpen(true)}
             />
           ) : view === "map" ? (

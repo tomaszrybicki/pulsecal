@@ -186,6 +186,7 @@ export function WorkItemSheet(props: Props) {
                   <li key={c.id}>
                     <button
                       type="button"
+                      className="wk-open"
                       onClick={() => {
                         commit();
                         onOpenItem(c);
@@ -200,6 +201,19 @@ export function WorkItemSheet(props: Props) {
                       <PriorityIcon p={priorityOf(c)} />
                       <span className={`jr-lozenge st-${c.status}`}>{STATUS_LABEL[c.status]}</span>
                     </button>
+                    {c.kind === "task" && !taskWhen(c.id, tree, now) && c.status !== "done" && (
+                      <button
+                        type="button"
+                        className="jr-when jr-plan"
+                        title="Nowy wpis w kalendarzu z nazwą tego zadania"
+                        onClick={() => {
+                          commit();
+                          onPlanTask(c);
+                        }}
+                      >
+                        + zaplanuj
+                      </button>
+                    )}
                   </li>
                 ))}
               </ul>
