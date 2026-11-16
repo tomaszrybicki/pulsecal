@@ -33,13 +33,15 @@ type Props = {
   onDelete: (e: CalEvent) => void;
   /** Prawy przycisk myszy na wpisie → menu (kolor, tagi, usuń). */
   onContext?: (e: CalEvent, pt: { x: number; y: number }) => void;
+  /** „P”: najbliższa wolna godzina w godzinach produktywności (albo wyłączenie). */
+  onPlan?: (e: CalEvent) => void;
 };
 
 /**
  * Przegląd dnia: wszystkie wpisy dnia (zamiast „+N więcej" → mapa) z szybkim przekładaniem:
  * „>" na następny dzień, „>>" o tydzień, „> wszystkie niepilne" — wszystko bez tagu „pilne"/„ważne".
  */
-export function DayPanel({ day, events, anchor, onClose, onOpen, onShift, onDelete, onContext }: Props) {
+export function DayPanel({ day, events, anchor, onClose, onOpen, onShift, onDelete, onContext, onPlan }: Props) {
   const list = [...events].sort(dayOrder);
   const notUrgent = list.filter((e) => !isUrgent(e));
 
@@ -52,7 +54,7 @@ export function DayPanel({ day, events, anchor, onClose, onOpen, onShift, onDele
   }, [onClose]);
 
   return (
-    <SheetFrame anchor={anchor} className="day-panel" backdropClass="light" label="Przegląd dnia" onDismiss={onClose}>
+    <SheetFrame anchor={anchor} className="day-panel" backdropClass="light" label="Przegląd dnia" onDismiss={onClose} closable>
       <header className="dp-head">
         <h2>{longDateLabel(day)}</h2>
         <span className="hint">{list.length ? `${list.length} wpis${list.length === 1 ? "" : list.length < 5 ? "y" : "ów"}` : "brak wpisów"}</span>
@@ -95,6 +97,18 @@ export function DayPanel({ day, events, anchor, onClose, onOpen, onShift, onDele
                 </span>
               </span>
             </button>
+            {onPlan && (
+              <button
+                type="button"
+                className={`dp-shift dp-plan${e.autoSlot ? " on" : ""}`}
+                aria-pressed={Boolean(e.autoSlot)}
+                title={e.autoSlot ? "P: w godzinach produktywności (kliknij, żeby wyłączyć)" : "P: najbliższa wolna godzina w godzinach produktywności"}
+                aria-label={`${e.title}: P`}
+                onClick={() => onPlan(e)}
+              >
+                P
+              </button>
+            )}
             <button type="button" className="dp-shift" title="Na następny dzień" aria-label={`${e.title}: na następny dzień`} onClick={() => onShift([e], 1)}>
               &gt;
             </button>

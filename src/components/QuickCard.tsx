@@ -62,6 +62,7 @@ export function QuickCard({
       backdropClass="light"
       label={isNew ? "Nowy wpis" : "Wpis"}
       onDismiss={onDismiss}
+      closable
     >
         <input
           ref={input}

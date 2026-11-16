@@ -116,6 +116,15 @@ Previous sessions: first Cursor IDE (built the MVP), then Claude in a chat sessi
 code audit and rewrote the data and sync layer, then stopped at the owner's request.
 **Start by reading `CLAUDE.md`.**
 
+## v0.28.0: P on every day move, × on popups, clickable epic label
+- `moveEvent` re-slots P events on any day change (map drags too); `saveDraft` re-slots when the date of an
+  existing P event changed in the editor. `useOptimisticMove` now drops its override as soon as the DB row
+  differs from the pre-drop position (re-slotted events used to show the dropped time for up to 4 s).
+- `SheetFrame closable` → `.sheet-x` (calls `onDismiss`): QuickCard, EventSheet, EventMenu, DayPanel.
+- DayPanel `onPlan` (P button per row, always shown). `EpicOpenContext` (App `openEpicFromTag`) makes
+  `EpicTag` a clickable span (stops pointerdown so it doesn't start a drag).
+- Move threshold was already "every N" (`crossesThreshold`); only the settings wording changed.
+
 ## v0.27.0: settings sheet, "P" auto-slot, epic combobox, filled month chips
 - `prefs.ts` + `PrefsSheet` (sidebar „ustawienia”): productive hours (`pulsecal:prod-from/to`, minutes),
   P slot length (`pulsecal:slot-min`), move threshold (moved out of `SettingsSheet`), always-full editor

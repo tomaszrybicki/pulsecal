@@ -156,6 +156,8 @@ logowanie Google bez własnego serwera (Google Identity Services).
 
 - **Telefon:** tapnięcie wpisu otwiera szybką kartę. Tytuł jest tam polem do edycji, więc zmiana nazwy
   to jedno tapnięcie. Do tego przełącznik „cały dzień”, kolory oraz przyciski Usuń, Więcej i Zapisz.
+- **×** w prawym górnym rogu zamyka szybką kartę, pełną edycję, menu pod prawym przyciskiem i przegląd dnia
+  (jak klik obok: zmiany w istniejącym wpisie się zapisują).
 - **Komputer:** kliknięcie wpisu od razu otwiera pełną edycję, bez klikania „Więcej”. Na telefonie też można
   tak ustawić („ustawienia” → „Zawsze pełna edycja po kliknięciu wpisu”).
   Okno (pełna edycja i karta nowego wpisu) **wyskakuje obok kursora**: z prawej, a przy prawej krawędzi
@@ -192,7 +194,7 @@ logowanie Google bez własnego serwera (Google Identity Services).
 
 - Wpis liczy, ile razy trafił na inny dzień (przeciągnięcie, „>”/„>>”, zmiana daty, przeniesienie w Google).
   Widać to jako „↷N” na wpisie, w przeglądzie dnia i w edycji. Zmiana godziny w tym samym dniu się nie liczy.
-- Po każdych N przeniesieniach („ustawienia”, domyślnie 10) pojawia się krótka informacja i od razu otwiera
+- Co N przeniesień (przy 10., 20., 30.…; „ustawienia”, domyślnie 10) pojawia się krótka informacja i od razu otwiera
   się pełna edycja wpisu z kursorem w tytule i podpowiedzią „Zacznij od prostego kroku — wpisz go jako tytuł”.
 
 ### Przycisk „P” — godziny produktywności
@@ -201,8 +203,9 @@ logowanie Google bez własnego serwera (Google Identity Services).
   w najbliższe wolne miejsce tego dnia w godzinach produktywności (ustawienia, domyślnie 9:00–17:00). Dziś —
   nie wcześniej niż teraz. Wolne = bez nachodzenia na inne wpisy z godziną (całodniowe nie przeszkadzają).
 - Wpis całodniowy dostaje ustawioną długość (domyślnie 15 min), wpis z godziną zachowuje swoją.
-- Wpis z „P” przeniesiony na inny dzień w widoku miesiąca albo „>”/„>>” znowu dostaje najbliższą wolną godzinę
-  (przeciągnięcie w mapie na konkretną godzinę jej nie zmienia).
+- Wpis z „P” przeniesiony na inny dzień (przeciągnięcie w mapie albo w miesiącu, „>”/„>>”, zmiana daty w edycji)
+  zawsze dostaje najbliższą wolną godzinę w nowym dniu, nawet gdy upuszczono go na konkretną godzinę.
+- „P” jest też w przeglądzie dnia, przy każdym wpisie obok „>” i „>>”.
 - Włączone „P” widać jako zieloną plakietkę na wpisie. Ponowne kliknięcie wyłącza (godzina zostaje).
   Brak miejsca → powiadomienie, wpis się nie zmienia. Synchronizuje się z Google.
 
@@ -230,7 +233,8 @@ Prosta „jira” do spraw osobistych — trzeci widok „zadania” (obok „ma
 - **Usuwanie:** zawartość epiku przechodzi piętro wyżej, wpisy z kalendarza zostają (bez epiku). Z „Cofnij”.
 - **Wpis w epiku:** pole „Epik” w szybkiej karcie, w pełnej edycji i w menu pod prawym przyciskiem. Kliknij,
   wpisz nazwę i Enter: lista pod polem podpowiada istniejące epiki, a nowa nazwa od razu tworzy epik i przypisuje
-  do niego wpis. „×” usuwa wpis z epiku. Wpis w epiku ma w kalendarzu
+  do niego wpis. „×” usuwa wpis z epiku. Kliknięcie etykiety epiku na wpisie w kalendarzu otwiera szczegóły
+  epiku. Wpis w epiku ma w kalendarzu
   etykietę z nazwą epiku w kolorze epiku.
 - **Komentarze** (w szczegółach, pod opisem): „Dodaj komentarz…” (Ctrl+Enter albo „Dodaj”), lista od
   najnowszego z datą, „edytuj” i „usuń” (z potwierdzeniem). Zapisują się od razu; niedodany komentarz dodaje się

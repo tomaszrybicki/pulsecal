@@ -83,7 +83,7 @@ export function EventSheet({
   };
 
   return (
-    <SheetFrame anchor={anchor} label="Wpis" onDismiss={onDismiss}>
+    <SheetFrame anchor={anchor} label="Wpis" onDismiss={onDismiss} closable>
         <h2>{draft.id ? "Wpis" : "Nowy blob"}</h2>
         {stuck ? (
           <p className="stuck-hint">

@@ -93,7 +93,7 @@ export function PrefsSheet(p: Props) {
       <section className="prefs-group">
         <h3>przenoszenie</h3>
         <label className="field">
-          Po tylu przeniesieniach na inny dzień podpowiedz pierwszy krok
+          Co tyle przeniesień na inny dzień podpowiedz pierwszy krok
           <input
             type="number"
             inputMode="numeric"
@@ -108,7 +108,10 @@ export function PrefsSheet(p: Props) {
             }}
           />
         </label>
-        <p className="hint">Wtedy otwiera się pełna edycja wpisu z kursorem w tytule.</p>
+        <p className="hint">
+          Przy {moveDraft || "N"}., {Number(moveDraft) * 2 || "2N"}., {Number(moveDraft) * 3 || "3N"}.… przeniesieniu
+          otwiera się pełna edycja wpisu z kursorem w tytule.
+        </p>
       </section>
 
       <section className="prefs-group">

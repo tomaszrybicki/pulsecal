@@ -35,7 +35,7 @@ export function EventMenu({ event, anchor, knownTags, onClose, onPatch, onDelete
   }, [onClose]);
 
   return (
-    <SheetFrame anchor={anchor} className="event-menu" backdropClass="light" label="Menu wpisu" onDismiss={onClose}>
+    <SheetFrame anchor={anchor} className="event-menu" backdropClass="light" label="Menu wpisu" onDismiss={onClose} closable>
       <div className="em-title">{event.title || "(bez tytułu)"}</div>
       <ColorSwatches
         small

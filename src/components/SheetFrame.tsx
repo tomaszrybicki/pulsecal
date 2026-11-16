@@ -13,6 +13,8 @@ type Props = {
   children: ReactNode;
   /** palette = okno u góry ekranu (wyszukiwanie) — klawiatura telefonu nie zasłania wyników. */
   variant?: "sheet" | "palette";
+  /** × w prawym górnym rogu (działa jak klik obok / Esc). */
+  closable?: boolean;
 };
 
 /** Otwarte okienka przy kursorze, od najstarszego — kliknięcie w okienko „wyżej” nie zamyka niższych. */
@@ -24,7 +26,16 @@ const floatingStack: HTMLElement[] = [];
  * - Okienko przy kursorze (komputer): tło nie łapie kliknięć — klik obok zamyka okienko i od razu działa
  *   na tym, co kliknięto (inny wpis, slot, dzień), bez drugiego kliknięcia.
  */
-export function SheetFrame({ anchor, className = "", backdropClass = "", label, onDismiss, children, variant = "sheet" }: Props) {
+export function SheetFrame({
+  anchor,
+  className = "",
+  backdropClass = "",
+  label,
+  onDismiss,
+  children,
+  variant = "sheet",
+  closable = false,
+}: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const pos = useAnchoredPlacement(anchor, ref);
   const floating = anchor !== null;
@@ -70,7 +81,7 @@ export function SheetFrame({ anchor, className = "", backdropClass = "", label, 
     >
       <motion.div
         ref={ref}
-        className={`sheet ${className}${floating ? " floating" : ""}`}
+        className={`sheet ${className}${floating ? " floating" : ""}${closable ? " has-x" : ""}`}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-label={label}
@@ -87,6 +98,11 @@ export function SheetFrame({ anchor, className = "", backdropClass = "", label, 
         {...(floating ? popMotion : palette ? paletteMotion : sheetMotion)}
       >
         {!palette && <div className="grab" />}
+        {closable && (
+          <button type="button" className="sheet-x" aria-label="Zamknij" title="Zamknij (Esc)" onClick={onDismiss}>
+            ×
+          </button>
+        )}
         {children}
       </motion.div>
     </motion.div>

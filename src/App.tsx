@@ -2,7 +2,7 @@ import { AnimatePresence } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CalendarMap } from "./components/CalendarMap";
 import { DayPanel } from "./components/DayPanel";
-import { EpicContext, type EpicInfo } from "./components/EpicTag";
+import { EpicContext, EpicOpenContext, type EpicInfo } from "./components/EpicTag";
 import { EventMenu } from "./components/EventMenu";
 import { EventSheet } from "./components/EventSheet";
 import type { WeekSelection } from "./components/MiniCalendar";
@@ -320,18 +320,25 @@ export function App() {
     const saving = draft;
     if (!draft?.title.trim()) return;
     const existing = draft.id ? await db.events.get(draft.id) : undefined;
+    // wpis z „P” przeniesiony w edycji na inny dzień → najbliższa wolna godzina w nowym dniu
+    let when = { start: draft.start, end: draft.end, allDay: draft.allDay };
+    if (existing?.autoSlot && draft.autoSlot && !sameDay(new Date(existing.start), new Date(draft.start))) {
+      const slot = await slotOn(new Date(draft.start), { id: existing.id, ...when });
+      if (slot) when = { ...slot, allDay: false };
+      else noSlot(new Date(draft.start));
+    }
     const event: CalEvent = {
       ...existing,
       id: existing?.id ?? newEventId(),
       title: draft.title.trim(),
       notes: draft.notes,
-      start: draft.start,
-      end: Math.max(draft.end, draft.start + 15 * MINUTE),
-      allDay: draft.allDay,
+      start: when.start,
+      end: Math.max(when.end, when.start + 15 * MINUTE),
+      allDay: when.allDay,
       color: draft.color,
       epicId: draft.epicId || undefined,
       autoSlot: draft.autoSlot || undefined,
-      moves: existing ? countMove(existing, draft.start) : 0,
+      moves: existing ? countMove(existing, when.start) : 0,
       tags: applyTagRules(
         draft.title.trim(),
         draft.notes,
@@ -382,6 +389,13 @@ export function App() {
     setEditor("full");
     setDraft(draftFromEvent(e));
     setStuckId(e.id);
+  };
+
+  /** Kliknięcie etykiety epiku na wpisie → szczegóły epiku. */
+  const openEpicFromTag = (id: string) => {
+    setMenu(null);
+    setDayPanel(null);
+    setWorkOpen(id);
   };
 
   /* ── „P”: najbliższa wolna godzina w godzinach produktywności ── */
@@ -440,14 +454,14 @@ export function App() {
   };
 
   /**
-   * Przeniesienie wpisu. `reslot` (przeniesienie samego dnia: widok miesiąca, „>”) — wpis z „P” dostaje
-   * najbliższą wolną godzinę w nowym dniu zamiast tej samej godziny.
+   * Przeniesienie wpisu (przeciągnięcie w mapie i w miesiącu). Wpis z „P” przeniesiony na inny dzień dostaje
+   * najbliższą wolną godzinę w nowym dniu — także gdy upuszczono go na konkretną godzinę.
    */
-  const moveEvent = async (e: CalEvent, start: number, end: number, reslot = false) => {
+  const moveEvent = async (e: CalEvent, start: number, end: number) => {
     const current = await db.events.get(e.id);
     if (!current) return;
     let next = { ...current, start, end, moves: countMove(current, start) };
-    if (reslot && current.autoSlot && !sameDay(new Date(current.start), new Date(start))) {
+    if (current.autoSlot && !sameDay(new Date(current.start), new Date(start))) {
       const slot = await slotOn(new Date(start), current);
       if (slot) next = { ...next, allDay: false, start: slot.start, end: slot.end };
       else noSlot(new Date(start));
@@ -894,6 +908,7 @@ export function App() {
 
   return (
     <EpicContext.Provider value={epicInfo}>
+    <EpicOpenContext.Provider value={openEpicFromTag}>
     <div className="app">
       <div className="ambient" aria-hidden>
         <div className="blob a" />
@@ -1065,7 +1080,7 @@ export function App() {
               onDayDetails={(d) => setDayPanel({ day: startOfDay(d), anchor: pointerAnchor() })}
               onAdd={(d) => openDraft(allDayDraft(d, newColor))}
               onEvent={(e) => openDraft(draftFromEvent(e), editorMode)}
-              onMove={(e, start, end) => void moveEvent(e, start, end, true)}
+              onMove={(e, start, end) => void moveEvent(e, start, end)}
               onStep={step}
               {...eventActions}
             />
@@ -1146,6 +1161,7 @@ export function App() {
             onShift={(list, days) => void shiftEvents(list, days)}
             onDelete={(e) => void deleteEvent(e.id)}
             onContext={eventActions.onContext}
+            onPlan={(e) => void planEvent(e)}
           />
         )}
       </AnimatePresence>
@@ -1282,6 +1298,7 @@ export function App() {
         )}
       </AnimatePresence>
     </div>
+    </EpicOpenContext.Provider>
     </EpicContext.Provider>
   );
 }

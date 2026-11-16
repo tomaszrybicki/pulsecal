@@ -4770,3 +4770,65 @@ select.jr-status.big {
 .warn-text {
   color: var(--danger-ink);
 }
+
+/* ── × w prawym górnym rogu okienek wpisu ── */
+
+.sheet.has-x {
+  position: relative;
+}
+
+.sheet.has-x.floating {
+  position: fixed;
+}
+
+.sheet-x {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink-soft);
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.sheet-x:hover {
+  background: var(--field);
+  color: var(--ink);
+}
+
+.has-x > h2,
+.has-x .quick-title,
+.has-x .em-title,
+.has-x .dp-head {
+  padding-right: 34px;
+}
+
+/* ── przegląd dnia: „P” ── */
+
+.dp-plan {
+  font-weight: 700;
+}
+
+.dp-plan.on {
+  background: #2f7d5b;
+  color: #fffaf2;
+}
+
+/* ── etykieta epiku na wpisie: klik → epik ── */
+
+.epic-tag.link {
+  cursor: pointer;
+}
+
+.epic-tag.link:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}

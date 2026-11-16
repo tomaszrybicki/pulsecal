@@ -3,6 +3,18 @@
 Każda wersja to jeden commit `vX.Y.Z: …` (treść commita = wpis z tego pliku) i tag `vX.Y.Z`.
 Najnowsze na górze. Opis funkcji aplikacji jest w [FEATURES.md](FEATURES.md).
 
+## [0.28.0] – 2026-11-16: P przy każdym przeniesieniu, × w okienkach, klikalny epik
+
+- **„P” przy każdym przeniesieniu:** wpis z „P” przeniesiony na inny dzień zawsze dostaje najbliższą wolną godzinę
+  w godzinach produktywności. Dotyczy też przeciągnięcia w mapie na konkretną godzinę i zmiany daty w edycji;
+  wcześniej działało tylko w widoku miesiąca i przy „>”/„>>”.
+- **Poprawka:** po upuszczeniu wpisu z „P” przez kilka sekund było widać starą godzinę. Teraz nowa pojawia się od razu.
+- **„P” w przeglądzie dnia:** przycisk przy każdym wpisie, obok „>” i „>>” (zielony, gdy włączony).
+- **× w prawym górnym rogu:** zamyka okienko wpisu po kliknięciu (szybka karta i pełna edycja; zmiany w istniejącym
+  wpisie zapisuje jak klik obok), menu pod prawym przyciskiem i przegląd dnia.
+- **Etykieta epiku na wpisie** w kalendarzu jest klikalna i otwiera szczegóły epiku.
+- **Ustawienia:** opis progu przeniesień mówi wprost, że podpowiedź pojawia się co N przeniesień (10., 20., 30.…).
+
 ## [0.27.0] – 2026-11-16: ustawienia, przycisk P, epik bez tarcia
 
 - **„ustawienia” na dole panelu bocznego:**
