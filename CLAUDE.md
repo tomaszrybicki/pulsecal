@@ -30,6 +30,10 @@ npm run build    # tsc --noEmit && vite build
 npm run preview
 ```
 There are no tests and no linter. "Done" means `npm run build` passes with no errors.
+**Test data (owner's request):** there is no button for it in the app. The Claude preview pane (the browser built
+into the IDE) must always have test data: it carries the dev flag `pulsecal:dev-autoseed`, so `devAutoSeed()`
+(main.tsx, dev only) re-adds missing seed data on load. If it is missing, open `http://localhost:5173/?seed=1`
+once in the preview (`?seed=0` turns it off and removes the data). Never seed the owner's own browser.
 **Keep usage down (owner's request):** for small changes you are confident about, `npm run build` is enough —
 skip browser testing or do one minimal check. Test in the browser only for bigger or risky changes
 (drag/gestures, sync, data migrations).
@@ -48,7 +52,7 @@ src/
   colors.ts               palette + mapping to Google colorId
   prefs.ts                productive hours, P slot length, always-full-editor pref, findFreeSlot()
   estimate.ts             time estimate (5 / 30 / 60 / 120 = "2h+") labels; EstimatePicker.tsx = quick buttons
-  devSeed.ts              dev-only test data (ids start with "5eed", pending 0); DevSeed.tsx in PrefsSheet
+  devSeed.ts              dev-only test data (ids start with "5eed", pending 0), auto-added via devAutoSeed()
   time.ts                 date helpers (Monday is the first day of the week, Polish labels)
   sync/google.ts          OAuth (GIS) + sync engine
   hooks/useLiveQuery.ts   Dexie liveQuery → React

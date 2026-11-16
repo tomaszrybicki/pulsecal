@@ -85,8 +85,6 @@ logowanie Google bez własnego serwera (Google Identity Services).
   (auto / jasny / ciemny). Tu będą dochodzić kolejne funkcje.
 - **Ustawienia:** godziny produktywności, długość wpisu z „P”, po ilu przeniesieniach podpowiedzieć pierwszy
   krok, „Zawsze pełna edycja po kliknięciu wpisu” (tylko to urządzenie) i przycisk „Google Calendar…”.
-  W trybie deweloperskim (`npm run dev`) jest tam też „dane testowe”: dodaj / wygeneruj od nowa / usuń
-  (tylko lokalnie, „Usuń” kasuje wyłącznie dane testowe).
 
 ### Tagi
 

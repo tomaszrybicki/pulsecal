@@ -1,5 +1,6 @@
 /**
- * Dane testowe (tylko tryb dev: „ustawienia” → „dane testowe”). Wpisy i zadania mają ID zaczynające się od
+ * Dane testowe (tylko tryb dev). Przeglądarka podglądu Claude w IDE ma je zawsze: wystarczy raz otworzyć
+ * http://localhost:5173/?seed=1 (flaga zostaje w tej przeglądarce), ?seed=0 wyłącza i usuwa dane testowe. Wpisy i zadania mają ID zaczynające się od
  * SEED, więc „Usuń dane testowe” kasuje dokładnie je i nic więcej. Zapisywane z pending = 0 — nie lecą do Google
  * (dopóki ich nie zmienisz). Daty liczone od dzisiaj.
  */
@@ -204,4 +205,26 @@ export async function seedTestData(): Promise<{ events: number; items: number }>
     await db.events.bulkPut(events);
   });
   return { events: events.length, items: items.length };
+}
+
+const AUTO_KEY = "pulsecal:dev-autoseed";
+
+/** Start aplikacji w trybie dev: ?seed=1 / ?seed=0 przełącza flagę; z flagą brakujące dane testowe są dodawane. */
+export async function devAutoSeed(): Promise<void> {
+  try {
+    const url = new URL(location.href);
+    const p = url.searchParams.get("seed");
+    if (p === "1") localStorage.setItem(AUTO_KEY, "1");
+    if (p === "0") {
+      localStorage.removeItem(AUTO_KEY);
+      await clearSeed();
+    }
+    if (p !== null) {
+      url.searchParams.delete("seed");
+      history.replaceState(null, "", url);
+    }
+    if (localStorage.getItem(AUTO_KEY) === "1" && !(await hasSeed())) await seedTestData();
+  } catch {
+    /* bez localStorage / IndexedDB — bez danych testowych */
+  }
 }

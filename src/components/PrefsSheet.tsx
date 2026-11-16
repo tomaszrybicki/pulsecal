@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { DEFAULT_MOVE_THRESHOLD } from "../moves";
 import { DEFAULT_SLOT_MIN, minutesLabel, type ProdHours } from "../prefs";
 import { SheetFrame } from "./SheetFrame";
-import { DevSeed } from "./DevSeed";
 
 type Props = {
   moveThreshold: number;
@@ -145,8 +144,6 @@ export function PrefsSheet(p: Props) {
           Z estymatą (5min / 30min / 1h / 2h+) nowego wpisu nie da się zapisać bez wybrania jednej z nich.
         </p>
       </section>
-
-      {import.meta.env.DEV && <DevSeed />}
 
       <div className="row-actions">
         <button type="button" className="ghost" onClick={p.onOpenSync}>

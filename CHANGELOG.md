@@ -3,6 +3,12 @@
 Każda wersja to jeden commit `vX.Y.Z: …` (treść commita = wpis z tego pliku) i tag `vX.Y.Z`.
 Najnowsze na górze. Opis funkcji aplikacji jest w [FEATURES.md](FEATURES.md).
 
+## [0.37.1] – 2026-11-16: dane testowe tylko w podglądzie Claude
+
+- **Bez przycisku „dane testowe”** w ustawieniach. Dane testowe są teraz zawsze dodawane w przeglądarce podglądu Claude
+  (wbudowanej w IDE), sama ich tam pilnuje przy każdym uruchomieniu. W twojej przeglądarce i w zbudowanej
+  aplikacji ich nie ma.
+
 ## [0.37.0] – 2026-11-16: zwarte tagi, usuwanie tagu, kółko w mapie
 
 - **Bez przycisku „nowy wpis”** w panelu bocznym. Nowy wpis dodasz przyciskiem „+” na dole, kliknięciem w kalendarz

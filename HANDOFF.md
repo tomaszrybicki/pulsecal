@@ -116,6 +116,11 @@ Previous sessions: first Cursor IDE (built the MVP), then Claude in a chat sessi
 code audit and rewrote the data and sync layer, then stopped at the owner's request.
 **Start by reading `CLAUDE.md`.**
 
+## v0.37.1: test data only in the Claude preview
+- `DevSeed` settings section removed. `main.tsx` (dev only, dynamic import → not in the prod bundle) calls
+  `devAutoSeed()`: `?seed=1` sets `pulsecal:dev-autoseed`, `?seed=0` clears it and removes seed data; with the
+  flag, missing seed data is added on every load. The preview pane already has the flag.
+
 ## v0.37.0: no "nowy wpis" button, compact tags, delete tag, map wheel fix
 - Sidebar: `side-actions` / `onCreate` removed. Tag row actions live in `.tag-actions` (absolute overlay on
   hover for fine pointers, in flow on touch); `.tag-painted` marks painted tags; `tag-del` (not for

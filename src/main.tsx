@@ -6,6 +6,9 @@ import "./index.css";
 
 registerSW({ immediate: true });
 
+// tylko `npm run dev`: przeglądarka podglądu Claude (w IDE) zawsze ma dane testowe (devSeed.ts, ?seed=1)
+if (import.meta.env.DEV) void import("./devSeed").then((m) => m.devAutoSeed());
+
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <App />
