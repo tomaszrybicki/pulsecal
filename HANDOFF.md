@@ -116,6 +116,13 @@ Previous sessions: first Cursor IDE (built the MVP), then Claude in a chat sessi
 code audit and rewrote the data and sync layer, then stopped at the owner's request.
 **Start by reading `CLAUDE.md`.**
 
+## v0.29.0: dev test data
+- `devSeed.ts`: `seedTestData()` (re-creates), `clearSeed()`, `hasSeed()`. Events and items get ids starting
+  with `SEED` = "5eed" (still 32 hex, valid Google ids) and `pending: 0`, so they stay local until edited.
+  Dates are relative to today. UI: `DevSeed` section in `PrefsSheet`, rendered only when `import.meta.env.DEV`
+  (tree-shaken out of the production bundle — checked).
+- Use it for browser checks instead of hand-made `test-*` rows.
+
 ## v0.28.0: P on every day move, × on popups, clickable epic label
 - `moveEvent` re-slots P events on any day change (map drags too); `saveDraft` re-slots when the date of an
   existing P event changed in the editor. `useOptimisticMove` now drops its override as soon as the DB row

@@ -46,6 +46,7 @@ src/
   work.ts                 epics/tasks: tree, progress, epic path/colour, saveItem (pending = 1)
   colors.ts               palette + mapping to Google colorId
   prefs.ts                productive hours, P slot length, always-full-editor pref, findFreeSlot()
+  devSeed.ts              dev-only test data (ids start with "5eed", pending 0); DevSeed.tsx in PrefsSheet
   time.ts                 date helpers (Monday is the first day of the week, Polish labels)
   sync/google.ts          OAuth (GIS) + sync engine
   hooks/useLiveQuery.ts   Dexie liveQuery → React

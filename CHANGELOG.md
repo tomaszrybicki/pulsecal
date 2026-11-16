@@ -3,6 +3,19 @@
 Każda wersja to jeden commit `vX.Y.Z: …` (treść commita = wpis z tego pliku) i tag `vX.Y.Z`.
 Najnowsze na górze. Opis funkcji aplikacji jest w [FEATURES.md](FEATURES.md).
 
+## [0.29.0] – 2026-11-16: dane testowe w trybie dev
+
+- **Dane testowe (tylko `npm run dev`):** w „ustawienia” → „dane testowe” są przyciski „Dodaj dane testowe” /
+  „Wygeneruj od nowa” i „Usuń dane testowe”. Dodają kilka tygodni wpisów wokół dziś:
+  - stand-upy, siłownia co drugi dzień, wizyty, spotkania;
+  - wyjazd i konferencja (kilkudniowe), urodziny;
+  - wpisy z „P” i z licznikiem przeniesień („Posprzątać piwnicę” ↷9: następne przeniesienie pokaże podpowiedź);
+  - dzień z wieloma wpisami;
+  - 3 przypięte epiki (jeden „śpi”, jeden prawie gotowy) z zadaniami, pod-epikiem, priorytetami, terminami
+    i komentarzami.
+- Dane testowe są tylko lokalne (nie idą do Google, dopóki ich nie zmienisz). „Usuń” kasuje wyłącznie je.
+  W zbudowanej aplikacji tej sekcji nie ma.
+
 ## [0.28.0] – 2026-11-16: P przy każdym przeniesieniu, × w okienkach, klikalny epik
 
 - **„P” przy każdym przeniesieniu:** wpis z „P” przeniesiony na inny dzień zawsze dostaje najbliższą wolną godzinę
