@@ -15,6 +15,8 @@ import {
   priorityOf,
   progressOf,
   subtreeIds,
+  taskWhen,
+  whenShort,
   type Progress,
   type Tree,
 } from "../work";
@@ -140,6 +142,7 @@ export function TasksView({ tree, now, onOpen, onCreate, onPatch, onOpenEvent, o
             <span className="jr-counts">
               {counts("todo")} do zrobienia · {counts("doing")} w toku · {counts("done")} zrobione
             </span>
+            <HelpButton />
           </div>
           <div className="jr-toolbar">
             <input
@@ -349,7 +352,6 @@ type Group = {
   status?: WorkStatus;
   priority?: Priority;
   items: WorkItem[];
-  events: CalEvent[];
 };
 
 function ListView({
@@ -399,26 +401,25 @@ function ListView({
             key: e.id,
             epic: e,
             items: tasks.filter((t) => parentOf(t) === e.id),
-            events: hasQuery ? [] : (tree.events.get(e.id) ?? []),
           });
         }
         walk(e.id);
       }
     };
     if (epicFilter !== NO_EPIC) walk("");
-    if (!scope) groups.push({ key: "", label: "bez epiku", items: tasks.filter((t) => !parentOf(t)), events: [] });
+    if (!scope) groups.push({ key: "", label: "bez epiku", items: tasks.filter((t) => !parentOf(t)) });
     // przy szukaniu chowamy puste grupy
     if (hasQuery) for (let i = groups.length - 1; i >= 0; i--) if (!groups[i].items.length) groups.splice(i, 1);
   } else if (groupBy === "status") {
     for (const s of STATUSES) {
-      groups.push({ key: s, status: s, label: STATUS_LABEL[s], items: tasks.filter((t) => t.status === s), events: [] });
+      groups.push({ key: s, status: s, label: STATUS_LABEL[s], items: tasks.filter((t) => t.status === s) });
     }
   } else if (groupBy === "priority") {
     for (const p of PRIORITIES) {
-      groups.push({ key: p, priority: p, items: tasks.filter((t) => priorityOf(t) === p), events: [] });
+      groups.push({ key: p, priority: p, items: tasks.filter((t) => priorityOf(t) === p) });
     }
   } else {
-    groups.push({ key: "all", items: tasks, events: [] });
+    groups.push({ key: "all", items: tasks });
   }
 
   // nowe zadanie poza grupą epiku trafia do wybranego w panelu epiku
@@ -428,8 +429,9 @@ function ListView({
     return (
       <div className="jr-empty">
         <p className="hint">
-          Epik to większa sprawa (np. „remont kuchni”), a w nim zadania, mniejsze epiki i wpisy z kalendarza. Zacznij od
-          „+ epik” po lewej albo dodaj zadanie poniżej. Wpis z kalendarza dodasz do epiku w jego oknie (pole „Epik”).
+          Epik to większa sprawa (np. „remont kuchni”), a w nim zadania i mniejsze epiki. Zadanie może mieć termin
+          w kalendarzu. Zacznij od „+ epik” po lewej albo dodaj zadanie poniżej. Wpis z kalendarza dodasz do epiku
+          w jego oknie (pole „Epik”) — w epiku pojawi się jako zadanie.
         </p>
         <InlineCreate parentId="" onCreate={onCreate} />
       </div>
@@ -509,15 +511,18 @@ function ListView({
                       <TypeIcon kind="task" />
                     </span>
                     <span className="c-key jr-key">{itemKey(t)}</span>
-                    <button type="button" className="c-sum jr-sum" onClick={() => onOpen(t)}>
-                      <span>{t.title || "(bez nazwy)"}</span>
-                      {t.description.trim() && (
-                        <span className="wk-has-desc" title="Ma opis">
-                          ≡
-                        </span>
-                      )}
-                      <CommentCount item={t} />
-                    </button>
+                    <span className="c-sum jr-sum-cell">
+                      <button type="button" className="jr-sum" onClick={() => onOpen(t)}>
+                        <span>{t.title || "(bez nazwy)"}</span>
+                        {t.description.trim() && (
+                          <span className="wk-has-desc" title="Ma opis">
+                            ≡
+                          </span>
+                        )}
+                        <CommentCount item={t} />
+                      </button>
+                      <WhenChip task={t} tree={tree} now={now} onOpenEvent={onOpenEvent} />
+                    </span>
                     {groupBy !== "epic" && (
                       <span className="c-epic">
                         <EpicLozenge tree={tree} id={parentOf(t)} />
@@ -534,21 +539,6 @@ function ListView({
                       <StatusSelect item={t} onPatch={onPatch} />
                     </span>
                   </div>
-                ))}
-                {g.events.map((e) => (
-                  <button
-                    key={e.id}
-                    type="button"
-                    className={`jr-row jr-ev${e.end < now ? " past" : ""}`}
-                    onClick={() => onOpenEvent(e)}
-                  >
-                    <span className="c-type" aria-hidden>
-                      ◷
-                    </span>
-                    <span className="c-key jr-key">wpis</span>
-                    <span className="c-sum">{e.title || "(bez tytułu)"}</span>
-                    <span className="c-when">{whenLabel(e)}</span>
-                  </button>
                 ))}
                 <InlineCreate
                   parentId={createParent}
@@ -634,6 +624,7 @@ function BoardView({
                 >
                   <div className="jr-card-title">{t.title || "(bez nazwy)"}</div>
                   {showEpic && <EpicLozenge tree={tree} id={t.parentId} />}
+                  <WhenChip task={t} tree={tree} now={now} />
                   <div className="jr-card-foot">
                     <TypeIcon kind="task" />
                     <span className="jr-key">{itemKey(t)}</span>
@@ -798,5 +789,85 @@ export function PinIcon() {
         fill="currentColor"
       />
     </svg>
+  );
+}
+
+/** ◷ kiedy jest wpis zadania w kalendarzu (seria: ↻ najbliższe wystąpienie). Z `onOpenEvent` — klikalne. */
+function WhenChip({
+  task,
+  tree,
+  now,
+  onOpenEvent,
+}: {
+  task: WorkItem;
+  tree: Tree;
+  now: number;
+  onOpenEvent?: (e: CalEvent) => void;
+}) {
+  const e = taskWhen(task.id, tree, now);
+  if (!e) return null;
+  const label = `${task.seriesId ? "↻" : "◷"} ${whenShort(e, now)}`;
+  const past = e.end < now;
+  if (!onOpenEvent) return <span className={`jr-when static${past ? " past" : ""}`}>{label}</span>;
+  return (
+    <button
+      type="button"
+      className={`jr-when${past ? " past" : ""}`}
+      title={`Wpis w kalendarzu: ${whenLabel(e)}`}
+      onClick={() => onOpenEvent(e)}
+    >
+      {label}
+    </button>
+  );
+}
+
+/** „?” w widoku zadań: krótko, jak działają epiki. */
+function HelpButton() {
+  const [open, setOpen] = useState(false);
+  return (
+    <span className="jr-help-wrap">
+      <button
+        type="button"
+        className={`jr-help-btn${open ? " on" : ""}`}
+        aria-expanded={open}
+        aria-label="Jak działają epiki"
+        title="Jak działają epiki"
+        onClick={() => setOpen((o) => !o)}
+      >
+        ?
+      </button>
+      {open && (
+        <div className="jr-help" role="note">
+          <button type="button" className="sheet-x" aria-label="Zamknij" onClick={() => setOpen(false)}>
+            ×
+          </button>
+          <h3>jak działają epiki</h3>
+          <ul>
+            <li>
+              <b>Epik</b> to większa sprawa. W środku są <b>zadania</b> i mniejsze epiki.
+            </li>
+            <li>
+              Zadanie <b>może</b> mieć termin w kalendarzu (◷), ale nie musi. „+ zaplanuj” w szczegółach zadania tworzy
+              powiązany wpis.
+            </li>
+            <li>
+              <b>Dowolny wpis</b> z kalendarza dodasz do epiku polem „Epik” we wpisie — w epiku pojawi się jako zadanie
+              z datą, ze statusem, priorytetem i komentarzami.
+            </li>
+            <li>
+              Status zadania z wpisem zmienia się <b>sam</b>: „zrobione”, gdy wpis się skończy. Zmienisz go ręcznie — wtedy
+              zostaje Twój.
+            </li>
+            <li>Wpis powtarzalny to jedno zadanie dla całej serii (↻), ze statusem ręcznym.</li>
+            <li>Postęp epiku = zrobione zadania (razem z pod-epikami).</li>
+            <li>
+              Usunięcie wpisu zostawia zadanie bez terminu. Usunięcie zadania zostawia wpis bez epiku. Wyjęcie wpisu z
+              epiku usuwa jego zadanie.
+            </li>
+            <li>Nazwa i epik zadania i jego wpisu zmieniają się razem.</li>
+          </ul>
+        </div>
+      )}
+    </span>
   );
 }

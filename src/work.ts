@@ -1,9 +1,10 @@
 /**
  * Zadania i epiki — prosta „jira” do spraw osobistych.
- * Epik grupuje zadania, inne epiki i wpisy z kalendarza (CalEvent.epicId).
+ * Epik grupuje zadania i inne epiki; zadanie może mieć wpis w kalendarzu (eventId / seriesId, links.ts).
  * Lokalnie tabela `items` (Dexie), kopia w Google jako ukryte wpisy 2.01.2000 (sync/google.ts).
  */
 import { db, newEventId } from "./db";
+import { addDays, formatClock, formatDayShort, sameDay } from "./time";
 import type { CalEvent, Priority, WorkField, WorkItem, WorkKind, WorkStatus } from "./types";
 
 export const STATUSES: WorkStatus[] = ["todo", "doing", "done"];
@@ -85,7 +86,7 @@ export type Tree = {
   byId: Map<string, WorkItem>;
   /** parentId ("" = najwyższy poziom) → dzieci, posortowane: epiki, potem zadania, w kolejności dodania. */
   children: Map<string, WorkItem[]>;
-  /** epicId → wpisy z kalendarza. */
+  /** ID zadania → powiązane wpisy z kalendarza (jeden wpis albo wystąpienia serii), po kolei. */
   events: Map<string, CalEvent[]>;
 };
 
@@ -102,12 +103,22 @@ export function buildTree(items: WorkItem[], events: CalEvent[]): Tree {
   for (const list of children.values()) {
     list.sort((a, b) => (a.kind === b.kind ? a.order - b.order : a.kind === "epic" ? -1 : 1));
   }
+  const byEvent = new Map<string, string>();
+  const bySeries = new Map<string, string>();
+  for (const i of items) {
+    if (i.eventId) byEvent.set(i.eventId, i.id);
+    if (i.seriesId) bySeries.set(i.seriesId, i.id);
+  }
   const evs = new Map<string, CalEvent[]>();
+  const seen = new Set<string>();
   for (const e of events) {
-    if (!e.epicId || !byId.has(e.epicId)) continue;
-    const list = evs.get(e.epicId);
+    if (seen.has(e.id)) continue;
+    seen.add(e.id);
+    const tid = byEvent.get(e.id) ?? (e.seriesId ? bySeries.get(e.seriesId) : undefined);
+    if (!tid) continue;
+    const list = evs.get(tid);
     if (list) list.push(e);
-    else evs.set(e.epicId, [e]);
+    else evs.set(tid, [e]);
   }
   for (const list of evs.values()) list.sort((a, b) => a.start - b.start);
   return { byId, children, events: evs };
@@ -123,7 +134,7 @@ export type Progress = {
   total: number;
 };
 
-/** Postęp epiku: zadania (zrobione) i wpisy (odbyte) w nim i we wszystkich jego pod-epikach. */
+/** Postęp epiku: zrobione zadania w nim i we wszystkich jego pod-epikach (wpisy z kalendarza są zadaniami). */
 export function progressOf(id: string, tree: Tree, now: number, seen = new Set<string>()): Progress {
   const p: Progress = { tasksDone: 0, tasks: 0, eventsDone: 0, events: 0, done: 0, total: 0 };
   if (seen.has(id)) return p;
@@ -140,10 +151,7 @@ export function progressOf(id: string, tree: Tree, now: number, seen = new Set<s
       p.eventsDone += sub.eventsDone;
     }
   }
-  for (const e of tree.events.get(id) ?? []) {
-    p.events += 1;
-    if (e.end < now) p.eventsDone += 1;
-  }
+  void now;
   p.done = p.tasksDone + p.eventsDone;
   p.total = p.tasks + p.events;
   return p;
@@ -165,6 +173,46 @@ export const ALMOST_DONE = 0.8;
 export function progressColor(ratio: number): string {
   const r = Math.max(0, Math.min(1, ratio));
   return `hsl(${Math.round(8 + 130 * r)} 62% ${Math.round(56 - 8 * r)}%)`;
+}
+
+/** Status zadania z jednym wpisem, dopóki nie zmienisz go ręcznie: „zrobione” po zakończeniu wpisu. */
+export function autoStatus(e: Pick<CalEvent, "end">, now: number): WorkStatus {
+  return e.end < now ? "done" : "todo";
+}
+
+/** Krótko, kiedy jest wpis zadania: „dziś 14:00”, „jutro”, „18 lis 9:30”. */
+export function whenShort(e: Pick<CalEvent, "start" | "allDay">, now: number): string {
+  const d = new Date(e.start);
+  const today = new Date(now);
+  const day = sameDay(d, today) ? "dziś" : sameDay(d, addDays(today, 1)) ? "jutro" : formatDayShort(d);
+  return e.allDay ? day : `${day} ${formatClock(d)}`;
+}
+
+/** Wpis zadania do pokazania: najbliższy jeszcze niezakończony (seria), inaczej ostatni. */
+export function taskWhen(id: string, tree: Tree, now: number): CalEvent | undefined {
+  const list = tree.events.get(id);
+  if (!list?.length) return undefined;
+  return list.find((e) => e.end >= now) ?? list[list.length - 1];
+}
+
+/** Stałe ID zadania dla wpisu / serii (32 znaki hex) — to samo na każdym urządzeniu, więc bez duplikatów. */
+export function linkedTaskId(key: string): string {
+  let h1 = 0x6a09e667,
+    h2 = 0xbb67ae85,
+    h3 = 0x3c6ef372,
+    h4 = 0xa54ff53a;
+  for (let i = 0; i < key.length; i++) {
+    const k = key.charCodeAt(i);
+    h1 = h2 ^ Math.imul(h1 ^ k, 597399067);
+    h2 = h3 ^ Math.imul(h2 ^ k, 2869860233);
+    h3 = h4 ^ Math.imul(h3 ^ k, 951274213);
+    h4 = h1 ^ Math.imul(h4 ^ k, 2716044179);
+  }
+  h1 = Math.imul(h3 ^ (h1 >>> 18), 597399067);
+  h2 = Math.imul(h4 ^ (h2 >>> 22), 2869860233);
+  h3 = Math.imul(h1 ^ (h3 >>> 17), 951274213);
+  h4 = Math.imul(h2 ^ (h4 >>> 19), 2716044179);
+  return [h1 ^ h2 ^ h3 ^ h4, h2 ^ h1, h3 ^ h1, h4 ^ h1].map((x) => (x >>> 0).toString(16).padStart(8, "0")).join("");
 }
 
 /** ID elementu i wszystkich jego potomków (żeby nie wstawić epiku do samego siebie). */

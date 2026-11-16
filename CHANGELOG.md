@@ -3,6 +3,23 @@
 Każda wersja to jeden commit `vX.Y.Z: …` (treść commita = wpis z tego pliku) i tag `vX.Y.Z`.
 Najnowsze na górze. Opis funkcji aplikacji jest w [FEATURES.md](FEATURES.md).
 
+## [0.31.0] – 2026-11-16: epiki z zadaniami i terminami w kalendarzu
+
+- **Epiki: w środku tylko zadania, a zadanie może mieć termin w kalendarzu.**
+  - Dowolny wpis dodany do epiku (pole „Epik”) pojawia się w epiku jako zadanie z datą ◷, ze statusem, priorytetem,
+    komentarzami i własnymi polami. Wpisy, które już były w epikach, dostały zadania same.
+  - „+ zaplanuj” w szczegółach zadania tworzy wpis z nazwą zadania, w jego epiku, powiązany z zadaniem.
+  - Status zadania z wpisem jest automatyczny („zrobione” po zakończeniu wpisu). Po zmianie ręcznej zostaje Twój,
+    z opcją „przywróć automatyczny”.
+  - Wpis powtarzalny = jedno zadanie dla całej serii (↻).
+  - Nazwa i epik zadania i jego wpisu zmieniają się razem.
+  - Usunięcie wpisu zostawia zadanie bez terminu, usunięcie zadania zostawia wpis bez epiku, a wyjęcie wpisu
+    z epiku usuwa jego zadanie.
+  - Postęp epiku liczy się z zadań.
+- **„?” w widoku zadań:** krótki opis, jak działają epiki.
+- **Etykieta epiku po najechaniu** odjeżdża w lewo (zasłaniając koniec tytułu), więc „P” i „×” jej nie zasłaniają.
+- **Ciemny motyw:** grubsza i bardziej kontrastowa obwódka wpisów z godziną w widoku miesiąca.
+
 ## [0.30.0] – 2026-11-16: domyślne tagi, low priority, P na następny dzień
 
 - **Domyślne tagi „ważne” i „low priority”:** zawsze są na liście tagów w panelu bocznym i w podpowiedziach,

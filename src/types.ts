@@ -42,6 +42,8 @@ export interface DraftEvent {
   tags: string[];
   epicId?: string;
   autoSlot?: boolean;
+  /** „Zaplanuj w kalendarzu” przy zadaniu: nowy wpis zostanie powiązany z tym zadaniem. */
+  taskId?: string;
 }
 
 export type WorkKind = "epic" | "task";
@@ -96,6 +98,12 @@ export interface WorkItem {
   comments?: WorkComment[];
   /** Epik przypięty w panelu bocznym (podgląd postępu). */
   pinned?: boolean;
+  /** Zadanie z terminem w kalendarzu: ID wpisu (links.ts). */
+  eventId?: string;
+  /** Zadanie dla całej serii wpisów powtarzalnych: ID serii w Google. */
+  seriesId?: string;
+  /** Status ustawiony ręcznie — wtedy nie zmienia się sam po zakończeniu wpisu. */
+  statusManual?: boolean;
 }
 
 export type SyncState = "off" | "idle" | "syncing" | "expired" | "offline" | "error";

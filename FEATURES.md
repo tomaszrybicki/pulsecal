@@ -27,7 +27,8 @@ logowanie Google bez własnego serwera (Google Identity Services).
 - **Mapa:** 21 dni obok siebie, przewijane w bok, doba w pionie. Na górze wiersz wpisów całodniowych.
   Linia „teraz” z pulsującym bąblem. Po otwarciu kalendarz pokazuje dzisiejszy dzień i bieżącą godzinę.
 - **Miesiąc:** układ jak w Google Calendar.
-  - Wpisy z godziną: wypełniony kolorem blok (jak całodniowe) z delikatną obwódką, godzina i nazwa.
+  - Wpisy z godziną: wypełniony kolorem blok (jak całodniowe) z obwódką (w ciemnym motywie grubszą), godzina
+    i nazwa.
   - Wpisy całodniowe i kilkudniowe: kolorowe paski przez kilka dni, także przez granicę tygodnia.
   - Kolejność w dniu: najpierw wpisy z godziną, potem całodniowe i kilkudniowe; w każdej grupie alfabetycznie.
   - Gdy wpisy się nie mieszczą: „+N więcej”.
@@ -220,29 +221,39 @@ logowanie Google bez własnego serwera (Google Identity Services).
 
 Prosta „jira” do spraw osobistych — trzeci widok „zadania” (obok „mapa” i „miesiąc”), w układzie jak w Jirze.
 
-- **Epik** to większa sprawa (np. „remont kuchni”). W epiku mogą być zadania, mniejsze epiki i wpisy z kalendarza.
-  Każde zadanie i epik ma klucz jak w Jirze: PC-1, PC-2…
+- **Epik** to większa sprawa (np. „remont kuchni”). W epiku są **zadania** i mniejsze epiki. Każde zadanie i epik
+  ma klucz jak w Jirze: PC-1, PC-2… Przycisk „?” w widoku zadań krótko to wyjaśnia.
+- **Zadanie może mieć termin w kalendarzu** (◷ przy nazwie; klik otwiera wpis), ale nie musi:
+  - „+ zaplanuj” w szczegółach zadania tworzy wpis z nazwą zadania, w jego epiku, powiązany z zadaniem;
+  - dowolny wpis dodany do epiku (pole „Epik”) pojawia się w epiku jako zadanie z datą — ze statusem,
+    priorytetem, komentarzami i własnymi polami (istniejące wpisy w epikach dostały zadania same);
+  - status zadania z wpisem jest automatyczny: „zrobione”, gdy wpis się skończy. Zmieniony ręcznie zostaje
+    Twój („przywróć automatyczny” w szczegółach);
+  - wpis powtarzalny = jedno zadanie dla całej serii (↻ najbliższe wystąpienie), status ręczny;
+  - nazwa i epik zadania i jego wpisu zmieniają się razem.
 - **Panel epików** (po lewej): drzewo epików z paskiem postępu. Kliknięcie filtruje widok do epiku (z jego
   pod-epikami), „⋯” otwiera szczegóły, „+ epik” dodaje nowy. Na telefonie zamiast panelu jest lista wyboru.
 - **Lista:** tabela z kolumnami typ, klucz, podsumowanie, epik, priorytet, termin, szacunek, status.
-  Grupowanie: po epiku (domyślnie; nagłówek grupy z kluczem, statusem i postępem epiku, a pod zadaniami wpisy
-  z kalendarza w tym epiku), po statusie, po priorytecie albo bez grup. Sortowanie: kolejność, priorytet, termin.
+  Grupowanie: po epiku (domyślnie; nagłówek grupy z kluczem, statusem i postępem epiku), po statusie,
+  po priorytecie albo bez grup. Sortowanie: kolejność, priorytet, termin.
   Szukanie (nazwa, opis, klucz) i „ukryj zrobione”. Status zmienia się od razu z listy.
 - **Tablica:** kolumny do zrobienia / w toku / zrobione z kartami (nazwa, epik, klucz, termin, szacunek,
   priorytet). Przeciągnięcie karty do innej kolumny zmienia status. „+ utwórz” w każdej kolumnie i grupie.
-- **Szczegóły** (kliknięcie nazwy), jak zgłoszenie w Jirze: po lewej nazwa, duży opis i (w epiku) zawartość,
-  wpisy z kalendarza, „+ utwórz” i „+ zaplanuj w kalendarzu”; po prawej status i panel „szczegóły”: rodzaj,
-  priorytet (od najwyższego do najniższego), termin (po terminie na czerwono), szacunek, epik nadrzędny,
+- **Szczegóły** (kliknięcie nazwy), jak zgłoszenie w Jirze: po lewej nazwa, duży opis i (w epiku) zawartość
+  z datami ◷, „+ utwórz” i „+ zaplanuj w kalendarzu”; po prawej status i panel „szczegóły”: rodzaj,
+  priorytet (od najwyższego do najniższego), termin (po terminie na czerwono), kalendarz (◷ wpis albo
+  „+ zaplanuj”), szacunek, epik nadrzędny,
   własne pola, daty utworzenia i zmiany. Zamknięcie zapisuje zmiany.
 - **Własne pola** („pola” w pasku albo w szczegółach): tekst, liczba albo lista wyboru (np. „kontekst: dom,
   praca”). Pokazują się w szczegółach każdego zadania; definicje są w kopii ustawień w Google.
-- **Postęp epiku:** zadania zrobione + wpisy z kalendarza już odbyte, razem z pod-epikami.
-- **Usuwanie:** zawartość epiku przechodzi piętro wyżej, wpisy z kalendarza zostają (bez epiku). Z „Cofnij”.
+- **Postęp epiku:** zrobione zadania, razem z pod-epikami.
+- **Usuwanie:** zawartość epiku przechodzi piętro wyżej. Usunięcie zadania zostawia jego wpis w kalendarzu (bez
+  epiku), usunięcie wpisu zostawia zadanie bez terminu, a wyjęcie wpisu z epiku usuwa jego zadanie. Z „Cofnij”.
 - **Wpis w epiku:** pole „Epik” w szybkiej karcie, w pełnej edycji i w menu pod prawym przyciskiem. Kliknij,
   wpisz nazwę i Enter: lista pod polem podpowiada istniejące epiki, a nowa nazwa od razu tworzy epik i przypisuje
   do niego wpis. „×” usuwa wpis z epiku. Kliknięcie etykiety epiku na wpisie w kalendarzu otwiera szczegóły
   epiku. Wpis w epiku ma w kalendarzu
-  etykietę z nazwą epiku w kolorze epiku.
+  etykietę z nazwą epiku w kolorze epiku; po najechaniu myszą etykieta odjeżdża w lewo i robi miejsce na „P” i „×”.
 - **Komentarze** (w szczegółach, pod opisem): „Dodaj komentarz…” (Ctrl+Enter albo „Dodaj”), lista od
   najnowszego z datą, „edytuj” i „usuń” (z potwierdzeniem). Zapisują się od razu; niedodany komentarz dodaje się
   przy zamknięciu okna. Na liście i na tablicy przy zadaniu jest dymek z liczbą komentarzy, a szukanie

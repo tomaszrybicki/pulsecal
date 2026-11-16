@@ -815,6 +815,9 @@ type ItemData = Pick<
   | "fields"
   | "comments"
   | "pinned"
+  | "eventId"
+  | "seriesId"
+  | "statusManual"
 >;
 
 function itemBody(i: WorkItem): Record<string, unknown> {
@@ -835,6 +838,9 @@ function itemBody(i: WorkItem): Record<string, unknown> {
     fields: i.fields ?? {},
     comments: i.comments ?? [],
     pinned: Boolean(i.pinned),
+    eventId: i.eventId,
+    seriesId: i.seriesId,
+    statusManual: Boolean(i.statusManual),
   };
   return {
     summary: `Pulsecal — ${i.kind === "epic" ? "epik" : "zadanie"}: ${i.title}`,
@@ -879,6 +885,9 @@ function parseItem(g: GEvent): ItemData | null {
             .map((c) => ({ id: c.id, text: c.text, at: Number(c.at) || 0, ...(c.edited ? { edited: Number(c.edited) } : {}) }))
         : [],
       pinned: d.pinned === true,
+      eventId: typeof d.eventId === "string" && d.eventId ? d.eventId : undefined,
+      seriesId: typeof d.seriesId === "string" && d.seriesId ? d.seriesId : undefined,
+      statusManual: d.statusManual === true,
     };
   } catch {
     return null;

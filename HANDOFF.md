@@ -116,6 +116,22 @@ Previous sessions: first Cursor IDE (built the MVP), then Claude in a chat sessi
 code audit and rewrote the data and sync layer, then stopped at the owner's request.
 **Start by reading `CLAUDE.md`.**
 
+## v0.31.0: epics contain only tasks; tasks may have calendar events
+- `WorkItem.eventId` / `seriesId` / `statusManual` (all in the item backup). `DraftEvent.taskId` („zaplanuj” on a
+  task: `saveDraft` links the task *before* saving the event so reconcile doesn't create a second task).
+- `links.ts reconcileLinks(now)` (App effect on items / epicEvents / linkedEvents / minute tick, serialized with
+  refs): event with epic and no task → task with id `linkedTaskId("ev:"+id)` / `("series:"+sid)` (revives a
+  soft-deleted one). Pair diverged → newer `updatedAt` wins; event newer with no epic → task dropped. Auto status
+  for single-event tasks. Series: task wins; instances get `epicId` via `db.events.put` (never pushed); only
+  instances with an explicit epic newer than the task can move it. `unlinkSeries()` when an instance's epic is
+  cleared in UI (saveDraft / patchEvent).
+- `buildTree(items, events)`: `tree.events` = task id → linked events. `progressOf` counts tasks only.
+  App passes `epicEvents` + `linkedEvents` (bulkGet of task eventIds).
+- `deleteWork` runs in one Dexie transaction (clears linked events' epic) so reconcile can't revive the task.
+- UI: `WhenChip` (TasksView rows/cards), `HelpButton` „?”, WorkItemSheet „kalendarz” field, auto-status hint.
+- Hover: `.m-ev:hover` / `.allday-blob:hover` get extra right padding (epic tag slides left, buttons free).
+  Dark theme: thicker outline on `.m-ev.timed`.
+
 ## v0.30.0: default tags, "low priority" day move, P rolls to the next day
 - `tags.ts`: `LOW_PRIORITY_TAG`, `DEFAULT_TAGS` (with default colours used by `tagColor` when no custom colour),
   `withDefaultTags()` merges them into App's `tagList` (count 0) → sidebar + suggestions.

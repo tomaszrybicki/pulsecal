@@ -43,7 +43,8 @@ src/
   tags.ts                 tags: normalize, "Tagi: a, b" last line of the Google description, filter rule, color
   quickParse.ts           Polish one-line quick add ("dentysta jutro 14:30 1h #wizyta") → ParsedEntry
   types.ts                CalEvent, DraftEvent, ViewMode, SyncState, WorkItem
-  work.ts                 epics/tasks: tree, progress, epic path/colour, saveItem (pending = 1)
+  work.ts                 epics/tasks: tree (tree.events = task id → linked events), progress, saveItem
+  links.ts                task ↔ event links: reconcileLinks(), unlinkSeries()
   colors.ts               palette + mapping to Google colorId
   prefs.ts                productive hours, P slot length, always-full-editor pref, findFreeSlot()
   devSeed.ts              dev-only test data (ids start with "5eed", pending 0); DevSeed.tsx in PrefsSheet
@@ -88,7 +89,9 @@ public/                   icons, favicon
   (`pending = 1`). Backup = one hidden all-day Google event per item on 2000-01-02, id `pulsetask<id>`,
   JSON in a ```json block, `private.pulseType=item`; full pull lists them with `privateExtendedProperty`,
   incremental pull routes them to `applyRemoteItem`. Events link via `CalEvent.epicId` (`private.pulseEpic`,
-  always sent, "" = none).
+  always sent, "" = none). Epics contain only tasks: a task may link one event (`WorkItem.eventId`) or a series
+  (`seriesId`); `links.ts` `reconcileLinks()` creates tasks for events in epics (deterministic `linkedTaskId`),
+  keeps epic/title in sync (newer `updatedAt` wins) and sets auto status unless `statusManual`.
 - Times are stored as epoch ms (local time). All-day `end` = **last millisecond of the last day**;
   Google's end is exclusive (the next day), so convert at the boundary (`sync/google.ts`).
 - Tags: local field `CalEvent.tags` (casing as typed; compare via `tagKey()` = lowercase; Dexie v3 `*tags` index).

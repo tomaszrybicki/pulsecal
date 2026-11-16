@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import type { CalEvent, Priority, WorkComment, WorkField, WorkItem, WorkKind } from "../types";
-import { whenLabel } from "../draft";
 import { formatClock, formatDayShort } from "../time";
 import {
   KIND_LABEL,
@@ -15,6 +14,8 @@ import {
   priorityOf,
   progressOf,
   subtreeIds,
+  taskWhen,
+  whenShort,
   type Tree,
 } from "../work";
 import { DateField } from "./DateField";
@@ -34,6 +35,8 @@ type Props = {
   onOpenEvent: (e: CalEvent) => void;
   /** Nowy wpis w kalendarzu od razu w tym epiku. */
   onPlan: (epicId: string) => void;
+  /** Zadanie: nowy wpis w kalendarzu powiązany z tym zadaniem. */
+  onPlanTask: (task: WorkItem) => void;
   onCreate: (kind: WorkKind, title: string, parentId: string, patch?: Partial<WorkItem>) => void;
   onEditFields: () => void;
 };
@@ -50,6 +53,7 @@ function dirty(a: WorkItem, b: WorkItem): boolean {
     (a.estimate ?? null) !== (b.estimate ?? null) ||
     JSON.stringify(a.fields ?? {}) !== JSON.stringify(b.fields ?? {}) ||
     JSON.stringify(a.comments ?? []) !== JSON.stringify(b.comments ?? []) ||
+    Boolean(a.statusManual) !== Boolean(b.statusManual) ||
     Boolean(a.pinned) !== Boolean(b.pinned)
   );
 }
@@ -61,14 +65,20 @@ const stamp = (t: number) => (t ? `${formatDayShort(new Date(t))}, ${formatClock
  * po prawej panel „szczegóły” (status, priorytet, termin, szacunek, epik, własne pola).
  */
 export function WorkItemSheet(props: Props) {
-  const { item, tree, now, fields, onSave, onDelete, onClose, onOpenItem, onOpenEvent, onPlan, onCreate, onEditFields } = props;
+  const { item, tree, now, fields, onSave, onDelete, onClose, onOpenItem, onOpenEvent, onPlan, onPlanTask, onCreate, onEditFields } =
+    props;
   const [d, setD] = useState(item);
   // niewysłany komentarz — zamknięcie okna go dodaje, żeby nie przepadł
   const [note, setNote] = useState("");
   const children = tree.children.get(item.id) ?? [];
-  const events = tree.events.get(item.id) ?? [];
+  // wpis w kalendarzu tego zadania (seria: najbliższe wystąpienie)
+  const when = item.kind === "task" ? taskWhen(item.id, tree, now) : undefined;
+  const linked = Boolean(item.eventId || item.seriesId);
+  const autoOn = Boolean(item.eventId && when && !d.statusManual);
   // epik z zawartością nie może stać się zadaniem (zawartość nie miałaby gdzie być)
-  const lockKind = item.kind === "epic" && (children.length > 0 || events.length > 0);
+  const lockKind = item.kind === "epic" && children.length > 0;
+  // zadanie z wpisem w kalendarzu zostaje zadaniem (w epiku są tylko zadania z terminami)
+  const lockEpic = item.kind === "task" && linked;
   const parents = epicOptions(tree, subtreeIds(item.id, tree));
 
   /** Zapisz zmiany (bez zamykania) — także przed przejściem do zadania / wpisu z listy epiku. */
@@ -182,6 +192,9 @@ export function WorkItemSheet(props: Props) {
                       <TypeIcon kind={c.kind} />
                       <span className="jr-key">{itemKey(c)}</span>
                       <span className="ji-child-title">{c.title}</span>
+                      {taskWhen(c.id, tree, now) && (
+                        <span className="jr-when static">◷ {whenShort(taskWhen(c.id, tree, now)!, now)}</span>
+                      )}
                       <PriorityIcon p={priorityOf(c)} />
                       <span className={`jr-lozenge st-${c.status}`}>{STATUS_LABEL[c.status]}</span>
                     </button>
@@ -189,27 +202,6 @@ export function WorkItemSheet(props: Props) {
                 ))}
               </ul>
               <InlineCreate parentId={item.id} onCreate={onCreate} />
-              {events.length > 0 && (
-                <>
-                  <h3>wpisy w kalendarzu</h3>
-                  <ul className="wk-mini">
-                    {events.map((e) => (
-                      <li key={e.id}>
-                        <button
-                          type="button"
-                          className={e.end < now ? "past" : ""}
-                          onClick={() => {
-                            commit();
-                            onOpenEvent(e);
-                          }}
-                        >
-                          ◷ {whenLabel(e)} · {e.title}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </>
-              )}
               <button
                 type="button"
                 className="ghost wk-plan"
@@ -231,7 +223,7 @@ export function WorkItemSheet(props: Props) {
             className={`jr-lozenge jr-status big st-${d.status}`}
             aria-label="Status"
             value={d.status}
-            onChange={(e) => setD({ ...d, status: e.target.value as WorkItem["status"] })}
+            onChange={(e) => setD({ ...d, status: e.target.value as WorkItem["status"], statusManual: true })}
           >
             {STATUSES.map((s) => (
               <option key={s} value={s}>
@@ -239,6 +231,20 @@ export function WorkItemSheet(props: Props) {
               </option>
             ))}
           </select>
+          {item.eventId && when && (
+            <p className="ji-auto hint">
+              {autoOn ? (
+                "Status automatyczny: „zrobione” po zakończeniu wpisu. Zmień go ręcznie, żeby został Twój."
+              ) : (
+                <>
+                  Status ustawiony ręcznie.{" "}
+                  <button type="button" className="link-btn" onClick={() => setD({ ...d, statusManual: false })}>
+                    przywróć automatyczny
+                  </button>
+                </>
+              )}
+            </p>
+          )}
 
           <div className="ji-details">
             <h3>szczegóły</h3>
@@ -252,7 +258,9 @@ export function WorkItemSheet(props: Props) {
                 <option value="task" disabled={lockKind}>
                   zadanie
                 </option>
-                <option value="epic">epik</option>
+                <option value="epic" disabled={lockEpic}>
+                  epik
+                </option>
               </select>
             </label>
             <label className="ji-field">
@@ -291,6 +299,36 @@ export function WorkItemSheet(props: Props) {
                 </button>
               )}
             </div>
+            {item.kind === "task" && (
+              <div className="ji-field">
+                <span>kalendarz</span>
+                {when ? (
+                  <button
+                    type="button"
+                    className="ji-set ji-when"
+                    title="Otwórz wpis w kalendarzu"
+                    onClick={() => {
+                      commit();
+                      onOpenEvent(when);
+                    }}
+                  >
+                    {item.seriesId ? "↻ " : "◷ "}
+                    {whenShort(when, now)}
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    className="ji-set"
+                    onClick={() => {
+                      commit();
+                      onPlanTask({ ...d, title: d.title.trim() || item.title });
+                    }}
+                  >
+                    + zaplanuj
+                  </button>
+                )}
+              </div>
+            )}
             <label className="ji-field">
               <span>szacunek</span>
               <input

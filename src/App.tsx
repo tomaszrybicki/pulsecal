@@ -29,6 +29,7 @@ import { useNow } from "./hooks/useNow";
 import { useSettingsBackup } from "./hooks/useSettingsBackup";
 import { useTheme } from "./hooks/useTheme";
 import { countMove, crossesThreshold, getMoveThreshold, setMoveThreshold } from "./moves";
+import { reconcileLinks, unlinkSeries } from "./links";
 import {
   findFreeSlot,
   getAlwaysFull,
@@ -227,7 +228,43 @@ export function App() {
     [],
     [] as CalEvent[],
   );
-  const tree = useMemo(() => buildTree(items, epicEvents), [items, epicEvents]);
+  // wpisy zadań spoza epików („zaplanuj w kalendarzu” przy zadaniu bez epiku)
+  const linkedIds = useMemo(() => items.flatMap((i) => (i.eventId ? [i.eventId] : [])).join(","), [items]);
+  const linkedEvents = useLiveQuery(
+    async () =>
+      linkedIds
+        ? (await db.events.bulkGet(linkedIds.split(","))).filter((e): e is CalEvent => Boolean(e) && !e!.deleted)
+        : [],
+    [linkedIds],
+    [] as CalEvent[],
+  );
+  const tree = useMemo(
+    () => buildTree(items, [...epicEvents, ...linkedEvents].sort((a, b) => a.start - b.start)),
+    [items, epicEvents, linkedEvents],
+  );
+
+  // zadanie ↔ wpis (links.ts): zadania dla wpisów w epikach, wspólny epik i nazwa, status „zrobione” po wpisie
+  const reconcileBusy = useRef(false);
+  const reconcileAgain = useRef(false);
+  const minuteTick = Math.floor(now.getTime() / 60_000);
+  useEffect(() => {
+    if (reconcileBusy.current) {
+      reconcileAgain.current = true;
+      return;
+    }
+    reconcileBusy.current = true;
+    void (async () => {
+      try {
+        do {
+          reconcileAgain.current = false;
+          if (await reconcileLinks(Date.now())) sync.requestSync(4000);
+        } while (reconcileAgain.current);
+      } finally {
+        reconcileBusy.current = false;
+      }
+    })();
+    // sync.requestSync jest stabilne; liczy się tylko zmiana danych i upływ czasu
+  }, [items, epicEvents, linkedEvents, minuteTick]);
   const openTasks = useMemo(() => items.filter((i) => i.kind === "task" && i.status !== "done").length, [items]);
   // przypięte epiki w panelu bocznym: postęp z zadań, „śpi” / „prawie gotowy”
   const pinnedEpics = useMemo(() => {
@@ -323,6 +360,8 @@ export function App() {
     const saving = draft;
     if (!draft?.title.trim()) return;
     const existing = draft.id ? await db.events.get(draft.id) : undefined;
+    // wystąpienie serii wyjęte z epiku → cała seria wypada z epiku (inaczej zadanie serii by je przywróciło)
+    if (existing?.recurring && existing.seriesId && existing.epicId && !draft.epicId) await unlinkSeries(existing.seriesId);
     // wpis z „P” przeniesiony w edycji na inny dzień → najbliższa wolna godzina w nowym dniu
     let when = { start: draft.start, end: draft.end, allDay: draft.allDay };
     if (existing?.autoSlot && draft.autoSlot && !sameDay(new Date(existing.start), new Date(draft.start))) {
@@ -353,6 +392,11 @@ export function App() {
       deleted: false,
       pending: 1,
     };
+    // „zaplanuj w kalendarzu” przy zadaniu: najpierw powiązanie, żeby nie powstało drugie zadanie dla tego wpisu
+    if (!existing && draft.taskId) {
+      const task = await db.items.get(draft.taskId);
+      if (task && !task.deleted) await saveItem({ ...task, eventId: event.id });
+    }
     await saveLocal(event);
     // klik obok mógł już otworzyć inny wpis — zamykamy tylko ten, który zapisaliśmy
     setDraft((cur) => (cur === saving ? null : cur));
@@ -573,6 +617,7 @@ export function App() {
   const patchEvent = async (id: string, patch: Partial<CalEvent>) => {
     const cur = await db.events.get(id);
     if (!cur) return;
+    if ("epicId" in patch && !patch.epicId && cur.recurring && cur.seriesId && cur.epicId) await unlinkSeries(cur.seriesId);
     await saveLocal({ ...cur, ...patch, tags: normalizeTags(patch.tags ?? cur.tags ?? []) });
     sync.requestSync(2000);
   };
@@ -638,7 +683,9 @@ export function App() {
   const patchItem = (id: string, patch: Partial<WorkItem>) => {
     patchChain.current = patchChain.current.then(async () => {
       const cur = await db.items.get(id);
-      if (cur && !cur.deleted) await saveItem({ ...cur, ...patch });
+      // status zmieniony ręcznie (lista, tablica) — już nie zmienia się sam po zakończeniu wpisu
+      const manual = patch.status !== undefined && patch.status !== cur?.status ? { statusManual: true } : {};
+      if (cur && !cur.deleted) await saveItem({ ...cur, ...patch, ...manual });
     });
     sync.requestSync(3000);
   };
@@ -652,20 +699,26 @@ export function App() {
   const deleteWork = async (item: WorkItem) => {
     setWorkOpen(null);
     const children = tree.children.get(item.id) ?? [];
-    const evs = tree.events.get(item.id) ?? [];
+    // wpisy zadania zostają w kalendarzu, tylko bez epiku (zadanie z epiku → wpis bez epiku)
+    const evs = (tree.events.get(item.id) ?? []).filter((e) => e.epicId);
     const saveEv = (e: CalEvent) => (e.recurring ? db.events.put(e) : saveLocal(e));
-    for (const c of children) await saveItem({ ...c, parentId: item.parentId });
-    for (const e of evs) await saveEv({ ...e, epicId: undefined });
-    if (item.remote) await saveItem({ ...item, deleted: true });
-    else await db.items.delete(item.id);
+    // jedna transakcja: links.ts nie zobaczy wpisu z epikiem bez zadania (odtworzyłby je)
+    await db.transaction("rw", db.items, db.events, async () => {
+      for (const c of children) await saveItem({ ...c, parentId: item.parentId });
+      for (const e of evs) await saveEv({ ...e, epicId: undefined });
+      if (item.remote) await saveItem({ ...item, deleted: true });
+      else await db.items.delete(item.id);
+    });
     sync.requestSync(4000);
     sync.notify(`Usunięto ${item.kind === "epic" ? "epik" : "zadanie"} „${item.title}”`, "ok", {
       label: "Cofnij",
       run: () =>
         void (async () => {
-          await saveItem({ ...item, deleted: false });
-          for (const c of children) await saveItem(c);
-          for (const e of evs) await saveEv(e);
+          await db.transaction("rw", db.items, db.events, async () => {
+            await saveItem({ ...item, deleted: false });
+            for (const c of children) await saveItem(c);
+            for (const e of evs) await saveEv(e);
+          });
           sync.requestSync();
         })(),
     });
@@ -675,6 +728,15 @@ export function App() {
   const planInEpic = (epicId: string) => {
     setWorkOpen(null);
     openDraft({ ...timedDraft(nextQuarter().getTime(), newColor), epicId }, editorMode);
+  };
+
+  /** „Zaplanuj w kalendarzu” przy zadaniu: nowy wpis z nazwą zadania, w jego epiku, powiązany z zadaniem. */
+  const planTask = (task: WorkItem) => {
+    setWorkOpen(null);
+    openDraft(
+      { ...timedDraft(nextQuarter().getTime(), newColor), title: task.title, epicId: task.parentId || undefined, taskId: task.id },
+      editorMode,
+    );
   };
 
   const openEventFromWork = (e: CalEvent) => {
@@ -1239,6 +1301,7 @@ export function App() {
             onOpenItem={(i) => setWorkOpen(i.id)}
             onOpenEvent={openEventFromWork}
             onPlan={planInEpic}
+            onPlanTask={planTask}
             fields={workFields}
             onCreate={createItem}
             onEditFields={() => setFieldsOpen(true)}
