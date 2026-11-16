@@ -24,9 +24,13 @@ logowanie Google bez własnego serwera (Google Identity Services).
 
 ### Widoki
 
-- **Mapa:** 21 dni obok siebie, przewijane w bok, doba w pionie.
+- **Mapa:** 21 dni obok siebie, przewijane w bok, doba w pionie. Wygląd jak w Google Calendar: płaska siatka
+  z ciągłymi liniami między dniami, nagłówek z dniem tygodnia i numerem (dziś w kolorowym kółku).
+  - Otwiera się z wczorajszym dniem obok dzisiejszego. Minione dni (i ich wpisy) są lekko przygaszone,
+    a dzisiejsza kolumna lekko podświetlona.
   - Wpisy całodniowe są w paśmie przyklejonym pod nagłówkami dni, domyślnie na pół wysokości (pół na pół
-    z godzinami). Uchwyt pod „cały dzień” w kolumnie godzin zmienia podział, a dwuklik wraca do połowy.
+    z godzinami). Wpisy całodniowe to zwarte paski. Strzałka na dole pasma (w kolumnie godzin) zwija je
+    i rozwija, a uchwyt pod nią zmienia podział (dwuklik wraca do połowy).
     Gdy wpisów jest więcej, pasmo przewija się kółkiem.
   - Po otwarciu i po nawigacji obecna godzina jest na środku widocznej części godzin.
   - Linia „teraz” z bąblem, który krąży po małej orbicie (z przodu większy, z tyłu mniejszy).

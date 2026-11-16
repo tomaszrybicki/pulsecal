@@ -5312,3 +5312,212 @@ button.jr-when:hover {
     transition: none;
   }
 }
+
+/* ═══════════ mapa jak w Google Calendar: płaska siatka, ciągłe linie dni, nieprzezroczyste pasmo ═══════════ */
+
+.map-scroll {
+  --map-line: var(--ink-faint);
+  --today-tint: color-mix(in srgb, #ff6b4a 7%, var(--paper));
+  --past-tint: color-mix(in srgb, var(--ink) 4%, var(--paper));
+}
+
+/* nagłówki dni: dzień tygodnia + numer (dziś w kółku), pełne tło — nic spod nich nie prześwituje */
+.map-scroll .day-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 0 2px;
+  background: var(--paper);
+  border-left: 1px solid var(--map-line);
+}
+
+.map-scroll .day-head .dh-wd {
+  font-size: 0.64rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  line-height: 1.2;
+}
+
+.map-scroll .day-head .dh-num {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  font-family: var(--display);
+  font-size: 1.12rem;
+  font-weight: 500;
+  line-height: 1;
+  text-transform: none;
+  color: var(--ink);
+}
+
+.map-scroll .day-head.today {
+  background: var(--today-tint);
+}
+
+.map-scroll .day-head.today .dh-wd {
+  color: #c2410c;
+  font-weight: 700;
+}
+
+.map-scroll .day-head.today .dh-num {
+  background: #ff6b4a;
+  color: #fffaf2;
+  box-shadow: 0 4px 12px rgba(255, 107, 74, 0.35);
+}
+
+.map-scroll .day-head.past {
+  background: var(--past-tint);
+}
+
+.map-scroll .day-head.past .dh-num,
+.map-scroll .day-head.past .dh-wd {
+  color: var(--ink-soft);
+  opacity: 0.75;
+}
+
+.map-corner {
+  border-bottom: 0;
+}
+
+/* pasmo całodniowe: ciągłe linie dni, pełne tło, kreska pod spodem */
+.map-scroll .allday {
+  padding: 4px 4px 6px;
+  background: var(--paper);
+  border-left: 1px solid var(--map-line);
+  border-bottom: 1px solid var(--map-line);
+}
+
+.map-scroll .allday.today {
+  background: var(--today-tint);
+}
+
+.map-scroll .allday.past {
+  background: var(--past-tint);
+}
+
+.allday-gutter {
+  justify-content: flex-start;
+  gap: 4px;
+  padding-top: 8px;
+}
+
+/* strzałka zwijania na dole pasma (jak w Google Calendar), pod nią uchwyt podziału */
+.allday-gutter .band-toggle {
+  margin-top: auto;
+}
+
+.band-toggle {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.band-toggle:hover {
+  background: var(--field);
+  color: var(--ink);
+}
+
+.band-toggle.collapsed {
+  transform: rotate(180deg);
+}
+
+/* wpisy całodniowe jako zwarte paski (jak w Google Calendar) */
+.map-scroll .allday-blob {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 0;
+  height: 24px;
+  margin-bottom: 3px;
+  padding: 0 8px;
+  border-radius: 6px;
+  box-shadow: none;
+  animation: none;
+}
+
+.map-scroll .allday-blob strong {
+  display: block;
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
+.map-scroll .allday-blob .epic-tag {
+  flex: 0 1 auto;
+  min-width: 0;
+  margin: 0;
+  font-size: 0.58rem;
+}
+
+.map-scroll .allday-blob .del-btn,
+.map-scroll .allday-blob .plan-btn {
+  top: 2px;
+}
+
+/* godziny: płaskie kolumny z liniami godzin, bez zaokrągleń i cieni */
+.map-scroll .hours {
+  border-radius: 0;
+  box-shadow: none;
+  border-left: 1px solid var(--map-line);
+  background: repeating-linear-gradient(to bottom, var(--map-line) 0 1px, transparent 1px var(--hour));
+}
+
+.map-scroll .hours.today {
+  background:
+    repeating-linear-gradient(to bottom, var(--map-line) 0 1px, transparent 1px var(--hour)),
+    var(--today-tint);
+}
+
+.map-scroll .hours.past {
+  background:
+    repeating-linear-gradient(to bottom, var(--map-line) 0 1px, transparent 1px var(--hour)),
+    var(--past-tint);
+}
+
+/* miniony dzień: wpisy przygaszone */
+.map-scroll .hours.past .event-blob,
+.map-scroll .allday.past .allday-blob {
+  opacity: 0.55;
+  filter: saturate(0.6);
+}
+
+.map-scroll .hours.past .event-blob:hover,
+.map-scroll .allday.past .allday-blob:hover {
+  opacity: 0.85;
+}
+
+/* kolumna godzin: pełne tło (etykiety nie mieszają się z wpisami przewijanymi w bok) */
+.map-scroll .gutter {
+  background: var(--paper);
+}
+
+.map-scroll .hour-label {
+  padding-right: 8px;
+  text-align: right;
+  font-size: 0.66rem;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .band-toggle {
+    transition: none;
+  }
+}

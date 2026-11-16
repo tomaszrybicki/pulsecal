@@ -116,6 +116,15 @@ Previous sessions: first Cursor IDE (built the MVP), then Claude in a chat sessi
 code audit and rewrote the data and sync layer, then stopped at the owner's request.
 **Start by reading `CLAUDE.md`.**
 
+## v0.34.0: map restyled like Google Calendar
+- Flat grid: `.map-scroll` overrides at the end of index.css (`--map-line`, `--today-tint`, `--past-tint`);
+  heads / band / hours share a 1px `border-left` per day, heads and band are opaque (no bleed-through).
+- `dayClass(d)` → " today" / " past" on `.day-head`, `.allday`, `.hours`; past events dimmed.
+- Head markup: `.dh-wd` + `.dh-num` (formatDayHeading no longer used here).
+- `snapTo` scrolls to the day *before* the focus day (yesterday next to today). With a week selection the
+  range starts at its own first day, so yesterday may be outside it.
+- Band collapse: `.band-toggle` (`pulsecal:allday-collapsed`, collapsed height `BAND_COLLAPSED_H` 64 px).
+
 ## v0.33.0: time estimate on entries
 - `CalEvent.estimate` / `DraftEvent.estimate` (minutes; 120 = "2h+"), Google `private.pulseEst` (always sent,
   "" clears). `EstimatePicker` in QuickCard (no label), EventSheet („Estymata”), EventMenu (`onPatch`).

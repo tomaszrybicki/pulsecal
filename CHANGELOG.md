@@ -3,6 +3,18 @@
 Każda wersja to jeden commit `vX.Y.Z: …` (treść commita = wpis z tego pliku) i tag `vX.Y.Z`.
 Najnowsze na górze. Opis funkcji aplikacji jest w [FEATURES.md](FEATURES.md).
 
+## [0.34.0] – 2026-11-16: mapa w stylu Google Calendar, wczoraj i dziś
+
+- **Mapa przebudowana w stylu Google Calendar:**
+  - płaska siatka z ciągłymi liniami między dniami: przez nagłówek, pasmo całodniowe i godziny;
+  - zaokrąglone kolumny zniknęły;
+  - nagłówki i pasmo całodniowe mają pełne tło, więc nic spod nich nie prześwituje przy przewijaniu;
+  - nagłówek dnia: dzień tygodnia nad numerem, a dzisiejszy numer w kolorowym kółku;
+  - wpisy całodniowe jako zwarte paski;
+  - strzałka na dole pasma całodniowego zwija je i rozwija, a uchwyt pod nią dalej zmienia podział.
+- **Wczoraj i dziś:** mapa otwiera się z wczorajszym dniem obok dzisiejszego. Minione dni są lekko przygaszone
+  (także ich wpisy), a dzisiejsza kolumna lekko podświetlona.
+
 ## [0.33.0] – 2026-11-16: estymata czasowa wpisów
 
 - **Estymata czasowa wpisu:** szybkie przyciski 5min / 30min / 1h / 2h+ (bez opisu) w szybkiej karcie, w menu pod

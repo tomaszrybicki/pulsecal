@@ -15,10 +15,10 @@ import {
   atMinutes,
   endOfDay,
   formatClock,
-  formatDayHeading,
   minutesSinceMidnight,
   sameDay,
   startOfDay,
+  weekdayLabel,
 } from "../time";
 
 const HOUR_H = 72;
@@ -35,6 +35,17 @@ const BLOB_GAP = 2;
 
 /** Pasmo wpisów całodniowych: udział wysokości mapy pod nagłówkami (domyślnie pół na pół z godzinami). */
 const ALLDAY_RATIO_KEY = "pulsecal:allday-ratio";
+/** Zwinięte pasmo całodniowe (strzałka w kolumnie godzin, jak w Google Calendar): tyle px. */
+const BAND_COLLAPSED_H = 64;
+const BAND_COLLAPSED_KEY = "pulsecal:allday-collapsed";
+const readCollapsed = () => {
+  try {
+    return localStorage.getItem(BAND_COLLAPSED_KEY) === "1";
+  } catch {
+    return false;
+  }
+};
+
 const readAlldayRatio = () => {
   try {
     const v = Number(localStorage.getItem(ALLDAY_RATIO_KEY));
@@ -151,7 +162,17 @@ export function CalendarMap({
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
-  const alldayH = viewH ? Math.round(Math.max(36, (viewH - HEAD_H) * alldayRatio)) : 0;
+  const [bandCollapsed, setBandCollapsed] = useState(readCollapsed);
+  const alldayH = !viewH ? 0 : bandCollapsed ? BAND_COLLAPSED_H : Math.round(Math.max(36, (viewH - HEAD_H) * alldayRatio));
+  const toggleBand = () => {
+    const next = !bandCollapsed;
+    setBandCollapsed(next);
+    try {
+      localStorage.setItem(BAND_COLLAPSED_KEY, next ? "1" : "0");
+    } catch {
+      /* bez zapisu */
+    }
+  };
 
   /** Uchwyt pod pasmem całodniowym: przeciągnij, żeby zmienić podział; podwójne kliknięcie = pół na pół. */
   const resizeBand = (ev: React.PointerEvent) => {
@@ -161,6 +182,7 @@ export function CalendarMap({
     const top = el.getBoundingClientRect().top + HEAD_H;
     const span = Math.max(1, el.clientHeight - HEAD_H);
     let ratio = alldayRatio;
+    setBandCollapsed(false);
     const move = (e: PointerEvent) => {
       ratio = Math.min(0.8, Math.max(0.1, (e.clientY - top) / span));
       setAlldayRatio(ratio);
@@ -170,6 +192,7 @@ export function CalendarMap({
       window.removeEventListener("pointerup", up);
       try {
         localStorage.setItem(ALLDAY_RATIO_KEY, String(ratio));
+        localStorage.setItem(BAND_COLLAPSED_KEY, "0");
       } catch {
         /* bez zapisu */
       }
@@ -339,7 +362,8 @@ export function CalendarMap({
       // Pozycja z DOM zamiast dayW * index — szerokość kolumny i odstępy zależą od CSS/ekranu.
       const heads = el.querySelectorAll<HTMLElement>(".day-head");
       const gutter = el.querySelector<HTMLElement>(".gutter")?.offsetWidth ?? 52;
-      const todayIndex = Math.max(0, days.findIndex((d) => sameDay(d, focusDay)));
+      // dzień przed fokusem też widać (wczoraj, przygaszone, obok podświetlonego dziś)
+      const todayIndex = Math.max(0, days.findIndex((d) => sameDay(d, focusDay)) - 1);
       const target = heads[todayIndex];
       if (target) {
         const delta = target.getBoundingClientRect().left - el.getBoundingClientRect().left;
@@ -478,6 +502,13 @@ export function CalendarMap({
         }
       : {};
 
+  // dzisiaj podświetlone, dni miniona przygaszone (nagłówek, pasmo całodniowe i godziny)
+  const todayStart = startOfDay(now).getTime();
+  const dayClass = (d: Date) => {
+    const t = startOfDay(d).getTime();
+    return t === todayStart ? " today" : t < todayStart ? " past" : "";
+  };
+
   const stateClass = (e: CalEvent) =>
     `${e.id === DRAFT_ID ? " ghost-draft" : ""}${preview?.e.id === e.id ? " drag-source" : ""}${dropped === e.id ? " dropped" : ""}`;
 
@@ -489,12 +520,25 @@ export function CalendarMap({
       >
         <div className="map-corner" />
         {days.map((d) => (
-          <div key={d.toISOString()} className={`day-head${sameDay(d, now) ? " today" : ""}`}>
-            <b>{formatDayHeading(d)}</b>
+          <div key={d.toISOString()} className={`day-head${dayClass(d)}`}>
+            <span className="dh-wd">{weekdayLabel(d)}</span>
+            <b className="dh-num">{d.getDate()}</b>
           </div>
         ))}
         <div className="allday-gutter">
           <span>cały dzień</span>
+          <button
+            type="button"
+            className={`band-toggle${bandCollapsed ? " collapsed" : ""}`}
+            aria-expanded={!bandCollapsed}
+            aria-label={bandCollapsed ? "Rozwiń wpisy całodniowe" : "Zwiń wpisy całodniowe"}
+            title={bandCollapsed ? "Rozwiń wpisy całodniowe" : "Zwiń wpisy całodniowe"}
+            onClick={toggleBand}
+          >
+            <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden>
+              <path d="M4 10l4-4 4 4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
           <span
             className="band-grip"
             role="separator"
@@ -513,7 +557,7 @@ export function CalendarMap({
           return (
             <div
               key={`ad-${d.toISOString()}`}
-              className="allday"
+              className={`allday${dayClass(d)}`}
               onClick={(ev) => {
                 if (ev.target === ev.currentTarget) onAllDaySlot(d);
               }}
@@ -568,7 +612,7 @@ export function CalendarMap({
           return (
             <div
               key={`h-${d.toISOString()}`}
-              className="hours"
+              className={`hours${dayClass(d)}`}
               onClick={(ev) => {
                 const rect = (ev.currentTarget as HTMLDivElement).getBoundingClientRect();
                 const y = ev.clientY - rect.top;
