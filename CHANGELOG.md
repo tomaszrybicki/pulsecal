@@ -3,6 +3,21 @@
 Każda wersja to jeden commit `vX.Y.Z: …` (treść commita = wpis z tego pliku) i tag `vX.Y.Z`.
 Najnowsze na górze. Opis funkcji aplikacji jest w [FEATURES.md](FEATURES.md).
 
+## [0.36.0] – 2026-11-16: przeciąganie zadania na kalendarz, estymata pod tytułem
+
+- **„+ zaplanuj” tuż za nazwą zadania:** na liście zadań i w zawartości epiku. Ikonki opisu i komentarzy są dalej.
+- **Przytrzymaj „zaplanuj”, żeby przeciągnąć zadanie na kalendarz:**
+  - widok przełącza się na kalendarz, a pod kursorem płynie karta zadania z podpowiedzią, gdzie wyląduje;
+  - dzień pod kursorem jest podświetlony;
+  - upuszczenie na dzień w miesiącu albo w paśmie całodniowym tworzy wpis całodniowy, a na godzinę w mapie —
+    wpis o tej godzinie (co 15 min);
+  - potem otwiera się okienko wpisu z nazwą zadania do uzupełnienia szczegółów;
+  - Esc albo upuszczenie poza kalendarzem anuluje;
+  - zwykłe kliknięcie działa jak wcześniej.
+- **Estymata tuż pod tytułem** w szybkiej karcie i w pełnej edycji.
+- **Estymata „?” (nie wiem):** pozwala zapisać wpis przy włączonym „Wymagaj estymaty”, ale nic się nie zapisuje
+  ani nie wyświetla.
+
 ## [0.35.0] – 2026-11-16: P od teraz, zaplanuj przy zadaniach
 
 - **„P” nigdy w przeszłość:** kliknięcie „P” na wpisie z przeszłości (np. wczorajszym albo dzisiejszym, który już

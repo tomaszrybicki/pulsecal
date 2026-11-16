@@ -293,6 +293,7 @@ export function MonthView({ now, weeks, month, events, onDay, onDayDetails, onAd
                 return (
                   <div
                     key={isoDate(d)}
+                    data-day={isoDate(d)}
                     className={`m-day${month !== null && d.getMonth() !== month ? " out" : ""}${sameDay(d, now) ? " today" : ""}${isTarget ? " drop-target" : ""}`}
                     style={{ gridColumn: c + 1, gridRow: "1 / -1" }}
                     onClick={(ev) => {

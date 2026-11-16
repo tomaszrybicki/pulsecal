@@ -17,6 +17,7 @@ import {
   formatClock,
   minutesSinceMidnight,
   sameDay,
+  isoDate,
   startOfDay,
   weekdayLabel,
 } from "../time";
@@ -557,6 +558,7 @@ export function CalendarMap({
           return (
             <div
               key={`ad-${d.toISOString()}`}
+              data-day={isoDate(d)}
               className={`allday${dayClass(d)}`}
               onClick={(ev) => {
                 if (ev.target === ev.currentTarget) onAllDaySlot(d);
@@ -612,6 +614,7 @@ export function CalendarMap({
           return (
             <div
               key={`h-${d.toISOString()}`}
+              data-day={isoDate(d)}
               className={`hours${dayClass(d)}`}
               onClick={(ev) => {
                 const rect = (ev.currentTarget as HTMLDivElement).getBoundingClientRect();

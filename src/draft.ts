@@ -85,7 +85,7 @@ export function isDirty(d: DraftEvent, original: CalEvent | undefined): boolean 
     d.tags.join(",") !== (original.tags ?? []).join(",") ||
     (d.epicId ?? "") !== (original.epicId ?? "") ||
     Boolean(d.autoSlot) !== Boolean(original.autoSlot) ||
-    (d.estimate ?? 0) !== (original.estimate ?? 0)
+    Math.max(0, d.estimate ?? 0) !== Math.max(0, original.estimate ?? 0)
   );
 }
 

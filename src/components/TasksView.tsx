@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from "react";
+import { useMemo, useRef, useState, type ReactNode } from "react";
 import type { CalEvent, Priority, WorkItem, WorkKind, WorkStatus } from "../types";
 import { formatDayShort } from "../time";
 import { whenLabel } from "../draft";
@@ -32,6 +32,8 @@ type Props = {
   onOpenEvent: (e: CalEvent) => void;
   /** „zaplanuj” przy zadaniu bez wpisu: nowy wpis z nazwą zadania, powiązany z nim. */
   onPlanTask: (task: WorkItem) => void;
+  /** Przytrzymanie „zaplanuj”: przeciąganie zadania na dzień w kalendarzu (App). */
+  onPlanHold?: (task: WorkItem, x: number, y: number) => void;
   onEditFields: () => void;
 };
 
@@ -69,7 +71,7 @@ const PRIORITY_RANK: Record<Priority, number> = { highest: 0, high: 1, medium: 2
  * Widok „zadania” w układzie Jiry: po lewej panel epików (filtr), u góry pasek narzędzi,
  * w środku lista (pogrupowana) albo tablica ze statusami. Szczegóły zadania — WorkItemSheet.
  */
-export function TasksView({ tree, now, onOpen, onCreate, onPatch, onOpenEvent, onPlanTask, onEditFields }: Props) {
+export function TasksView({ tree, now, onOpen, onCreate, onPatch, onOpenEvent, onPlanTask, onPlanHold, onEditFields }: Props) {
   const [tab, setTab] = usePref<Tab>("pulsecal:jira-tab", "list");
   const [groupBy, setGroupBy] = usePref<GroupBy>("pulsecal:jira-group", "epic");
   const [sortBy, setSortBy] = usePref<SortBy>("pulsecal:jira-sort", "rank");
@@ -217,6 +219,7 @@ export function TasksView({ tree, now, onOpen, onCreate, onPatch, onOpenEvent, o
             onCreate={onCreate}
             onPatch={onPatch}
             onPlanTask={onPlanTask}
+            onPlanHold={onPlanHold}
             onOpenEvent={onOpenEvent}
           />
         ) : (
@@ -373,6 +376,7 @@ function ListView({
   onPatch,
   onOpenEvent,
   onPlanTask,
+  onPlanHold,
 }: {
   tree: Tree;
   now: number;
@@ -387,6 +391,7 @@ function ListView({
   onPatch: Props["onPatch"];
   onOpenEvent: Props["onOpenEvent"];
   onPlanTask: Props["onPlanTask"];
+  onPlanHold: Props["onPlanHold"];
 }) {
   const [folded, setFolded] = useState<ReadonlySet<string>>(new Set());
   const fold = (k: string) =>
@@ -522,14 +527,19 @@ function ListView({
                     <span className="c-sum jr-sum-cell">
                       <button type="button" className="jr-sum" onClick={() => onOpen(t)}>
                         <span>{t.title || "(bez nazwy)"}</span>
-                        {t.description.trim() && (
-                          <span className="wk-has-desc" title="Ma opis">
-                            ≡
-                          </span>
-                        )}
-                        <CommentCount item={t} />
                       </button>
-                      <WhenChip task={t} tree={tree} now={now} onOpenEvent={onOpenEvent} onPlan={onPlanTask} />
+                      {/* „zaplanuj” / data tuż za nazwą, ikonki opisu i komentarzy dalej */}
+                      <WhenChip task={t} tree={tree} now={now} onOpenEvent={onOpenEvent} onPlan={onPlanTask} onHold={onPlanHold} />
+                      {(t.description.trim() || t.comments?.length) && (
+                        <button type="button" className="jr-sum-meta" tabIndex={-1} onClick={() => onOpen(t)}>
+                          {t.description.trim() && (
+                            <span className="wk-has-desc" title="Ma opis">
+                              ≡
+                            </span>
+                          )}
+                          <CommentCount item={t} />
+                        </button>
+                      )}
                     </span>
                     {groupBy !== "epic" && (
                       <span className="c-epic">
@@ -807,6 +817,7 @@ function WhenChip({
   now,
   onOpenEvent,
   onPlan,
+  onHold,
 }: {
   task: WorkItem;
   tree: Tree;
@@ -814,15 +825,12 @@ function WhenChip({
   onOpenEvent?: (e: CalEvent) => void;
   /** Zadanie bez wpisu: widoczny przycisk „zaplanuj”. */
   onPlan?: (task: WorkItem) => void;
+  onHold?: (task: WorkItem, x: number, y: number) => void;
 }) {
   const e = taskWhen(task.id, tree, now);
   if (!e) {
     if (!onPlan || task.status === "done") return null;
-    return (
-      <button type="button" className="jr-when jr-plan" title="Nowy wpis w kalendarzu z nazwą tego zadania" onClick={() => onPlan(task)}>
-        + zaplanuj
-      </button>
-    );
+    return <PlanButton task={task} onPlan={onPlan} onHold={onHold} />;
   }
   const label = `${task.seriesId ? "↻" : "◷"} ${whenShort(e, now)}${e.estimate ? ` · ${estimateLabel(e.estimate)}` : ""}`;
   const past = e.end < now;
@@ -898,5 +906,73 @@ export function Remaining({ id, tree, now }: { id: string; tree: Tree; now: numb
     <span className="jr-remaining" title={`Zostało wg estymat ${r.tasks} ${r.tasks === 1 ? "wpisu" : "wpisów"} w kalendarzu`}>
       zostało ~{formatMinutes(r.minutes)}
     </span>
+  );
+}
+
+/** Przytrzymanie (ms), po którym „zaplanuj” zaczyna przeciąganie zadania na kalendarz. */
+const HOLD_MS = 380;
+
+/**
+ * „+ zaplanuj”: kliknięcie → nowy wpis z nazwą zadania; przytrzymanie → przeciąganie na dzień w kalendarzu
+ * (App: po upuszczeniu otwiera się okienko wpisu). Ruch palcem / myszą przed czasem anuluje przytrzymanie.
+ */
+export function PlanButton({
+  task,
+  onPlan,
+  onHold,
+  className = "",
+}: {
+  task: WorkItem;
+  onPlan: (task: WorkItem) => void;
+  onHold?: (task: WorkItem, x: number, y: number) => void;
+  className?: string;
+}) {
+  const timer = useRef<number | null>(null);
+  const start = useRef<{ x: number; y: number } | null>(null);
+  const held = useRef(false);
+  const clear = () => {
+    if (timer.current !== null) window.clearTimeout(timer.current);
+    timer.current = null;
+  };
+  return (
+    <button
+      type="button"
+      className={`jr-when jr-plan${onHold ? " holdable" : ""} ${className}`}
+      title={
+        onHold
+          ? "Kliknij: nowy wpis z nazwą zadania. Przytrzymaj i przeciągnij na dzień w kalendarzu."
+          : "Nowy wpis w kalendarzu z nazwą tego zadania"
+      }
+      onPointerDown={(e) => {
+        held.current = false;
+        if (!onHold || e.button !== 0) return;
+        start.current = { x: e.clientX, y: e.clientY };
+        clear();
+        timer.current = window.setTimeout(() => {
+          timer.current = null;
+          held.current = true;
+          const p = start.current!;
+          onHold(task, p.x, p.y);
+        }, HOLD_MS);
+      }}
+      onPointerMove={(e) => {
+        const p = start.current;
+        if (timer.current !== null && p && Math.hypot(e.clientX - p.x, e.clientY - p.y) > 8) clear();
+      }}
+      onPointerUp={clear}
+      onPointerCancel={clear}
+      onPointerLeave={clear}
+      onContextMenu={(e) => e.preventDefault()}
+      onClick={(e) => {
+        e.stopPropagation();
+        if (held.current) {
+          held.current = false;
+          return;
+        }
+        onPlan(task);
+      }}
+    >
+      + zaplanuj
+    </button>
   );
 }

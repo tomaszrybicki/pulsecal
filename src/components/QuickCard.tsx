@@ -82,6 +82,12 @@ export function QuickCard({
             if (e.key === "Enter" && canSave) onSave();
           }}
         />
+        <EstimatePicker
+          className="quick-est"
+          value={draft.estimate}
+          missing={needEst}
+          onChange={(estimate) => onChange({ ...draft, estimate })}
+        />
         {moves ? <p className="moves-hint">↷ przeniesiony {moves}×</p> : null}
         <div className="quick-when">
           <span>{whenLabel(draft)}</span>
@@ -89,12 +95,6 @@ export function QuickCard({
             {draft.allDay ? "+ godzina" : "cały dzień"}
           </button>
         </div>
-        <EstimatePicker
-          className="quick-est"
-          value={draft.estimate}
-          missing={needEst}
-          onChange={(estimate) => onChange({ ...draft, estimate })}
-        />
         <TagInput value={draft.tags} known={knownTags} maxSuggestions={6} onChange={(tags) => onChange({ ...draft, tags })} />
         <ColorSwatches small value={draft.color} onChange={(color) => onChange({ ...draft, color })} />
         {onCreateEpic && (

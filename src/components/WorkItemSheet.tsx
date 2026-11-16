@@ -20,7 +20,7 @@ import {
 } from "../work";
 import { DateField } from "./DateField";
 import { SheetFrame } from "./SheetFrame";
-import { InlineCreate, PinIcon, PriorityIcon, ProgressBar, Remaining, TypeIcon } from "./TasksView";
+import { InlineCreate, PinIcon, PlanButton, PriorityIcon, ProgressBar, Remaining, TypeIcon } from "./TasksView";
 import { estimateLabel } from "../estimate";
 import { Comments } from "./Comments";
 
@@ -38,6 +38,8 @@ type Props = {
   onPlan: (epicId: string) => void;
   /** Zadanie: nowy wpis w kalendarzu powiązany z tym zadaniem. */
   onPlanTask: (task: WorkItem) => void;
+  /** Przytrzymanie „zaplanuj”: przeciąganie zadania na dzień w kalendarzu. */
+  onPlanHold?: (task: WorkItem, x: number, y: number) => void;
   onCreate: (kind: WorkKind, title: string, parentId: string, patch?: Partial<WorkItem>) => void;
   onEditFields: () => void;
 };
@@ -68,6 +70,7 @@ const stamp = (t: number) => (t ? `${formatDayShort(new Date(t))}, ${formatClock
 export function WorkItemSheet(props: Props) {
   const { item, tree, now, fields, onSave, onDelete, onClose, onOpenItem, onOpenEvent, onPlan, onPlanTask, onCreate, onEditFields } =
     props;
+  const { onPlanHold } = props;
   const [d, setD] = useState(item);
   // niewysłany komentarz — zamknięcie okna go dodaje, żeby nie przepadł
   const [note, setNote] = useState("");
@@ -182,40 +185,49 @@ export function WorkItemSheet(props: Props) {
                 {p.events ? ` · wpisy w kalendarzu: ${p.eventsDone}/${p.events} odbyte` : ""} (razem z pod-epikami).
               </p>
               <ul className="wk-mini">
-                {children.map((c) => (
-                  <li key={c.id}>
-                    <button
-                      type="button"
-                      className="wk-open"
-                      onClick={() => {
-                        commit();
-                        onOpenItem(c);
-                      }}
-                    >
-                      <TypeIcon kind={c.kind} />
-                      <span className="jr-key">{itemKey(c)}</span>
-                      <span className="ji-child-title">{c.title}</span>
-                      {taskWhen(c.id, tree, now) && (
-                        <span className="jr-when static">◷ {whenShort(taskWhen(c.id, tree, now)!, now)}</span>
-                      )}
-                      <PriorityIcon p={priorityOf(c)} />
-                      <span className={`jr-lozenge st-${c.status}`}>{STATUS_LABEL[c.status]}</span>
-                    </button>
-                    {c.kind === "task" && !taskWhen(c.id, tree, now) && c.status !== "done" && (
-                      <button
-                        type="button"
-                        className="jr-when jr-plan"
-                        title="Nowy wpis w kalendarzu z nazwą tego zadania"
-                        onClick={() => {
-                          commit();
-                          onPlanTask(c);
-                        }}
-                      >
-                        + zaplanuj
+                {children.map((c) => {
+                  const open = () => {
+                    commit();
+                    onOpenItem(c);
+                  };
+                  const cw = c.kind === "task" ? taskWhen(c.id, tree, now) : undefined;
+                  return (
+                    <li key={c.id}>
+                      <button type="button" className="wk-open wk-open-main" onClick={open}>
+                        <TypeIcon kind={c.kind} />
+                        <span className="jr-key">{itemKey(c)}</span>
+                        <span className="ji-child-title">{c.title}</span>
                       </button>
-                    )}
-                  </li>
-                ))}
+                      {/* data albo „zaplanuj” tuż za nazwą */}
+                      {cw ? (
+                        <span className="jr-when static">◷ {whenShort(cw, now)}</span>
+                      ) : (
+                        c.kind === "task" &&
+                        c.status !== "done" && (
+                          <PlanButton
+                            task={c}
+                            onPlan={(t) => {
+                              commit();
+                              onPlanTask(t);
+                            }}
+                            onHold={
+                              onPlanHold
+                                ? (t, x, y) => {
+                                    commit();
+                                    onPlanHold(t, x, y);
+                                  }
+                                : undefined
+                            }
+                          />
+                        )
+                      )}
+                      <button type="button" className="wk-open wk-open-rest" tabIndex={-1} onClick={open}>
+                        <PriorityIcon p={priorityOf(c)} />
+                        <span className={`jr-lozenge st-${c.status}`}>{STATUS_LABEL[c.status]}</span>
+                      </button>
+                    </li>
+                  );
+                })}
               </ul>
               <InlineCreate parentId={item.id} onCreate={onCreate} />
               <button

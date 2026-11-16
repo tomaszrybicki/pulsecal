@@ -106,6 +106,12 @@ export function EventSheet({
             onChange={(e) => onChange({ ...draft, title: e.target.value })}
           />
         </label>
+        <EstimatePicker
+          className="sheet-est"
+          value={draft.estimate}
+          missing={needEst}
+          onChange={(estimate) => onChange({ ...draft, estimate })}
+        />
         <label className="toggle">
           <input type="checkbox" checked={draft.allDay} onChange={() => onChange(toggleAllDay(draft))} />
           <span className="toggle-track" aria-hidden>
@@ -206,14 +212,6 @@ export function EventSheet({
             </div>
           </>
         )}
-        <div className="field">
-          Estymata
-          <EstimatePicker
-            value={draft.estimate}
-            missing={needEst}
-            onChange={(estimate) => onChange({ ...draft, estimate })}
-          />
-        </div>
         <div className="field">
           Tagi
           <TagInput value={draft.tags} known={knownTags} onChange={(tags) => onChange({ ...draft, tags })} />

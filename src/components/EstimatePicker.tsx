@@ -1,4 +1,4 @@
-import { ESTIMATES, estimateLabel } from "../estimate";
+import { ESTIMATES, UNKNOWN_ESTIMATE, estimateLabel } from "../estimate";
 
 type Props = {
   value?: number;
@@ -26,6 +26,16 @@ export function EstimatePicker({ value, onChange, missing = false, label, classN
           {estimateLabel(m)}
         </button>
       ))}
+      <button
+        type="button"
+        className={`est-unknown${value === UNKNOWN_ESTIMATE ? " on" : ""}`}
+        aria-pressed={value === UNKNOWN_ESTIMATE}
+        aria-label="Nie wiem (bez estymaty)"
+        title="Nie wiem — wpis bez estymaty"
+        onClick={() => onChange(value === UNKNOWN_ESTIMATE ? undefined : UNKNOWN_ESTIMATE)}
+      >
+        ?
+      </button>
       {missing && <span className="est-need">wybierz estymatę</span>}
     </div>
   );
@@ -33,6 +43,6 @@ export function EstimatePicker({ value, onChange, missing = false, label, classN
 
 /** „ (30min)” za tytułem wpisu w kalendarzu. */
 export function EstSuffix({ min }: { min?: number }) {
-  if (!min) return null;
+  if (!min || min < 0) return null;
   return <span className="est-suffix"> ({estimateLabel(min)})</span>;
 }

@@ -116,6 +116,17 @@ Previous sessions: first Cursor IDE (built the MVP), then Claude in a chat sessi
 code audit and rewrote the data and sync layer, then stopped at the owner's request.
 **Start by reading `CLAUDE.md`.**
 
+## v0.36.0: hold "zaplanuj" to drag a task onto the calendar, "?" estimate
+- `PlanButton` (TasksView, also used in WorkItemSheet): click → `onPlan`; hold `HOLD_MS` 380 without moving →
+  `onPlanHold(task, x, y)` → App `startPlanDrag`.
+- App plan drag: switches to `lastCalView`; TasksView stays mounted inside `.tasks-host` (display none) so the
+  pressed element stays in the DOM (touch keeps its pointer); `body.plan-dragging` hides sheet backdrops.
+  Window pointermove / pointerup / pointercancel / Esc. Drop target via `elementsFromPoint` → `[data-day]`
+  (`.m-day`, `.allday`, `.hours`; `.hours` → minutes from y). Drop → draft (all-day or timed) with
+  `taskId` / title / epic, anchored at the drop point. `.plan-over` marks the hovered day, `.plan-ghost` follows.
+- `UNKNOWN_ESTIMATE` (-1) is draft-only; `storedEstimate()` drops it when saving (saveDraft, EventMenu).
+- Estimate picker moved right under the title (QuickCard, EventSheet).
+
 ## v0.35.0: P never in the past, "zaplanuj" on task rows
 - `planEvent` / `planDraft` search from `max(event day, today)`; `findFreeSlot` already starts at now for today.
 - `WhenChip onPlan` → „+ zaplanuj” for unscheduled, not-done tasks (TasksView list, prop `onPlanTask`);

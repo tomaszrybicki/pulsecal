@@ -6,6 +6,7 @@ import { ColorSwatches } from "./ColorSwatches";
 import { TagInput } from "./TagInput";
 import { EpicPicker } from "./EpicPicker";
 import { EstimatePicker } from "./EstimatePicker";
+import { storedEstimate } from "../estimate";
 
 type Props = {
   event: CalEvent;
@@ -52,7 +53,7 @@ export function EventMenu({ event, anchor, knownTags, onClose, onPatch, onDelete
         value={estimate}
         onChange={(m) => {
           setEstimate(m);
-          onPatch({ estimate: m });
+          onPatch({ estimate: storedEstimate(m) });
         }}
       />
       <TagInput

@@ -61,7 +61,7 @@ import {
   withDefaultTags,
 } from "./tags";
 import type { CalEvent, DraftEvent, ViewMode, WorkField, WorkItem, WorkKind } from "./types";
-import { formatMinutes } from "./estimate";
+import { formatMinutes, storedEstimate } from "./estimate";
 import {
   SLEEPY_DAYS,
   remainingEstimate,
@@ -79,7 +79,9 @@ import {
 } from "./work";
 import {
   MINUTE,
+  atMinutes,
   formatClock,
+  fromIsoDate,
   longDateLabel,
   addDays,
   addMonths,
@@ -395,7 +397,8 @@ export function App() {
       color: draft.color,
       epicId: draft.epicId || undefined,
       autoSlot: draft.autoSlot || undefined,
-      estimate: draft.estimate || undefined,
+      // „?” (nie wiem) pozwala zapisać przy wymaganej estymacie, ale się nie zapisuje
+      estimate: storedEstimate(draft.estimate),
       moves: existing ? countMove(existing, when.start) : 0,
       tags: applyTagRules(
         draft.title.trim(),
@@ -746,6 +749,99 @@ export function App() {
     setWorkOpen(null);
     openDraft({ ...timedDraft(nextQuarter().getTime(), newColor), epicId }, editorMode);
   };
+
+  /* ── przytrzymanie „zaplanuj”: zadanie przeciągane na dzień w kalendarzu ── */
+
+  const [planDrag, setPlanDrag] = useState<{ task: WorkItem; x: number; y: number; label: string } | null>(null);
+  const planDragRef = useRef(planDrag);
+  planDragRef.current = planDrag;
+  const planDragFrom = useRef<ViewMode>("tasks");
+
+  const startPlanDrag = (task: WorkItem, x: number, y: number) => {
+    planDragFrom.current = view;
+    if (view === "tasks") setView(lastCalView.current);
+    setPlanDrag({ task, x, y, label: "" });
+  };
+
+  /** Dzień pod punktem: kolumna godzin w mapie (z godziną, co 15 min) albo dzień w miesiącu / pasmo całodniowe. */
+  const planTargetAt = (x: number, y: number): { el: HTMLElement; day: Date; minutes: number | null } | null => {
+    for (const node of document.elementsFromPoint(x, y)) {
+      const el = node as HTMLElement;
+      const iso = el.dataset?.day;
+      if (!iso) continue;
+      const day = fromIsoDate(iso);
+      if (el.classList.contains("hours")) {
+        const r = el.getBoundingClientRect();
+        const min = Math.floor(((y - r.top) / (r.height / 24)) * 4) * 15;
+        return { el, day, minutes: Math.min(23 * 60 + 45, Math.max(0, min)) };
+      }
+      return { el, day, minutes: null };
+    }
+    return null;
+  };
+
+  useEffect(() => {
+    if (!planDrag) return;
+    document.body.classList.add("plan-dragging");
+    let raf = 0;
+    let over: HTMLElement | null = null;
+    const mark = (el: HTMLElement | null) => {
+      if (over === el) return;
+      over?.classList.remove("plan-over");
+      el?.classList.add("plan-over");
+      over = el;
+    };
+    const move = (e: PointerEvent) => {
+      const { clientX: x, clientY: y } = e;
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        const t = planTargetAt(x, y);
+        mark(t?.el ?? null);
+        const label = t
+          ? `${longDateLabel(t.day)}${t.minutes === null ? " · cały dzień" : `, ${formatClock(atMinutes(t.day, t.minutes))}`}`
+          : "";
+        setPlanDrag((p) => p && { ...p, x, y, label });
+      });
+    };
+    const finish = (e: PointerEvent | null) => {
+      const task = planDragRef.current?.task;
+      const t = e ? planTargetAt(e.clientX, e.clientY) : null;
+      mark(null);
+      setPlanDrag(null);
+      if (!task) return;
+      if (!t) {
+        // upuszczone obok kalendarza — wracamy tam, skąd zaczęło się przeciąganie
+        if (planDragFrom.current === "tasks") setView("tasks");
+        return;
+      }
+      setWorkOpen(null);
+      const base =
+        t.minutes === null ? allDayDraft(t.day, newColor) : timedDraft(atMinutes(t.day, t.minutes).getTime(), newColor);
+      setStuckId(null);
+      setAnchor(isDesktop && e ? { x: e.clientX, y: e.clientY } : null);
+      setEditor(editorMode);
+      setDraft({ ...base, title: task.title, epicId: task.parentId || undefined, taskId: task.id });
+    };
+    const up = (e: PointerEvent) => finish(e);
+    const cancel = () => finish(null);
+    const key = (e: KeyboardEvent) => {
+      if (e.key === "Escape") cancel();
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+    window.addEventListener("pointercancel", cancel);
+    window.addEventListener("keydown", key);
+    return () => {
+      cancelAnimationFrame(raf);
+      over?.classList.remove("plan-over");
+      document.body.classList.remove("plan-dragging");
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      window.removeEventListener("pointercancel", cancel);
+      window.removeEventListener("keydown", key);
+    };
+    // tylko początek / koniec przeciągania; pozycję aktualizuje sam efekt
+  }, [planDrag !== null]);
 
   /** „Zaplanuj w kalendarzu” przy zadaniu: nowy wpis z nazwą zadania, w jego epiku, powiązany z zadaniem. */
   const planTask = (task: WorkItem) => {
@@ -1163,18 +1259,23 @@ export function App() {
         />
 
         <main className="map-shell">
-          {view === "tasks" ? (
-            <TasksView
-              tree={tree}
-              now={now.getTime()}
-              onOpen={(i) => setWorkOpen(i.id)}
-              onCreate={createItem}
-              onPatch={(i, p) => patchItem(i.id, p)}
-              onOpenEvent={openEventFromWork}
-              onPlanTask={planTask}
-              onEditFields={() => setFieldsOpen(true)}
-            />
-          ) : view === "map" ? (
+          {/* widok zadań zostaje w DOM (ukryty) podczas przeciągania z niego — dotyk nie gubi wtedy palca */}
+          {(view === "tasks" || planDrag) && (
+            <div className="tasks-host" style={{ display: view === "tasks" ? "contents" : "none" }}>
+              <TasksView
+                tree={tree}
+                now={now.getTime()}
+                onOpen={(i) => setWorkOpen(i.id)}
+                onCreate={createItem}
+                onPatch={(i, p) => patchItem(i.id, p)}
+                onOpenEvent={openEventFromWork}
+                onPlanTask={planTask}
+                onPlanHold={startPlanDrag}
+                onEditFields={() => setFieldsOpen(true)}
+              />
+            </div>
+          )}
+          {view === "tasks" ? null : view === "map" ? (
             <CalendarMap
               now={now}
               days={mapDays}
@@ -1231,6 +1332,13 @@ export function App() {
       </div>
 
       <Toast notice={sync.notice} />
+
+      {planDrag && (
+        <div className="plan-ghost" style={{ transform: `translate(${planDrag.x + 14}px, ${planDrag.y + 12}px)` }} aria-hidden>
+          <b>◷ {planDrag.task.title || "(bez nazwy)"}</b>
+          <span>{planDrag.label || "upuść na dzień w kalendarzu · Esc anuluje"}</span>
+        </div>
+      )}
 
       <AnimatePresence>
         {draft && editor === "quick" && (
@@ -1331,6 +1439,7 @@ export function App() {
             onOpenEvent={openEventFromWork}
             onPlan={planInEpic}
             onPlanTask={planTask}
+            onPlanHold={startPlanDrag}
             fields={workFields}
             onCreate={createItem}
             onEditFields={() => setFieldsOpen(true)}

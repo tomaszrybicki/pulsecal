@@ -207,8 +207,9 @@ logowanie Google bez własnego serwera (Google Identity Services).
 
 ### Estymata czasowa
 
-- Szybkie przyciski **5min / 30min / 1h / 2h+** w szybkiej karcie, w menu pod prawym przyciskiem i w pełnej
-  edycji („Estymata”). Ponowne kliknięcie wybranej usuwa estymatę.
+- Szybkie przyciski **5min / 30min / 1h / 2h+** tuż pod tytułem w szybkiej karcie i w pełnej edycji, a także
+  w menu pod prawym przyciskiem. Ponowne kliknięcie wybranej usuwa estymatę.
+- **„?”** (nie wiem): pozwala zapisać wpis przy „Wymagaj estymaty”, ale nic się nie zapisuje ani nie wyświetla.
 - Widać ją w nawiasie za tytułem, np. „Dentysta (30min)”: w mapie, w miesiącu i w przeglądzie dnia.
 - W epiku: „zostało ~3h 35min” = suma estymat wpisów niezrobionych zadań (z pod-epikami) — w nagłówku grupy
   epiku na liście, w szczegółach epiku i przy przypiętym epiku w panelu bocznym („2/9 · ~30min”).
@@ -247,8 +248,11 @@ Prosta „jira” do spraw osobistych — trzeci widok „zadania” (obok „ma
 - **Epik** to większa sprawa (np. „remont kuchni”). W epiku są **zadania** i mniejsze epiki. Każde zadanie i epik
   ma klucz jak w Jirze: PC-1, PC-2… Przycisk „?” w widoku zadań krótko to wyjaśnia.
 - **Zadanie może mieć termin w kalendarzu** (◷ przy nazwie; klik otwiera wpis), ale nie musi:
-  - „+ zaplanuj” przy każdym zadaniu bez terminu (lista zadań, zawartość epiku, szczegóły zadania) tworzy wpis
-    z nazwą zadania, w jego epiku, powiązany z zadaniem;
+  - „+ zaplanuj” tuż za nazwą każdego zadania bez terminu (lista zadań, zawartość epiku, szczegóły zadania)
+    tworzy wpis z nazwą zadania, w jego epiku, powiązany z zadaniem;
+  - **przytrzymanie „zaplanuj”** zaczyna przeciąganie: widok przełącza się na kalendarz, karta zadania płynie
+    pod kursorem (z podpowiedzią dnia / godziny), a upuszczenie na dzień (miesiąc, pasmo całodniowe → cały dzień)
+    albo na godzinę w mapie otwiera okienko nowego wpisu do uzupełnienia. Esc albo upuszczenie obok anuluje;
   - dowolny wpis dodany do epiku (pole „Epik”) pojawia się w epiku jako zadanie z datą — ze statusem,
     priorytetem, komentarzami i własnymi polami (istniejące wpisy w epikach dostały zadania same);
   - status zadania z wpisem jest automatyczny: „zrobione”, gdy wpis się skończy. Zmieniony ręcznie zostaje
