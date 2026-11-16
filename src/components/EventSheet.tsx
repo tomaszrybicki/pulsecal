@@ -27,6 +27,12 @@ type Props = {
   epics?: { id: string; label: string }[];
   /** Nowy epik z poziomu wpisu → jego ID. */
   onCreateEpic?: (name: string) => string;
+  /** Otwarte po N-tym przeniesieniu: podpowiedź „zacznij od prostego kroku” i kursor w tytule. */
+  stuck?: boolean;
+  /** „P”: najbliższa wolna godzina w godzinach produktywności (albo wyłączenie). */
+  onPlan?: () => void;
+  /** np. „9:00–17:00” */
+  prodLabel?: string;
 };
 
 const NATIVE_DATE = prefersNativeDate();
@@ -43,6 +49,9 @@ export function EventSheet({
   moves,
   epics = [],
   onCreateEpic,
+  stuck = false,
+  onPlan,
+  prodLabel,
 }: Props) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -76,11 +85,17 @@ export function EventSheet({
   return (
     <SheetFrame anchor={anchor} label="Wpis" onDismiss={onDismiss}>
         <h2>{draft.id ? "Wpis" : "Nowy blob"}</h2>
-        {moves ? <p className="moves-hint">↷ przeniesiony {moves}×</p> : null}
+        {stuck ? (
+          <p className="stuck-hint">
+            ↷ {moves}. przeniesienie. Zacznij od prostego kroku — wpisz go jako tytuł.
+          </p>
+        ) : moves ? (
+          <p className="moves-hint">↷ przeniesiony {moves}×</p>
+        ) : null}
         <label className="field">
           Tytuł
           <input
-            data-autofocus={!draft.id || undefined}
+            data-autofocus={!draft.id || stuck || undefined}
             value={draft.title}
             placeholder="Co się dzieje?"
             onChange={(e) => onChange({ ...draft, title: e.target.value })}
@@ -93,6 +108,19 @@ export function EventSheet({
           </span>
           Cały dzień
         </label>
+        {onPlan && (
+          <button
+            type="button"
+            className={`plan-toggle${draft.autoSlot ? " on" : ""}`}
+            aria-pressed={Boolean(draft.autoSlot)}
+            onClick={onPlan}
+          >
+            <b>P</b>
+            {draft.autoSlot
+              ? `w godzinach produktywności${prodLabel ? ` (${prodLabel})` : ""} — kliknij, żeby wyłączyć`
+              : `najbliższa wolna godzina${prodLabel ? ` w ${prodLabel}` : ""}`}
+          </button>
+        )}
         {NATIVE_DATE ? (
           // iPhone/iPad: natywne pola (kółko wyboru) — bez siatki tygodnia, więc bez problemu z niedzielą
           draft.allDay ? (

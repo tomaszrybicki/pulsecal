@@ -27,6 +27,7 @@ export function draftFromEvent(e: CalEvent): DraftEvent {
     color: e.color,
     tags: e.tags ?? [],
     epicId: e.epicId,
+    autoSlot: e.autoSlot,
   };
 }
 
@@ -81,7 +82,8 @@ export function isDirty(d: DraftEvent, original: CalEvent | undefined): boolean 
     d.end !== original.end ||
     d.allDay !== original.allDay ||
     d.tags.join(",") !== (original.tags ?? []).join(",") ||
-    (d.epicId ?? "") !== (original.epicId ?? "")
+    (d.epicId ?? "") !== (original.epicId ?? "") ||
+    Boolean(d.autoSlot) !== Boolean(original.autoSlot)
   );
 }
 

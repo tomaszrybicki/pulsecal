@@ -7,6 +7,7 @@ import { getTagRules, withDefaultRules, type TagRule } from "./tagRules";
 import type { WorkField } from "./types";
 import { getWorkFields, setWorkFields } from "./work";
 import { getMoveThreshold, setMoveThreshold } from "./moves";
+import { getProdHours, getSlotMin, setProdHours, setSlotMin } from "./prefs";
 import { getPaintTags, getTagColors, reloadPaintTags, reloadTagColors } from "./tags";
 
 export type AppSettings = {
@@ -24,6 +25,10 @@ export type AppSettings = {
   moveThreshold?: number;
   /** Własne pola zadań (definicje). */
   workFields?: WorkField[];
+  /** Godziny produktywności (minuty od północy) i długość wpisu z „P”. */
+  prodFrom?: number;
+  prodTo?: number;
+  slotMin?: number;
   /** 2 = reguły zawierają już domyślną „!” (starsze kopie jej nie mają). */
   rulesV?: number;
 };
@@ -69,6 +74,9 @@ export function collectSettings(): AppSettings {
     moveThreshold: getMoveThreshold(),
     rulesV: 2,
     workFields: getWorkFields(),
+    prodFrom: getProdHours().from,
+    prodTo: getProdHours().to,
+    slotMin: getSlotMin(),
   };
 }
 
@@ -118,6 +126,10 @@ export function applySettings(b: SettingsBackup): void {
   reloadPaintTags();
   if (s.moveThreshold) setMoveThreshold(s.moveThreshold);
   if (Array.isArray(s.workFields)) setWorkFields(s.workFields);
+  if (typeof s.prodFrom === "number" && typeof s.prodTo === "number" && s.prodTo > s.prodFrom) {
+    setProdHours({ from: s.prodFrom, to: s.prodTo });
+  }
+  if (s.slotMin) setSlotMin(s.slotMin);
   const json = settingsJson(collectSettings());
   localStorage.setItem(SEEN, json);
   localStorage.setItem(BACKED, json);

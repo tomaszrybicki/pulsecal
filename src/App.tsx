@@ -4,13 +4,13 @@ import { CalendarMap } from "./components/CalendarMap";
 import { DayPanel } from "./components/DayPanel";
 import { EpicContext, type EpicInfo } from "./components/EpicTag";
 import { EventMenu } from "./components/EventMenu";
-import { MovePrompt } from "./components/MovePrompt";
 import { EventSheet } from "./components/EventSheet";
 import type { WeekSelection } from "./components/MiniCalendar";
 import { MonthView } from "./components/MonthView";
 import { QuickCard } from "./components/QuickCard";
 import { SearchSheet } from "./components/SearchSheet";
 import { SettingsSheet } from "./components/SettingsSheet";
+import { PrefsSheet } from "./components/PrefsSheet";
 import { Sidebar } from "./components/Sidebar";
 import { TagRulesSheet } from "./components/TagRulesSheet";
 import { TasksView } from "./components/TasksView";
@@ -29,6 +29,17 @@ import { useNow } from "./hooks/useNow";
 import { useSettingsBackup } from "./hooks/useSettingsBackup";
 import { useTheme } from "./hooks/useTheme";
 import { countMove, crossesThreshold, getMoveThreshold, setMoveThreshold } from "./moves";
+import {
+  findFreeSlot,
+  getAlwaysFull,
+  getProdHours,
+  getSlotMin,
+  minutesLabel,
+  setAlwaysFull,
+  setProdHours,
+  setSlotMin,
+  type ProdHours,
+} from "./prefs";
 import type { ParsedEntry } from "./quickParse";
 import { getCalendarId, getStoredClientId, preloadGoogle, setStoredClientId, switchCalendar } from "./sync/google";
 import { applyTagRules, getTagRules, setTagRules, type TagRule } from "./tagRules";
@@ -62,6 +73,8 @@ import {
 } from "./work";
 import {
   MINUTE,
+  formatClock,
+  longDateLabel,
   addDays,
   addMonths,
   chunkWeeks,
@@ -157,12 +170,19 @@ export function App() {
   const [rules, setRules] = useState<TagRule[]>(getTagRules);
   const [rulesOpen, setRulesOpen] = useState(false);
   const [moveThreshold, setMoveThresholdState] = useState(getMoveThreshold);
-  // wpis przeniesiony po raz N-ty → propozycja rozbicia na kroki
-  const [movePrompt, setMovePrompt] = useState<CalEvent | null>(null);
+  // wpis przeniesiony po raz N-ty → pełna edycja z kursorem w tytule i podpowiedzią „prosty krok”
+  const [stuckId, setStuckId] = useState<string | null>(null);
+  // ustawienia (odnośnik „ustawienia” w panelu bocznym)
+  const [prefsOpen, setPrefsOpen] = useState(false);
+  const [prodHours, setProdHoursState] = useState<ProdHours>(getProdHours);
+  const [slotMin, setSlotMinState] = useState(getSlotMin);
+  const [alwaysFull, setAlwaysFullState] = useState(getAlwaysFull);
   // zmiana koloru tagu → przerysowanie wszystkiego (tagColor czyta z modułu tags.ts)
   const [tagColorsVer, setTagColorsVer] = useState(0);
   // na komputerze kliknięcie wpisu od razu pokazuje wszystkie opcje (bez „Więcej")
   const isDesktop = useMediaQuery(DESKTOP_QUERY);
+  // kliknięcie wpisu: pełna edycja na komputerze albo gdy tak ustawiono; inaczej szybka karta
+  const editorMode = isDesktop || alwaysFull ? "full" : "quick";
   const theme = useTheme();
   // panel boczny: na komputerze stała kolumna (zapamiętana), na telefonie wysuwana szuflada
   const [dockOpen, setDockOpen] = useState(() => localStorage.getItem(SIDEBAR_KEY) !== "0");
@@ -284,6 +304,8 @@ export function App() {
     tagColorsVer,
     moveThreshold,
     workFields,
+    prodHours,
+    slotMin,
   ]);
 
   useEffect(() => {
@@ -308,6 +330,7 @@ export function App() {
       allDay: draft.allDay,
       color: draft.color,
       epicId: draft.epicId || undefined,
+      autoSlot: draft.autoSlot || undefined,
       moves: existing ? countMove(existing, draft.start) : 0,
       tags: applyTagRules(
         draft.title.trim(),
@@ -321,9 +344,9 @@ export function App() {
       pending: 1,
     };
     await saveLocal(event);
-    if (existing && crossesThreshold(existing.moves ?? 0, event.moves ?? 0)) setMovePrompt(event);
     // klik obok mógł już otworzyć inny wpis — zamykamy tylko ten, który zapisaliśmy
     setDraft((cur) => (cur === saving ? null : cur));
+    if (existing && crossesThreshold(existing.moves ?? 0, event.moves ?? 0)) promptMoved(event);
     if (!isVisible(event.tags, hiddenTags)) sync.notify("Zapisano. Wpis jest ukryty przez filtr tagów.", "warn");
     sync.requestSync();
   };
@@ -335,6 +358,7 @@ export function App() {
   };
 
   const openDraft = (d: DraftEvent, mode: "quick" | "full" = "quick") => {
+    setStuckId(null);
     setAnchor(pointerAnchor());
     setEditor(mode);
     setDraft(d);
@@ -349,12 +373,87 @@ export function App() {
     }
   };
 
-  const moveEvent = async (e: CalEvent, start: number, end: number) => {
+  /** N-te przeniesienie: krótka informacja i pełna edycja z kursorem w tytule („zacznij od prostego kroku”). */
+  const promptMoved = (e: CalEvent) => {
+    sync.notify(`„${e.title}” — ${e.moves}. przeniesienie`, "warn");
+    setDayPanel(null);
+    setMenu(null);
+    setAnchor(null);
+    setEditor("full");
+    setDraft(draftFromEvent(e));
+    setStuckId(e.id);
+  };
+
+  /* ── „P”: najbliższa wolna godzina w godzinach produktywności ── */
+
+  const prodLabel = `${minutesLabel(prodHours.from)}–${minutesLabel(prodHours.to)}`;
+
+  /** Wolne miejsce tego dnia dla wpisu (całodniowy → `slotMin` minut, z godziną → jego długość). */
+  const slotOn = async (day: Date, e: Pick<CalEvent, "id" | "allDay" | "start" | "end">) => {
+    const from = startOfDay(day).getTime();
+    const list = await eventsInRange(from, addDays(day, 1).getTime());
+    const dur = e.allDay ? slotMin * MINUTE : Math.max(e.end - e.start, 5 * MINUTE);
+    const t = findFreeSlot(list, day, dur, Date.now(), prodHours, e.id);
+    return t === null ? null : { start: t, end: t + dur };
+  };
+
+  const noSlot = (day: Date) =>
+    sync.notify(`Brak wolnego miejsca ${sameDay(day, new Date()) ? "dziś" : longDateLabel(day)} w godzinach ${prodLabel}`, "warn");
+
+  /** „P” na wpisie: włącz i wstaw w najbliższą wolną godzinę tego dnia; ponownie — wyłącz (godzina zostaje). */
+  const planEvent = async (e: CalEvent) => {
+    const cur = await db.events.get(e.id);
+    if (!cur) return;
+    if (cur.autoSlot) {
+      await saveLocal({ ...cur, autoSlot: undefined });
+      sync.requestSync(2000);
+      sync.notify(`„${cur.title}”: „P” wyłączone, godzina zostaje`);
+      return;
+    }
+    const day = new Date(cur.start);
+    const slot = await slotOn(day, cur);
+    if (!slot) return noSlot(day);
+    await saveLocal({ ...cur, allDay: false, start: slot.start, end: slot.end, autoSlot: true });
+    sync.requestSync(2000);
+    sync.notify(`„${cur.title}” → ${formatClock(new Date(slot.start))}–${formatClock(new Date(slot.end))}`, "ok", {
+      label: "Cofnij",
+      run: () =>
+        void (async () => {
+          await saveLocal(cur);
+          sync.requestSync();
+        })(),
+    });
+  };
+
+  /** „P” w pełnej edycji: to samo na szkicu (zapis dopiero przyciskiem „Zapisz”). */
+  const planDraft = async () => {
+    const d = draft;
+    if (!d) return;
+    if (d.autoSlot) {
+      setDraft((cur) => (cur === d ? { ...d, autoSlot: false } : cur));
+      return;
+    }
+    const day = new Date(d.start);
+    const slot = await slotOn(day, { id: d.id ?? "", allDay: d.allDay, start: d.start, end: d.end });
+    if (!slot) return noSlot(day);
+    setDraft((cur) => (cur === d ? { ...d, allDay: false, start: slot.start, end: slot.end, autoSlot: true } : cur));
+  };
+
+  /**
+   * Przeniesienie wpisu. `reslot` (przeniesienie samego dnia: widok miesiąca, „>”) — wpis z „P” dostaje
+   * najbliższą wolną godzinę w nowym dniu zamiast tej samej godziny.
+   */
+  const moveEvent = async (e: CalEvent, start: number, end: number, reslot = false) => {
     const current = await db.events.get(e.id);
     if (!current) return;
-    const next = { ...current, start, end, moves: countMove(current, start) };
+    let next = { ...current, start, end, moves: countMove(current, start) };
+    if (reslot && current.autoSlot && !sameDay(new Date(current.start), new Date(start))) {
+      const slot = await slotOn(new Date(start), current);
+      if (slot) next = { ...next, allDay: false, start: slot.start, end: slot.end };
+      else noSlot(new Date(start));
+    }
     await saveLocal(next);
-    if (crossesThreshold(current.moves ?? 0, next.moves)) setMovePrompt(next);
+    if (crossesThreshold(current.moves ?? 0, next.moves)) promptMoved(next);
     sync.requestSync();
   };
 
@@ -365,11 +464,16 @@ export function App() {
     let prompt: CalEvent | null = null;
     for (const e of before) {
       const start = addDays(new Date(e.start), days).getTime();
-      const next = { ...e, start, end: addDays(new Date(e.end), days).getTime(), moves: countMove(e, start) };
+      let next = { ...e, start, end: addDays(new Date(e.end), days).getTime(), moves: countMove(e, start) };
+      if (e.autoSlot) {
+        const slot = await slotOn(new Date(start), e);
+        if (slot) next = { ...next, allDay: false, start: slot.start, end: slot.end };
+        else noSlot(new Date(start));
+      }
       await saveLocal(next);
       if (!prompt && crossesThreshold(e.moves ?? 0, next.moves)) prompt = next;
     }
-    if (prompt) setMovePrompt(prompt);
+    if (prompt) promptMoved(prompt);
     sync.requestSync(4000);
     const n = before.length;
     const what = n === 1 ? `„${before[0].title}”` : `${n} ${n < 5 ? "wpisy" : "wpisów"}`;
@@ -522,12 +626,12 @@ export function App() {
   /** Z epiku: nowy wpis w kalendarzu od razu przypięty do epiku. */
   const planInEpic = (epicId: string) => {
     setWorkOpen(null);
-    openDraft({ ...timedDraft(nextQuarter().getTime(), newColor), epicId }, isDesktop ? "full" : "quick");
+    openDraft({ ...timedDraft(nextQuarter().getTime(), newColor), epicId }, editorMode);
   };
 
   const openEventFromWork = (e: CalEvent) => {
     setWorkOpen(null);
-    openDraft(draftFromEvent(e), isDesktop ? "full" : "quick");
+    openDraft(draftFromEvent(e), editorMode);
   };
 
   /**
@@ -592,53 +696,10 @@ export function App() {
     );
   };
 
-  /** Z okienka „przeniesiony N razy”: kroki jako osobne wpisy tego dnia (30 min po kolei) albo w notatce. */
-  const createSteps = async (e: CalEvent, steps: string[]) => {
-    setMovePrompt(null);
-    const ids: string[] = [];
-    for (let i = 0; i < steps.length; i++) {
-      const start = e.allDay ? e.start : e.start + i * 30 * MINUTE;
-      const id = newEventId();
-      ids.push(id);
-      await saveLocal({
-        id,
-        title: steps[i],
-        notes: `Krok ${i + 1}/${steps.length} z „${e.title}”`,
-        start,
-        end: e.allDay ? e.end : start + 30 * MINUTE,
-        allDay: e.allDay,
-        color: e.color,
-        tags: e.tags ?? [],
-        origin: "local",
-        updatedAt: Date.now(),
-        deleted: false,
-        pending: 1,
-      });
-    }
-    sync.requestSync(4000);
-    sync.notify(`Utworzono ${steps.length} ${steps.length === 1 ? "krok" : steps.length < 5 ? "kroki" : "kroków"}`, "ok", {
-      label: "Cofnij",
-      run: () =>
-        void (async () => {
-          for (const id of ids) await removeLocal(id);
-          sync.requestSync();
-        })(),
-    });
-  };
-
-  const appendSteps = async (e: CalEvent, steps: string[]) => {
-    setMovePrompt(null);
-    const cur = await db.events.get(e.id);
-    if (!cur) return;
-    const list = steps.map((s) => `- ${s}`).join("\n");
-    await saveLocal({ ...cur, notes: cur.notes.trim() ? `${cur.notes.trimEnd()}\n\nKroki:\n${list}` : `Kroki:\n${list}` });
-    sync.requestSync(2000);
-    sync.notify("Kroki dopisane do notatki");
-  };
-
   const eventActions = {
     onDelete: isDesktop ? (e: CalEvent) => void deleteEvent(e.id) : undefined,
     onContext: isDesktop ? (e: CalEvent, pt: Anchor) => setMenu({ e, anchor: pt }) : undefined,
+    onPlan: isDesktop ? (e: CalEvent) => void planEvent(e) : undefined,
   };
 
   const changeCalendar = async (id: string) => {
@@ -700,7 +761,7 @@ export function App() {
   const goTodayRef = useRef(goToday);
   goTodayRef.current = goToday;
   const sheetOpen =
-    Boolean(draft) || settingsOpen || searchOpen || rulesOpen || Boolean(dayPanel) || Boolean(menu) || Boolean(workOpen) || fieldsOpen;
+    Boolean(draft) || settingsOpen || searchOpen || rulesOpen || Boolean(dayPanel) || Boolean(menu) || Boolean(workOpen) || fieldsOpen || prefsOpen;
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (sheetOpen || e.ctrlKey || e.metaKey || e.altKey) return;
@@ -802,7 +863,7 @@ export function App() {
   const openFromSearch = (e: CalEvent) => {
     setSearchOpen(false);
     goToDay(new Date(e.start));
-    openDraft(draftFromEvent(e), isDesktop ? "full" : "quick");
+    openDraft(draftFromEvent(e), editorMode);
   };
 
   const createFromSearch = async (p: ParsedEntry) => {
@@ -923,7 +984,7 @@ export function App() {
           }}
           onCreate={() => {
             closeDrawer();
-            openDraft(timedDraft(nextQuarter().getTime(), newColor), isDesktop ? "full" : "quick");
+            openDraft(timedDraft(nextQuarter().getTime(), newColor), editorMode);
           }}
           viewSwitch={viewChips(closeDrawer)}
           view={view}
@@ -936,6 +997,10 @@ export function App() {
           onOpenEpic={(id) => {
             closeDrawer();
             setWorkOpen(id);
+          }}
+          onOpenPrefs={() => {
+            closeDrawer();
+            setPrefsOpen(true);
           }}
           tags={tagList}
           hidden={hiddenTags}
@@ -984,7 +1049,7 @@ export function App() {
               {...eventActions}
               onSlot={(start) => openDraft(timedDraft(start.getTime(), newColor))}
               onAllDaySlot={(day) => openDraft(allDayDraft(day, newColor))}
-              onEvent={(e) => openDraft(draftFromEvent(e), isDesktop ? "full" : "quick")}
+              onEvent={(e) => openDraft(draftFromEvent(e), editorMode)}
               onMove={(e, start, end) => void moveEvent(e, start, end)}
             />
           ) : (
@@ -999,8 +1064,8 @@ export function App() {
               }}
               onDayDetails={(d) => setDayPanel({ day: startOfDay(d), anchor: pointerAnchor() })}
               onAdd={(d) => openDraft(allDayDraft(d, newColor))}
-              onEvent={(e) => openDraft(draftFromEvent(e), isDesktop ? "full" : "quick")}
-              onMove={(e, start, end) => void moveEvent(e, start, end)}
+              onEvent={(e) => openDraft(draftFromEvent(e), editorMode)}
+              onMove={(e, start, end) => void moveEvent(e, start, end, true)}
               onStep={step}
               {...eventActions}
             />
@@ -1055,6 +1120,9 @@ export function App() {
             moves={events.find((e) => e.id === draft.id)?.moves}
             epics={epicChoices}
             onCreateEpic={createEpicNamed}
+            stuck={stuckId === draft.id}
+            onPlan={() => void planDraft()}
+            prodLabel={prodLabel}
             onChange={setDraft}
             onClose={() => setDraft(null)}
             onDismiss={dismissDraft}
@@ -1074,7 +1142,7 @@ export function App() {
               (e) => e.start < addDays(dayPanel.day, 1).getTime() && e.end > dayPanel.day.getTime(),
             )}
             onClose={() => setDayPanel(null)}
-            onOpen={(e) => openDraft(draftFromEvent(e), isDesktop ? "full" : "quick")}
+            onOpen={(e) => openDraft(draftFromEvent(e), editorMode)}
             onShift={(list, days) => void shiftEvents(list, days)}
             onDelete={(e) => void deleteEvent(e.id)}
             onContext={eventActions.onContext}
@@ -1135,13 +1203,35 @@ export function App() {
       </AnimatePresence>
 
       <AnimatePresence>
-        {movePrompt && !draft && (
-          <MovePrompt
-            key={`move-${movePrompt.id}`}
-            event={movePrompt}
-            onClose={() => setMovePrompt(null)}
-            onAppendNotes={(steps) => void appendSteps(movePrompt, steps)}
-            onCreateSteps={(steps) => void createSteps(movePrompt, steps)}
+        {prefsOpen && (
+          <PrefsSheet
+            key="prefs"
+            moveThreshold={moveThreshold}
+            onMoveThreshold={(v) => {
+              setMoveThreshold(v);
+              setMoveThresholdState(v);
+            }}
+            hours={prodHours}
+            onHours={(h) => {
+              setProdHours(h);
+              setProdHoursState(h);
+            }}
+            slotMin={slotMin}
+            onSlotMin={(n) => {
+              setSlotMin(n);
+              setSlotMinState(n);
+            }}
+            alwaysFull={alwaysFull}
+            onAlwaysFull={(on) => {
+              setAlwaysFull(on);
+              setAlwaysFullState(on);
+            }}
+            isDesktop={isDesktop}
+            onOpenSync={() => {
+              setPrefsOpen(false);
+              setSettingsOpen(true);
+            }}
+            onClose={() => setPrefsOpen(false)}
           />
         )}
       </AnimatePresence>
@@ -1184,11 +1274,6 @@ export function App() {
             onClientId={setClientId}
             onCalendarId={(id) => void changeCalendar(id)}
             onPollSec={setPollSec}
-            moveThreshold={moveThreshold}
-            onMoveThreshold={(v) => {
-              setMoveThreshold(v);
-              setMoveThresholdState(v);
-            }}
             onConnect={() => void sync.connect()}
             onDisconnect={sync.disconnect}
             onSyncNow={sync.syncManually}

@@ -17,8 +17,6 @@ type Props = {
   onClientId: (v: string) => void;
   onCalendarId: (v: string) => void;
   onPollSec: (v: number) => void;
-  moveThreshold: number;
-  onMoveThreshold: (v: number) => void;
   onConnect: () => void;
   onDisconnect: () => void;
   onSyncNow: () => void;
@@ -38,7 +36,6 @@ export function SettingsSheet(p: Props) {
   const [calendars, setCalendars] = useState<CalendarInfo[] | null>(null);
   const [calDraft, setCalDraft] = useState(p.calendarId);
   const [pollDraft, setPollDraft] = useState(String(p.pollSec));
-  const [moveDraft, setMoveDraft] = useState(String(p.moveThreshold));
 
   useEffect(() => setCalDraft(p.calendarId), [p.calendarId]);
 
@@ -149,22 +146,6 @@ export function SettingsSheet(p: Props) {
             value={pollDraft}
             onChange={(e) => setPollDraft(e.target.value)}
             onBlur={commitPoll}
-          />
-        </label>
-        <label className="field">
-          Zaproponuj rozbicie wpisu po tylu przeniesieniach na inny dzień
-          <input
-            type="number"
-            inputMode="numeric"
-            min={2}
-            max={99}
-            value={moveDraft}
-            onChange={(e) => setMoveDraft(e.target.value)}
-            onBlur={() => {
-              const v = Math.min(99, Math.max(2, Math.round(Number(moveDraft) || 10)));
-              setMoveDraft(String(v));
-              p.onMoveThreshold(v);
-            }}
           />
         </label>
         <p className="hint">

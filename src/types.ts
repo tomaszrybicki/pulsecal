@@ -22,6 +22,8 @@ export interface CalEvent {
   seriesId?: string;
   /** Epik, do którego należy wpis (work.ts). W Google: extendedProperties.private.pulseEpic. */
   epicId?: string;
+  /** „P”: planowany w najbliższej wolnej godzinie w godzinach produktywności (prefs.ts). W Google: pulseAuto. */
+  autoSlot?: boolean;
   origin: EventOrigin;
   updatedAt: number;
   deleted: boolean;
@@ -39,6 +41,7 @@ export interface DraftEvent {
   color: string;
   tags: string[];
   epicId?: string;
+  autoSlot?: boolean;
 }
 
 export type WorkKind = "epic" | "task";

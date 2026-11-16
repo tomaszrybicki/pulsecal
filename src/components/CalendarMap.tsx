@@ -4,7 +4,7 @@ import { shownColor } from "../tags";
 import { DRAFT_ID } from "../draft";
 import { useDragGesture, type Pt } from "../hooks/useDragGesture";
 import { useOptimisticMove } from "../hooks/useOptimisticMove";
-import { DelBtn } from "./DelBtn";
+import { DelBtn, PlanBtn } from "./DelBtn";
 import { EpicTag } from "./EpicTag";
 import { TagDots } from "./TagDots";
 import type { CalEvent } from "../types";
@@ -46,6 +46,8 @@ type Props = {
   onDelete?: (e: CalEvent) => void;
   /** Prawy przycisk myszy na wpisie → menu (kolor, tagi, usuń). */
   onContext?: (e: CalEvent, pt: { x: number; y: number }) => void;
+  /** „P” po najechaniu: najbliższa wolna godzina w godzinach produktywności. */
+  onPlan?: (e: CalEvent) => void;
 };
 
 /** Ile kolumn od krawędzi zaczynamy doładowywać kolejne dni. */
@@ -110,6 +112,7 @@ export function CalendarMap({
   onStep,
   onDelete,
   onContext,
+  onPlan,
 }: Props) {
   const scroller = useRef<HTMLDivElement>(null);
   const { shown, dropped, settle } = useOptimisticMove(events);
@@ -434,6 +437,7 @@ export function CalendarMap({
                     {e.title || "(bez tytułu)"}
                   </strong>
                   <EpicTag id={e.epicId} />
+                  {onPlan && e.id !== DRAFT_ID && <PlanBtn on={Boolean(e.autoSlot)} onPlan={() => onPlan(e)} />}
                   {onDelete && e.id !== DRAFT_ID && <DelBtn onDelete={() => onDelete(e)} />}
                   {e.id !== DRAFT_ID && sameDay(new Date(e.end), d) && (
                     <span className="resize-edge" aria-hidden {...stretchAllDay(e)} />
@@ -503,6 +507,7 @@ export function CalendarMap({
                       {e.moves ? <span className="mv" title={`Przeniesiony ${e.moves}×`}> · ↷{e.moves}</span> : null}
                     </small>
                     <EpicTag id={e.epicId} />
+                    {onPlan && draggable && <PlanBtn on={Boolean(e.autoSlot)} onPlan={() => onPlan(e)} />}
                     {onDelete && draggable && <DelBtn onDelete={() => onDelete(e)} />}
                     {draggable && segEnd === e.end && (
                       <>

@@ -3,6 +3,30 @@
 Każda wersja to jeden commit `vX.Y.Z: …` (treść commita = wpis z tego pliku) i tag `vX.Y.Z`.
 Najnowsze na górze. Opis funkcji aplikacji jest w [FEATURES.md](FEATURES.md).
 
+## [0.27.0] – 2026-11-16: ustawienia, przycisk P, epik bez tarcia
+
+- **„ustawienia” na dole panelu bocznego:**
+  - godziny produktywności (domyślnie 9:00–17:00);
+  - długość wpisu planowanego przyciskiem „P” (domyślnie 15 min);
+  - po ilu przeniesieniach podpowiedzieć pierwszy krok (przeniesione z ustawień Google);
+  - „Zawsze pełna edycja po kliknięciu wpisu” (na telefonie bez szybkiej karty i „Więcej”).
+
+  Ustawienia Google są dalej pod przyciskiem „Google Calendar…”.
+- **N-te przeniesienie wpisu:** zamiast okienka z krokami jest krótka informacja w powiadomieniu. Od razu otwiera się
+  pełna edycja wpisu z kursorem w tytule i podpowiedzią „Zacznij od prostego kroku — wpisz go jako tytuł”.
+- **Epik bez tarcia:** pole „Epik” we wpisie to pole tekstowe z listą epików pod spodem. Wpisz nazwę i Enter:
+  istniejący epik zostaje wybrany, a nowa nazwa od razu tworzy epik i przypisuje do niego wpis. „×” usuwa
+  wpis z epiku.
+- **Miesiąc:** wpisy z godziną są wypełnionymi kolorem blokami (jak całodniowe) z delikatną obwódką.
+- **Przycisk „P”** (po najechaniu na wpis, a w pełnej edycji jako przełącznik):
+  - wstawia wpis w najbliższe wolne miejsce tego dnia w godzinach produktywności; dziś nie wcześniej niż teraz;
+  - wpis całodniowy dostaje ustawioną długość, wpis z godziną zachowuje swoją;
+  - wpis z „P” przeniesiony na inny dzień w widoku miesiąca albo „>”/„>>” znowu dostaje najbliższą wolną
+    godzinę;
+  - włączone „P” widać na wpisie jako zieloną plakietkę; ponowne kliknięcie wyłącza (godzina zostaje).
+
+  Synchronizuje się z Google.
+
 ## [0.26.0] – 2026-11-16: widok 2 tygodni i widok domyślny
 
 - **Przycisk „2 tyg.”** obok „mapa” i „miesiąc”: siatka dwóch tygodni od tygodnia z wybranym dniem.

@@ -45,6 +45,7 @@ src/
   types.ts                CalEvent, DraftEvent, ViewMode, SyncState, WorkItem
   work.ts                 epics/tasks: tree, progress, epic path/colour, saveItem (pending = 1)
   colors.ts               palette + mapping to Google colorId
+  prefs.ts                productive hours, P slot length, always-full-editor pref, findFreeSlot()
   time.ts                 date helpers (Monday is the first day of the week, Polish labels)
   sync/google.ts          OAuth (GIS) + sync engine
   hooks/useLiveQuery.ts   Dexie liveQuery → React
@@ -72,6 +73,7 @@ src/
     EpicTag.tsx           EpicContext + epic label on calendar events
     EpicPicker.tsx        epic select for events with "+ nowy epik…" (QuickCard, EventSheet, EventMenu)
     Comments.tsx          comments on tasks/epics (WorkItem.comments, newest first, edit/delete)
+    PrefsSheet.tsx        "ustawienia": productive hours, P slot length, move threshold, always full editor
 public/                   icons, favicon
 ```
 

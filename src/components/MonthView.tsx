@@ -5,7 +5,7 @@ import { shownColor } from "../tags";
 import { DRAFT_ID } from "../draft";
 import { useDragGesture, type Pt } from "../hooks/useDragGesture";
 import { useOptimisticMove } from "../hooks/useOptimisticMove";
-import { DelBtn } from "./DelBtn";
+import { DelBtn, PlanBtn } from "./DelBtn";
 import { EpicTag } from "./EpicTag";
 import { TagDots } from "./TagDots";
 import type { CalEvent } from "../types";
@@ -32,6 +32,8 @@ type Props = {
   onDelete?: (e: CalEvent) => void;
   /** Prawy przycisk myszy na wpisie → menu (kolor, tagi, usuń). */
   onContext?: (e: CalEvent, pt: { x: number; y: number }) => void;
+  /** „P” po najechaniu: najbliższa wolna godzina w godzinach produktywności. */
+  onPlan?: (e: CalEvent) => void;
 };
 
 const WHEEL_STEP = 60;
@@ -98,7 +100,7 @@ function layoutWeek(weekStart: Date, events: CalEvent[]): Seg[] {
   return segs;
 }
 
-export function MonthView({ now, weeks, month, events, onDay, onDayDetails, onAdd, onEvent, onMove, onStep, onDelete, onContext }: Props) {
+export function MonthView({ now, weeks, month, events, onDay, onDayDetails, onAdd, onEvent, onMove, onStep, onDelete, onContext, onPlan }: Props) {
   const reduce = useReducedMotion();
   const wheel = useRef({ acc: 0, last: 0, lock: 0 });
   const swipe = useRef<{ x: number; y: number; t: number } | null>(null);
@@ -328,6 +330,7 @@ export function MonthView({ now, weeks, month, events, onDay, onDayDetails, onAd
                     if (s.e.id !== DRAFT_ID) onEvent(s.e);
                   }}
                   onDelete={onDelete && s.e.id !== DRAFT_ID ? () => onDelete(s.e) : undefined}
+                  onPlan={onPlan && s.e.id !== DRAFT_ID ? () => onPlan(s.e) : undefined}
                   onContext={onContext && s.e.id !== DRAFT_ID ? (pt) => onContext(s.e, pt) : undefined}
                 />
               ))}
@@ -393,6 +396,7 @@ function MonthChip({
   onClick,
   onDelete,
   onContext,
+  onPlan,
 }: {
   seg: Seg;
   className: string;
@@ -402,13 +406,14 @@ function MonthChip({
   onClick: () => void;
   onDelete?: () => void;
   onContext?: (pt: { x: number; y: number }) => void;
+  onPlan?: () => void;
 }) {
   const { e } = seg;
   return (
     <button
       type="button"
       data-ev={e.id}
-      className={`m-ev${seg.bar ? " bar" : ""}${seg.contL ? " cont-l" : ""}${seg.contR ? " cont-r" : ""}${e.id === DRAFT_ID ? " ghost-draft" : ""}${className}`}
+      className={`m-ev${seg.bar ? " bar" : " timed"}${seg.contL ? " cont-l" : ""}${seg.contR ? " cont-r" : ""}${e.id === DRAFT_ID ? " ghost-draft" : ""}${className}`}
       style={{
         gridColumn: `${seg.col + 1} / span ${seg.span}`,
         gridRow: seg.lane + 2,
@@ -432,6 +437,7 @@ function MonthChip({
       }}
     >
       <ChipBody e={e} bar={seg.bar} />
+      {onPlan && <PlanBtn on={Boolean(e.autoSlot)} onPlan={onPlan} />}
       {onDelete && <DelBtn onDelete={onDelete} />}
       {stretchProps && <span className="m-resize" aria-hidden {...stretchProps} />}
     </button>

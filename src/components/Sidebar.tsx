@@ -43,6 +43,7 @@ type Props = {
   openTasks: number;
   pinned: PinnedEpic[];
   onOpenEpic: (id: string) => void;
+  onOpenPrefs: () => void;
 };
 
 export type PinnedEpic = {
@@ -257,6 +258,10 @@ export function Sidebar(p: Props) {
             <NavIcon d="M4 3h12a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zM6.5 10l2.5 2.5 4.5-5" />
             zadania i epiki
             {p.openTasks > 0 && <span className="nav-count">{p.openTasks}</span>}
+          </button>
+          <button type="button" onClick={p.onOpenPrefs}>
+            <NavIcon d="M10 7a3 3 0 1 0 0 6a3 3 0 0 0 0-6zM10 2.5v2M10 15.5v2M2.5 10h2M15.5 10h2M4.7 4.7l1.4 1.4M13.9 13.9l1.4 1.4M4.7 15.3l1.4-1.4M13.9 6.1l1.4-1.4" />
+            ustawienia
           </button>
           <div className="side-nav-row">
             <NavIcon d="M10 3a7 7 0 1 0 0 14a7 7 0 0 0 0-14zM10 3v14" />

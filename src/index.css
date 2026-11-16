@@ -4506,3 +4506,267 @@ select.jr-status.big {
     transition: none;
   }
 }
+
+/* ── widok miesiąca: wpisy z godziną jako wypełnione bloki z delikatną obwódką ── */
+
+.m-ev.timed {
+  background: color-mix(in srgb, var(--blob) 82%, white);
+  color: var(--blob-ink);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--blob) 70%, black);
+  font-weight: 500;
+}
+
+.m-ev.timed:hover {
+  background: color-mix(in srgb, var(--blob) 92%, white);
+}
+
+.m-ev.timed .dot {
+  display: none;
+}
+
+.m-ev.timed .t {
+  color: inherit;
+  opacity: 0.78;
+  font-weight: 400;
+}
+
+/* ── „P”: najbliższa wolna godzina w godzinach produktywności ── */
+
+.plan-btn {
+  position: absolute;
+  top: 4px;
+  right: 28px;
+  z-index: 3;
+  display: none;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(28, 25, 23, 0.55);
+  color: #fffaf2;
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.plan-btn:hover {
+  background: #2f7d5b;
+}
+
+.plan-btn.on {
+  display: grid;
+  background: #2f7d5b;
+}
+
+.m-ev .plan-btn {
+  top: 2px;
+  right: 26px;
+  width: 14px;
+  height: 14px;
+  font-size: 0.56rem;
+}
+
+/* włączone „P” bez najechania: mała plakietka w rogu, nie zasłania krzyżyka */
+.m-ev .plan-btn.on {
+  right: 2px;
+}
+
+.m-ev:hover .plan-btn.on {
+  right: 26px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .event-blob:hover .plan-btn,
+  .m-ev:hover .plan-btn {
+    display: grid;
+  }
+
+  body.is-dragging .plan-btn:not(.on) {
+    display: none !important;
+  }
+}
+
+.plan-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin: 0 0 12px;
+  border: 0;
+  border-radius: 14px;
+  padding: 8px 12px 8px 8px;
+  background: var(--field);
+  color: var(--ink-soft);
+  font: inherit;
+  font-size: 0.82rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.plan-toggle b {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--ink-faint);
+  color: var(--ink);
+  font-size: 0.78rem;
+}
+
+.plan-toggle.on {
+  color: var(--ink);
+}
+
+.plan-toggle.on b {
+  background: #2f7d5b;
+  color: #fffaf2;
+}
+
+/* ── N-te przeniesienie: podpowiedź w pełnej edycji ── */
+
+.stuck-hint {
+  margin: -4px 0 12px;
+  border-radius: 12px;
+  padding: 8px 12px;
+  background: color-mix(in srgb, #e0a43a 18%, transparent);
+  color: var(--ink);
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+/* ── epik wpisu: pole z listą (wpisz nazwę, Enter) ── */
+
+.epic-picker {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ep-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.ep-field input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  border-radius: 14px;
+  padding: 10px 34px 10px 12px;
+  background: var(--field);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.85rem;
+}
+
+.ep-field .ep-dot {
+  position: absolute;
+  left: 12px;
+  pointer-events: none;
+}
+
+.ep-field .ep-dot + input {
+  padding-left: 28px;
+}
+
+.ep-dot {
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+.ep-clear {
+  position: absolute;
+  right: 6px;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink-soft);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.ep-clear:hover {
+  background: var(--ink-faint);
+}
+
+.ep-list {
+  display: flex;
+  flex-direction: column;
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid var(--ink-faint);
+  border-radius: 14px;
+  padding: 4px;
+  background: var(--paper);
+}
+
+.ep-opt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  border: 0;
+  border-radius: 10px;
+  padding: 0 10px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.84rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ep-opt.active,
+.ep-opt:hover {
+  background: var(--field);
+}
+
+.ep-opt.current .ep-name {
+  font-weight: 600;
+}
+
+.ep-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ep-new {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.ep-empty {
+  margin: 0;
+  padding: 2px 6px;
+  font-size: 0.76rem;
+  color: var(--ink-soft);
+}
+
+/* ── ustawienia ── */
+
+.prefs-group h3 {
+  margin: 14px 0 8px;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+}
+
+.prefs-group .hint {
+  margin-top: -4px;
+}
+
+.warn-text {
+  color: var(--danger-ink);
+}

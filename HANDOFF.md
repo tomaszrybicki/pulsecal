@@ -116,6 +116,19 @@ Previous sessions: first Cursor IDE (built the MVP), then Claude in a chat sessi
 code audit and rewrote the data and sync layer, then stopped at the owner's request.
 **Start by reading `CLAUDE.md`.**
 
+## v0.27.0: settings sheet, "P" auto-slot, epic combobox, filled month chips
+- `prefs.ts` + `PrefsSheet` (sidebar „ustawienia”): productive hours (`pulsecal:prod-from/to`, minutes),
+  P slot length (`pulsecal:slot-min`), move threshold (moved out of `SettingsSheet`), always-full editor
+  (`pulsecal:always-full`, per device; App `editorMode`). Hours + slot are in the settings backup.
+- Move threshold crossed → `promptMoved()`: warn toast + full editor with `stuck` (hint, title autofocus).
+  `MovePrompt` and the steps helpers were removed.
+- `CalEvent.autoSlot` („P”, Google `private.pulseAuto` "1"/"" always sent). `PlanBtn` (DelBtn.tsx) on hover in
+  map/month (`eventActions.onPlan`, desktop), `plan-toggle` in EventSheet (`planDraft`). `findFreeSlot()` =
+  earliest gap in productive hours avoiding timed events (today: from now, 5-min steps). Re-slot on day
+  moves only: `moveEvent(..., reslot=true)` from MonthView and `shiftEvents`; map drags keep the dropped time.
+- `EpicPicker` is a combobox (input + in-flow `.ep-list`): Enter picks exact/highlighted epic or creates one.
+- Month view: non-bar chips get `.timed` (filled + inset outline).
+
 ## v0.26.0: "2 tyg." view chip, default view
 - `ViewChip` (bottom of App.tsx): chip + hover star `chip-default`. „2 tyg.” = `weekSel {start: startOfWeek(focus),
   weeks: 2}` + month view; the extra „N tyg.” chip shows only for other selections.

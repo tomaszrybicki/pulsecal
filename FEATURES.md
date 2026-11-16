@@ -27,7 +27,7 @@ logowanie Google bez własnego serwera (Google Identity Services).
 - **Mapa:** 21 dni obok siebie, przewijane w bok, doba w pionie. Na górze wiersz wpisów całodniowych.
   Linia „teraz” z pulsującym bąblem. Po otwarciu kalendarz pokazuje dzisiejszy dzień i bieżącą godzinę.
 - **Miesiąc:** układ jak w Google Calendar.
-  - Wpisy z godziną: kropka, godzina i nazwa.
+  - Wpisy z godziną: wypełniony kolorem blok (jak całodniowe) z delikatną obwódką, godzina i nazwa.
   - Wpisy całodniowe i kilkudniowe: kolorowe paski przez kilka dni, także przez granicę tygodnia.
   - Kolejność w dniu: najpierw wpisy z godziną, potem całodniowe i kilkudniowe; w każdej grupie alfabetycznie.
   - Gdy wpisy się nie mieszczą: „+N więcej”.
@@ -71,8 +71,10 @@ logowanie Google bez własnego serwera (Google Identity Services).
   - górny pasek pokazuje zakres („16 – 29 lis 2026”), a × wraca do zwykłego widoku.
 - **Przypięte epiki:** paski postępu przypiętych epików (opisane w „Zadania i epiki”).
 - **Tagi:** lista wszystkich tagów z liczbą wpisów, opisana niżej.
-- **Odnośniki na dole:** „kalendarz”, „zadania i epiki” (z liczbą niezrobionych zadań) i „motyw”
+- **Odnośniki na dole:** „kalendarz”, „zadania i epiki” (z liczbą niezrobionych zadań), „ustawienia” i „motyw”
   (auto / jasny / ciemny). Tu będą dochodzić kolejne funkcje.
+- **Ustawienia:** godziny produktywności, długość wpisu z „P”, po ilu przeniesieniach podpowiedzieć pierwszy
+  krok, „Zawsze pełna edycja po kliknięciu wpisu” (tylko to urządzenie) i przycisk „Google Calendar…”.
 
 ### Tagi
 
@@ -154,7 +156,8 @@ logowanie Google bez własnego serwera (Google Identity Services).
 
 - **Telefon:** tapnięcie wpisu otwiera szybką kartę. Tytuł jest tam polem do edycji, więc zmiana nazwy
   to jedno tapnięcie. Do tego przełącznik „cały dzień”, kolory oraz przyciski Usuń, Więcej i Zapisz.
-- **Komputer:** kliknięcie wpisu od razu otwiera pełną edycję, bez klikania „Więcej”.
+- **Komputer:** kliknięcie wpisu od razu otwiera pełną edycję, bez klikania „Więcej”. Na telefonie też można
+  tak ustawić („ustawienia” → „Zawsze pełna edycja po kliknięciu wpisu”).
   Okno (pełna edycja i karta nowego wpisu) **wyskakuje obok kursora**: z prawej, a przy prawej krawędzi
   ekranu z lewej. Kliknięte miejsce zostaje widoczne, a zmiany widać w kalendarzu na żywo.
   Ustawienia otwierają się jako panel z prawej. Okienka przy kursorze nie blokują ekranu: kliknięcie obok
@@ -189,8 +192,19 @@ logowanie Google bez własnego serwera (Google Identity Services).
 
 - Wpis liczy, ile razy trafił na inny dzień (przeciągnięcie, „>”/„>>”, zmiana daty, przeniesienie w Google).
   Widać to jako „↷N” na wpisie, w przeglądzie dnia i w edycji. Zmiana godziny w tym samym dniu się nie liczy.
-- Po każdych N przeniesieniach (ustawienia, domyślnie 10) Pulsecal proponuje rozpisać wpis na mniejsze kroki:
-  dopisać je do notatki albo utworzyć z nich osobne wpisy tego dnia.
+- Po każdych N przeniesieniach („ustawienia”, domyślnie 10) pojawia się krótka informacja i od razu otwiera
+  się pełna edycja wpisu z kursorem w tytule i podpowiedzią „Zacznij od prostego kroku — wpisz go jako tytuł”.
+
+### Przycisk „P” — godziny produktywności
+
+- **„P”** po najechaniu myszą na wpis (w mapie i w miesiącu) albo przełącznik „P” w pełnej edycji: wpis trafia
+  w najbliższe wolne miejsce tego dnia w godzinach produktywności (ustawienia, domyślnie 9:00–17:00). Dziś —
+  nie wcześniej niż teraz. Wolne = bez nachodzenia na inne wpisy z godziną (całodniowe nie przeszkadzają).
+- Wpis całodniowy dostaje ustawioną długość (domyślnie 15 min), wpis z godziną zachowuje swoją.
+- Wpis z „P” przeniesiony na inny dzień w widoku miesiąca albo „>”/„>>” znowu dostaje najbliższą wolną godzinę
+  (przeciągnięcie w mapie na konkretną godzinę jej nie zmienia).
+- Włączone „P” widać jako zieloną plakietkę na wpisie. Ponowne kliknięcie wyłącza (godzina zostaje).
+  Brak miejsca → powiadomienie, wpis się nie zmienia. Synchronizuje się z Google.
 
 ### Zadania i epiki
 
@@ -214,8 +228,9 @@ Prosta „jira” do spraw osobistych — trzeci widok „zadania” (obok „ma
   praca”). Pokazują się w szczegółach każdego zadania; definicje są w kopii ustawień w Google.
 - **Postęp epiku:** zadania zrobione + wpisy z kalendarza już odbyte, razem z pod-epikami.
 - **Usuwanie:** zawartość epiku przechodzi piętro wyżej, wpisy z kalendarza zostają (bez epiku). Z „Cofnij”.
-- **Wpis w epiku:** pole „Epik” w szybkiej karcie, w pełnej edycji i w menu pod prawym przyciskiem, z opcją
-  „+ nowy epik…” (nazwa wpisywana na miejscu, wpis od razu do niego trafia). Wpis w epiku ma w kalendarzu
+- **Wpis w epiku:** pole „Epik” w szybkiej karcie, w pełnej edycji i w menu pod prawym przyciskiem. Kliknij,
+  wpisz nazwę i Enter: lista pod polem podpowiada istniejące epiki, a nowa nazwa od razu tworzy epik i przypisuje
+  do niego wpis. „×” usuwa wpis z epiku. Wpis w epiku ma w kalendarzu
   etykietę z nazwą epiku w kolorze epiku.
 - **Komentarze** (w szczegółach, pod opisem): „Dodaj komentarz…” (Ctrl+Enter albo „Dodaj”), lista od
   najnowszego z datą, „edytuj” i „usuń” (z potwierdzeniem). Zapisują się od razu; niedodany komentarz dodaje się
