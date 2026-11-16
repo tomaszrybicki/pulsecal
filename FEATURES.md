@@ -214,8 +214,12 @@ Prosta „jira” do spraw osobistych — trzeci widok „zadania” (obok „ma
   najnowszego z datą, „edytuj” i „usuń” (z potwierdzeniem). Zapisują się od razu; niedodany komentarz dodaje się
   przy zamknięciu okna. Na liście i na tablicy przy zadaniu jest dymek z liczbą komentarzy, a szukanie
   przeszukuje też komentarze.
+- **Przypięte epiki:** pinezka przy epiku w panelu epików albo „przypnij” w szczegółach epiku. Przypięte epiki
+  są w panelu bocznym jako paski postępu (zrobione zadania / wszystkie, z pod-epikami); kolor od koralowego
+  (mało) do zielonego (gotowe). Od 80% pasek pulsuje, a gdy w epiku nic się nie zmieniło od 7 dni, przygasa
+  i „śpi” (unoszące się zZz). Kliknięcie otwiera szczegóły epiku.
 - **Kopia w Google:** każde zadanie i epik to osobny ukryty wpis 2 stycznia 2000 („Pulsecal — epik: …”),
-  razem z priorytetem, terminem, szacunkiem, własnymi polami i komentarzami. Przypisanie wpisu do epiku też synchronizuje się
+  razem z priorytetem, terminem, szacunkiem, własnymi polami, komentarzami i przypięciem. Przypisanie wpisu do epiku też synchronizuje się
   z Google (w ukrytych danych wpisu).
 
 ### Synchronizacja z Google Calendar

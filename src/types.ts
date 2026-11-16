@@ -91,6 +91,8 @@ export interface WorkItem {
   /** Własne pola: id pola → wartość. */
   fields?: Record<string, string>;
   comments?: WorkComment[];
+  /** Epik przypięty w panelu bocznym (podgląd postępu). */
+  pinned?: boolean;
 }
 
 export type SyncState = "off" | "idle" | "syncing" | "expired" | "offline" | "error";

@@ -149,6 +149,24 @@ export function progressOf(id: string, tree: Tree, now: number, seen = new Set<s
   return p;
 }
 
+/** Ostatnia zmiana w epiku: on sam i wszystko pod nim (zadania, pod-epiki). */
+export function lastTouched(id: string, tree: Tree): number {
+  let t = 0;
+  for (const x of subtreeIds(id, tree)) t = Math.max(t, tree.byId.get(x)?.updatedAt ?? 0);
+  return t;
+}
+
+/** Epik „śpi”, gdy nic się w nim nie zmieniło od tylu dni. */
+export const SLEEPY_DAYS = 7;
+/** Epik „prawie gotowy” (pulsuje) od tego udziału zrobionych zadań. */
+export const ALMOST_DONE = 0.8;
+
+/** Kolor paska postępu: od koralowego (0%) przez żółty do zielonego (100%). */
+export function progressColor(ratio: number): string {
+  const r = Math.max(0, Math.min(1, ratio));
+  return `hsl(${Math.round(8 + 130 * r)} 62% ${Math.round(56 - 8 * r)}%)`;
+}
+
 /** ID elementu i wszystkich jego potomków (żeby nie wstawić epiku do samego siebie). */
 export function subtreeIds(id: string, tree: Tree): Set<string> {
   const out = new Set<string>([id]);

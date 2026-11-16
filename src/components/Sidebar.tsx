@@ -1,6 +1,8 @@
 import { useState, type ReactNode } from "react";
 import type { TagStat } from "../db";
 import type { ThemePref } from "../hooks/useTheme";
+import type { ViewMode } from "../types";
+import { ALMOST_DONE, progressColor } from "../work";
 import { colorInk } from "../colors";
 import { UNTAGGED, hasCustomColor, isPainted, tagColor } from "../tags";
 import { MiniCalendar, type WeekSelection } from "./MiniCalendar";
@@ -34,6 +36,24 @@ type Props = {
   onPaintTag: (tag: string, on: boolean) => void;
   /** Zmiana nazwy tagu we wszystkich wpisach. */
   onRenameTag: (from: string, to: string) => void;
+  view: ViewMode;
+  /** Odnośniki na dole panelu: kalendarz (ostatni widok kalendarza) / zadania. */
+  onView: (v: "calendar" | "tasks") => void;
+  /** Liczba niezrobionych zadań (przy odnośniku „zadania”). */
+  openTasks: number;
+  pinned: PinnedEpic[];
+  onOpenEpic: (id: string) => void;
+};
+
+export type PinnedEpic = {
+  id: string;
+  title: string;
+  color: string;
+  /** zrobione / wszystkie zadania (z pod-epikami) */
+  done: number;
+  total: number;
+  /** dawno nic się w nim nie zmieniło */
+  sleepy: boolean;
 };
 
 const THEMES: [ThemePref, string][] = [
@@ -88,6 +108,19 @@ export function Sidebar(p: Props) {
           onPickWeeks={p.onPickWeeks}
         />
         <p className="hint side-hint">Przeciągnij po dniach albo numerach tygodni, żeby pokazać kilka tygodni.</p>
+
+        {p.pinned.length > 0 && (
+          <section className="side-pins" aria-label="Przypięte epiki">
+            <h3>przypięte epiki</h3>
+            <ul>
+              {p.pinned.map((e) => (
+                <li key={e.id}>
+                  <PinnedRow e={e} onOpen={() => p.onOpenEpic(e.id)} />
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
         <section className="side-tags">
           <header>
@@ -214,9 +247,21 @@ export function Sidebar(p: Props) {
           )}
         </section>
 
-        <section className="side-theme">
-          <h3>motyw</h3>
-          <div className="seg" role="radiogroup" aria-label="Motyw">
+        {/* Odnośniki do funkcji — tu dochodzą kolejne (zawsze na dole panelu). */}
+        <nav className="side-nav" aria-label="Funkcje">
+          <button type="button" aria-pressed={p.view !== "tasks"} onClick={() => p.onView("calendar")}>
+            <NavIcon d="M3 5.5h14M6 2.5v3M14 2.5v3M4 4h12a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z" />
+            kalendarz
+          </button>
+          <button type="button" aria-pressed={p.view === "tasks"} onClick={() => p.onView("tasks")}>
+            <NavIcon d="M4 3h12a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zM6.5 10l2.5 2.5 4.5-5" />
+            zadania i epiki
+            {p.openTasks > 0 && <span className="nav-count">{p.openTasks}</span>}
+          </button>
+          <div className="side-nav-row">
+            <NavIcon d="M10 3a7 7 0 1 0 0 14a7 7 0 0 0 0-14zM10 3v14" />
+            <span>motyw</span>
+            <div className="seg" role="radiogroup" aria-label="Motyw">
             {THEMES.map(([v, label]) => (
               <button
                 key={v}
@@ -229,9 +274,52 @@ export function Sidebar(p: Props) {
                 {label}
               </button>
             ))}
+            </div>
           </div>
-        </section>
+        </nav>
       </aside>
     </>
+  );
+}
+
+function NavIcon({ d }: { d: string }) {
+  return (
+    <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden>
+      <path d={d} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+/** Przypięty epik: pasek postępu w kolorze zależnym od postępu; „śpi” (zZz) albo pulsuje, gdy blisko końca. */
+function PinnedRow({ e, onOpen }: { e: PinnedEpic; onOpen: () => void }) {
+  const ratio = e.total ? e.done / e.total : 0;
+  const complete = e.total > 0 && e.done === e.total;
+  const almost = !complete && e.total > 0 && ratio >= ALMOST_DONE;
+  const mood = e.sleepy ? " sleepy" : almost ? " almost" : complete ? " complete" : "";
+  const state = e.sleepy ? " · dawno bez zmian" : almost ? " · prawie gotowe" : complete ? " · gotowe" : "";
+  return (
+    <button
+      type="button"
+      className={`pin-epic${mood}`}
+      style={{ ["--fill" as string]: progressColor(ratio), ["--epic" as string]: e.color }}
+      title={`${e.title}: ${e.total ? `${e.done}/${e.total} zadań zrobionych` : "brak zadań"}${state}`}
+      onClick={onOpen}
+    >
+      <span className="pin-epic-head">
+        <span className="pin-epic-dot" aria-hidden />
+        <span className="pin-epic-name">{e.title || "(bez nazwy)"}</span>
+        <span className="pin-epic-count">{e.total ? `${e.done}/${e.total}` : "—"}</span>
+      </span>
+      <span className="pin-epic-bar">
+        <span style={{ width: `${Math.round(ratio * 100)}%` }} />
+      </span>
+      {e.sleepy && (
+        <span className="zzz" aria-hidden>
+          <i>z</i>
+          <i>z</i>
+          <i>Z</i>
+        </span>
+      )}
+    </button>
   );
 }

@@ -19,7 +19,7 @@ import {
 } from "../work";
 import { DateField } from "./DateField";
 import { SheetFrame } from "./SheetFrame";
-import { InlineCreate, PriorityIcon, ProgressBar, TypeIcon } from "./TasksView";
+import { InlineCreate, PinIcon, PriorityIcon, ProgressBar, TypeIcon } from "./TasksView";
 import { Comments } from "./Comments";
 
 type Props = {
@@ -49,7 +49,8 @@ function dirty(a: WorkItem, b: WorkItem): boolean {
     (a.due ?? null) !== (b.due ?? null) ||
     (a.estimate ?? null) !== (b.estimate ?? null) ||
     JSON.stringify(a.fields ?? {}) !== JSON.stringify(b.fields ?? {}) ||
-    JSON.stringify(a.comments ?? []) !== JSON.stringify(b.comments ?? [])
+    JSON.stringify(a.comments ?? []) !== JSON.stringify(b.comments ?? []) ||
+    Boolean(a.pinned) !== Boolean(b.pinned)
   );
 }
 
@@ -79,12 +80,13 @@ export function WorkItemSheet(props: Props) {
     }
     if (dirty(t, item)) onSave(t);
   };
-  /** Komentarze zapisują się od razu (razem z resztą zmian w oknie). */
-  const setComments = (comments: WorkComment[]) => {
-    setD({ ...d, comments });
-    const t = { ...d, title: d.title.trim() || item.title, comments };
+  /** Komentarze i przypięcie zapisują się od razu (razem z resztą zmian w oknie). */
+  const saveNow = (patch: Partial<WorkItem>) => {
+    setD({ ...d, ...patch });
+    const t = { ...d, ...patch, title: d.title.trim() || item.title };
     if (dirty(t, item)) onSave(t);
   };
+  const setComments = (comments: WorkComment[]) => saveNow({ comments });
   const save = () => {
     commit();
     onClose();
@@ -126,6 +128,17 @@ export function WorkItemSheet(props: Props) {
         )}
         <TypeIcon kind={d.kind} />
         <span className="jr-key">{itemKey(item) || KIND_LABEL[item.kind]}</span>
+        {d.kind === "epic" && (
+          <button
+            type="button"
+            className={`ji-pin${d.pinned ? " on" : ""}`}
+            aria-pressed={Boolean(d.pinned)}
+            title={d.pinned ? "Odepnij z panelu bocznego" : "Przypnij w panelu bocznym (podgląd postępu)"}
+            onClick={() => saveNow({ pinned: !d.pinned })}
+          >
+            <PinIcon /> {d.pinned ? "przypięty" : "przypnij"}
+          </button>
+        )}
       </div>
 
       <div className="ji-layout">

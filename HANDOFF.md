@@ -116,6 +116,16 @@ Previous sessions: first Cursor IDE (built the MVP), then Claude in a chat sessi
 code audit and rewrote the data and sync layer, then stopped at the owner's request.
 **Start by reading `CLAUDE.md`.**
 
+## v0.25.0: sidebar feature links, pinned epics
+- Sidebar is a flex column; `.side-nav` (margin-top: auto) at the bottom: „kalendarz” (back to `lastCalView` ref
+  in App), „zadania i epiki” (open task count), „motyw” (theme seg). The „zadania” chip left the top bar.
+  New features should get a link here.
+- `WorkItem.pinned` (item backup). Pin: `jr-epic-pin` in `EpicPanel` (via `onPatch`), `ji-pin` in
+  `WorkItemSheet` (`saveNow`, saves immediately). Sidebar `PinnedRow`: task ratio → `progressColor()`;
+  `almost` (≥ `ALMOST_DONE` 0.8) pulses; `sleepy` = `lastTouched()` (max `updatedAt` in the subtree) older
+  than `SLEEPY_DAYS` 7 → breathing bar + floating zZz. Reduced motion → static.
+- Note: the PC-N numbering migration re-saves items without `num` (bumps `updatedAt`).
+
 ## v0.24.0: comments on tasks and epics
 - `WorkItem.comments?: WorkComment[]` (`{id, text, at, edited?}`), stored newest first; in the item backup JSON
   (`ItemData.comments`, validated in `parseItem`). The whole item JSON lives in one event description, so very

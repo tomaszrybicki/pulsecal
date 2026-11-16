@@ -109,6 +109,7 @@ export function TasksView({ tree, now, onOpen, onCreate, onPatch, onOpenEvent, o
         onSelect={setEpicFilter}
         onOpen={onOpen}
         onCreate={onCreate}
+        onPin={(e) => onPatch(e, { pinned: !e.pinned })}
         noEpicCount={all.filter((i) => i.kind === "task" && !parentOf(i)).length}
         taskCount={all.filter((i) => i.kind === "task").length}
       />
@@ -236,6 +237,7 @@ function EpicPanel({
   onSelect,
   onOpen,
   onCreate,
+  onPin,
   noEpicCount,
   taskCount,
 }: {
@@ -245,6 +247,7 @@ function EpicPanel({
   onSelect: (id: string) => void;
   onOpen: (i: WorkItem) => void;
   onCreate: Props["onCreate"];
+  onPin: (e: WorkItem) => void;
   noEpicCount: number;
   taskCount: number;
 }) {
@@ -265,6 +268,16 @@ function EpicPanel({
               <button type="button" className="jr-epic-pick" onClick={() => onSelect(selected === e.id ? "" : e.id)}>
                 <span className="jr-epic-name">{e.title || "(bez nazwy)"}</span>
                 <ProgressBar p={p} small />
+              </button>
+              <button
+                type="button"
+                className={`jr-epic-open jr-epic-pin${e.pinned ? " on" : ""}`}
+                aria-pressed={Boolean(e.pinned)}
+                title={e.pinned ? "Odepnij z panelu bocznego" : "Przypnij w panelu bocznym"}
+                aria-label={`${e.pinned ? "Odepnij" : "Przypnij"}: ${e.title}`}
+                onClick={() => onPin(e)}
+              >
+                <PinIcon />
               </button>
               <button
                 type="button"
@@ -773,5 +786,17 @@ export function CommentCount({ item }: { item: WorkItem }) {
       </svg>
       {n}
     </span>
+  );
+}
+
+/** Pinezka (przypięcie epiku w panelu bocznym). */
+export function PinIcon() {
+  return (
+    <svg className="pin-icon" viewBox="0 0 16 16" width="13" height="13" aria-hidden>
+      <path
+        d="M9.8 1.8l4.4 4.4-1.6.5-2.3 2.3.3 3.2-1.2 1.2-2.6-2.6-3.6 3.6-.7-.7 3.6-3.6-2.6-2.6 1.2-1.2 3.2.3 2.3-2.3z"
+        fill="currentColor"
+      />
+    </svg>
   );
 }

@@ -47,8 +47,11 @@ import {
 } from "./tags";
 import type { CalEvent, DraftEvent, ViewMode, WorkField, WorkItem, WorkKind } from "./types";
 import {
+  SLEEPY_DAYS,
   buildTree,
   epicColor,
+  lastTouched,
+  progressOf,
   epicOptions,
   epicPath,
   getWorkFields,
@@ -99,6 +102,11 @@ export function App() {
   // Minuta wystarcza dla linii „teraz"; tykanie co sekundę re-renderowało całą aplikację.
   const now = useNow(30_000);
   const [view, setView] = useState<ViewMode>("month");
+  // ostatni widok kalendarza — „kalendarz” w panelu bocznym wraca do niego z widoku zadań
+  const lastCalView = useRef<ViewMode>("month");
+  useEffect(() => {
+    if (view !== "tasks") lastCalView.current = view;
+  }, [view]);
   const [focus, setFocus] = useState(() => startOfDay(new Date()));
   // tygodnie wybrane w małym kalendarzu (null = zwykły widok: miesiąc / 21 dni wokół fokusu)
   const [weekSel, setWeekSel] = useState<WeekSelection | null>(null);
@@ -172,6 +180,26 @@ export function App() {
     [] as CalEvent[],
   );
   const tree = useMemo(() => buildTree(items, epicEvents), [items, epicEvents]);
+  const openTasks = useMemo(() => items.filter((i) => i.kind === "task" && i.status !== "done").length, [items]);
+  // przypięte epiki w panelu bocznym: postęp z zadań, „śpi” / „prawie gotowy”
+  const pinnedEpics = useMemo(() => {
+    const t = now.getTime();
+    return items
+      .filter((i) => i.kind === "epic" && i.pinned)
+      .sort((a, b) => a.order - b.order)
+      .map((e) => {
+        const p = progressOf(e.id, tree, t);
+        return {
+          id: e.id,
+          title: e.title,
+          color: epicColor(e.id),
+          done: p.tasksDone,
+          total: p.tasks,
+          sleepy: e.status !== "done" && t - lastTouched(e.id, tree) > SLEEPY_DAYS * 86_400_000,
+        };
+      });
+    // przeliczane co minutę, nie co tyknięcie zegara („śpi” liczy się w dniach)
+  }, [items, tree, Math.floor(now.getTime() / 60_000)]);
   const epicInfo = useMemo(() => {
     const m = new Map<string, EpicInfo>();
     for (const i of tree.byId.values()) {
@@ -688,16 +716,6 @@ export function App() {
       >
         miesiąc
       </button>
-      <button
-        className="chip"
-        aria-pressed={view === "tasks"}
-        onClick={() => {
-          setView("tasks");
-          after?.();
-        }}
-      >
-        zadania
-      </button>
       {weekSel && (
         <button
           className="chip"
@@ -865,6 +883,17 @@ export function App() {
             openDraft(timedDraft(nextQuarter().getTime(), newColor), isDesktop ? "full" : "quick");
           }}
           viewSwitch={viewChips(closeDrawer)}
+          view={view}
+          onView={(v) => {
+            setView(v === "tasks" ? "tasks" : lastCalView.current);
+            closeDrawer();
+          }}
+          openTasks={openTasks}
+          pinned={pinnedEpics}
+          onOpenEpic={(id) => {
+            closeDrawer();
+            setWorkOpen(id);
+          }}
           tags={tagList}
           hidden={hiddenTags}
           onToggleTag={toggleTag}

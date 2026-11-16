@@ -3,6 +3,20 @@
 Każda wersja to jeden commit `vX.Y.Z: …` (treść commita = wpis z tego pliku) i tag `vX.Y.Z`.
 Najnowsze na górze. Opis funkcji aplikacji jest w [FEATURES.md](FEATURES.md).
 
+## [0.25.0] – 2026-11-16: odnośniki w panelu bocznym i przypięte epiki
+
+- **Odnośniki na dole panelu bocznego:** „kalendarz” (wraca do ostatniego widoku kalendarza), „zadania i epiki”
+  (z liczbą niezrobionych zadań) i „motyw”. Przycisk „zadania” zniknął z górnego paska. Tu będą trafiać
+  kolejne funkcje.
+- **Przypięte epiki:** pinezka przy epiku w panelu epików (widok zadań) i przycisk „przypnij” w szczegółach
+  epiku. Przypięte epiki widać w panelu bocznym jako paski postępu (zrobione zadania / wszystkie, razem
+  z pod-epikami). Kliknięcie otwiera szczegóły epiku.
+  - Kolor paska zależy od postępu: od koralowego przez żółty do zielonego.
+  - Od 80% zrobionych zadań pasek delikatnie pulsuje.
+  - Gdy w epiku nic się nie zmieniło od 7 dni, pasek przygasa i unoszą się nad nim „zZz”.
+  - Przy ograniczonych animacjach w systemie animacje są wyłączone.
+- Przypięcie jest w kopii zadań w Google.
+
 ## [0.24.0] – 2026-11-16: komentarze do zadań i epików
 
 - **Komentarze do zadań i epików:** w szczegółach, pod opisem, sekcja „komentarze” jak w Jirze — pole
