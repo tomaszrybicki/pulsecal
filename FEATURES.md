@@ -185,6 +185,27 @@ logowanie Google bez własnego serwera (Google Identity Services).
 - Po każdych N przeniesieniach (ustawienia, domyślnie 10) Pulsecal proponuje rozpisać wpis na mniejsze kroki:
   dopisać je do notatki albo utworzyć z nich osobne wpisy tego dnia.
 
+### Zadania i epiki
+
+Prosta „jira” do spraw osobistych — trzeci widok „zadania” (obok „mapa” i „miesiąc”).
+
+- **Epik** to większa sprawa (np. „remont kuchni”). W epiku mogą być zadania, mniejsze epiki i wpisy z kalendarza.
+- **Dodawanie:** pole u góry — nazwa i Enter (albo „+ zadanie”) dodaje zadanie, „+ epik” dodaje epik.
+  W rozwiniętym epiku „+ dodaj” dodaje do niego.
+- **Status:** do zrobienia → w toku → zrobione. Kliknięcie w pastylkę statusu przestawia na następny.
+  U góry liczniki i „ukryj zrobione”.
+- **Postęp epiku:** pasek i „zrobione/wszystkie”, razem z pod-epikami. Liczą się zadania (zrobione) i wpisy
+  z kalendarza w epiku (odbyte = już się skończyły).
+- **Szczegóły** (kliknięcie nazwy): nazwa, rodzaj (zadanie / epik), status, epik nadrzędny (przenoszenie),
+  duże pole opisu. W epiku też jego zawartość, wpisy z kalendarza i „+ zaplanuj w kalendarzu” (nowy wpis
+  od razu w tym epiku). Zamknięcie zapisuje zmiany.
+- **Usuwanie:** zawartość epiku przechodzi piętro wyżej, wpisy z kalendarza zostają (bez epiku). Z „Cofnij”.
+- **Wpis w epiku:** pole „Epik” w edycji wpisu i w menu pod prawym przyciskiem. Wpis w epiku ma w kalendarzu
+  (miesiąc, mapa, przegląd dnia) etykietę z nazwą epiku w kolorze epiku.
+- **Kopia w Google:** każde zadanie i epik to osobny ukryty wpis 2 stycznia 2000 („Pulsecal — epik: …”),
+  więc zadania wracają na nowym urządzeniu po połączeniu z Google. Przypisanie wpisu do epiku też
+  synchronizuje się z Google (w ukrytych danych wpisu).
+
 ### Synchronizacja z Google Calendar
 
 - **Połączenie:** w ustawieniach (kropka w prawym górnym rogu) wkleja się OAuth Client ID i klika „Połącz”.

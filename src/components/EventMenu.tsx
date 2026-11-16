@@ -11,15 +11,18 @@ type Props = {
   knownTags: string[];
   onClose: () => void;
   /** Zmiana zapisywana od razu (kolor / tagi). */
-  onPatch: (patch: Partial<Pick<CalEvent, "color" | "tags">>) => void;
+  onPatch: (patch: Partial<Pick<CalEvent, "color" | "tags" | "epicId">>) => void;
+  /** Epiki do wyboru (work.ts). */
+  epics?: { id: string; label: string }[];
   onDelete: () => void;
   onEdit: () => void;
 };
 
 /** Menu pod prawym przyciskiem myszy na wpisie: kolor, tagi, edycja, usuń — bez wchodzenia w edycję. */
-export function EventMenu({ event, anchor, knownTags, onClose, onPatch, onDelete, onEdit }: Props) {
+export function EventMenu({ event, anchor, knownTags, onClose, onPatch, onDelete, onEdit, epics = [] }: Props) {
   const [color, setColor] = useState(event.color);
   const [tags, setTags] = useState(event.tags ?? []);
+  const [epicId, setEpicId] = useState(event.epicId ?? "");
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -49,6 +52,24 @@ export function EventMenu({ event, anchor, knownTags, onClose, onPatch, onDelete
           onPatch({ tags: t });
         }}
       />
+      {epics.length > 0 && (
+        <select
+          className="em-epic"
+          aria-label="Epik"
+          value={epicId}
+          onChange={(e) => {
+            setEpicId(e.target.value);
+            onPatch({ epicId: e.target.value || undefined });
+          }}
+        >
+          <option value="">— bez epiku —</option>
+          {epics.map((o) => (
+            <option key={o.id} value={o.id}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+      )}
       <div className="row-actions">
         <button type="button" className="danger" onClick={onDelete}>
           Usuń

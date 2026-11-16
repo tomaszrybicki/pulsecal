@@ -1,3 +1,4 @@
+import { EpicTag } from "./EpicTag";
 import { shownColor } from "../tags";
 import { useEffect } from "react";
 import { whenLabel } from "../draft";
@@ -82,7 +83,9 @@ export function DayPanel({ day, events, anchor, onClose, onOpen, onShift, onDele
             <button type="button" className="dp-open" onClick={() => onOpen(e)}>
               <span className="dp-dot" style={{ background: shownColor(e) }} aria-hidden />
               <span className="dp-main">
-                <span className="dp-title">{e.title || "(bez tytułu)"}</span>
+                <span className="dp-title">
+                  {e.title || "(bez tytułu)"} <EpicTag id={e.epicId} />
+                </span>
                 <span className="dp-when">
                   {e.allDay || !sameDay(new Date(e.start), new Date(e.end - 1))
                     ? whenLabel(e)

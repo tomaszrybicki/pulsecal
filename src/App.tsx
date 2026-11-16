@@ -2,6 +2,7 @@ import { AnimatePresence } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CalendarMap } from "./components/CalendarMap";
 import { DayPanel } from "./components/DayPanel";
+import { EpicContext, type EpicInfo } from "./components/EpicTag";
 import { EventMenu } from "./components/EventMenu";
 import { MovePrompt } from "./components/MovePrompt";
 import { EventSheet } from "./components/EventSheet";
@@ -12,6 +13,8 @@ import { SearchSheet } from "./components/SearchSheet";
 import { SettingsSheet } from "./components/SettingsSheet";
 import { Sidebar } from "./components/Sidebar";
 import { TagRulesSheet } from "./components/TagRulesSheet";
+import { TasksView } from "./components/TasksView";
+import { WorkItemSheet } from "./components/WorkItemSheet";
 import { SyncIndicator } from "./components/SyncIndicator";
 import { Toast } from "./components/Toast";
 import { PALETTE } from "./colors";
@@ -41,7 +44,8 @@ import {
   setTagColor,
   tagKey,
 } from "./tags";
-import type { CalEvent, DraftEvent, ViewMode } from "./types";
+import type { CalEvent, DraftEvent, ViewMode, WorkItem, WorkKind } from "./types";
+import { buildTree, epicColor, epicOptions, epicPath, newItem, nextStatus, saveItem } from "./work";
 import {
   MINUTE,
   addDays,
@@ -148,6 +152,26 @@ export function App() {
   const tagList = useLiveQuery(() => tagStats(), [], [] as TagStat[]);
   const knownTags = useMemo(() => tagList.map((t) => t.tag), [tagList]);
 
+  /* ── zadania i epiki ── */
+  const items = useLiveQuery(() => db.items.filter((i) => !i.deleted).toArray(), [], [] as WorkItem[]);
+  // wpisy przypięte do epików — z całego kalendarza, nie tylko z widocznego zakresu (postęp, lista w epiku)
+  const epicEvents = useLiveQuery(
+    () => db.events.where("epicId").above("").filter((e) => !e.deleted).toArray(),
+    [],
+    [] as CalEvent[],
+  );
+  const tree = useMemo(() => buildTree(items, epicEvents), [items, epicEvents]);
+  const epicInfo = useMemo(() => {
+    const m = new Map<string, EpicInfo>();
+    for (const i of tree.byId.values()) {
+      if (i.kind === "epic") m.set(i.id, { title: i.title, path: epicPath(i.id, tree.byId), color: epicColor(i.id) });
+    }
+    return m;
+  }, [tree]);
+  const epicChoices = useMemo(() => epicOptions(tree), [tree]);
+  const [workOpen, setWorkOpen] = useState<string | null>(null);
+  const workItem = workOpen ? tree.byId.get(workOpen) : undefined;
+
   const sync = useGoogleSync({ from: range.from, to: range.to, pollSec });
 
   useEffect(() => {
@@ -199,6 +223,7 @@ export function App() {
       end: Math.max(draft.end, draft.start + 15 * MINUTE),
       allDay: draft.allDay,
       color: draft.color,
+      epicId: draft.epicId || undefined,
       moves: existing ? countMove(existing, draft.start) : 0,
       tags: applyTagRules(
         draft.title.trim(),
@@ -352,6 +377,63 @@ export function App() {
           }
         : undefined,
     );
+  };
+
+  /* ── zadania i epiki: akcje ── */
+
+  const createItem = (kind: WorkKind, title: string, parentId: string) => {
+    if (!title.trim()) return;
+    void saveItem(newItem(kind, title, parentId));
+    sync.requestSync(3000);
+  };
+
+  // kliknięcia w status po kolei, każde od aktualnego stanu w bazie (szybkie dwa kliknięcia = dwa kroki)
+  const statusChain = useRef(Promise.resolve());
+  const cycleStatus = (id: string) => {
+    statusChain.current = statusChain.current.then(async () => {
+      const cur = await db.items.get(id);
+      if (cur && !cur.deleted) await saveItem({ ...cur, status: nextStatus(cur.status) });
+    });
+    sync.requestSync(3000);
+  };
+
+  const saveWork = (item: WorkItem) => {
+    void saveItem(item);
+    sync.requestSync(2000);
+  };
+
+  /** Usuń zadanie/epik: zawartość epiku idzie piętro wyżej, wpisy z kalendarza tracą epik. Z „Cofnij”. */
+  const deleteWork = async (item: WorkItem) => {
+    setWorkOpen(null);
+    const children = tree.children.get(item.id) ?? [];
+    const evs = tree.events.get(item.id) ?? [];
+    const saveEv = (e: CalEvent) => (e.recurring ? db.events.put(e) : saveLocal(e));
+    for (const c of children) await saveItem({ ...c, parentId: item.parentId });
+    for (const e of evs) await saveEv({ ...e, epicId: undefined });
+    if (item.remote) await saveItem({ ...item, deleted: true });
+    else await db.items.delete(item.id);
+    sync.requestSync(4000);
+    sync.notify(`Usunięto ${item.kind === "epic" ? "epik" : "zadanie"} „${item.title}”`, "ok", {
+      label: "Cofnij",
+      run: () =>
+        void (async () => {
+          await saveItem({ ...item, deleted: false });
+          for (const c of children) await saveItem(c);
+          for (const e of evs) await saveEv(e);
+          sync.requestSync();
+        })(),
+    });
+  };
+
+  /** Z epiku: nowy wpis w kalendarzu od razu przypięty do epiku. */
+  const planInEpic = (epicId: string) => {
+    setWorkOpen(null);
+    openDraft({ ...timedDraft(nextQuarter().getTime(), newColor), epicId }, isDesktop ? "full" : "quick");
+  };
+
+  const openEventFromWork = (e: CalEvent) => {
+    setWorkOpen(null);
+    openDraft(draftFromEvent(e), isDesktop ? "full" : "quick");
   };
 
   /**
@@ -523,7 +605,8 @@ export function App() {
   // skrót klawiszowy „t" = dziś (jak w Google Calendar), gdy nie piszesz i nie ma otwartego okna
   const goTodayRef = useRef(goToday);
   goTodayRef.current = goToday;
-  const sheetOpen = Boolean(draft) || settingsOpen || searchOpen || rulesOpen || Boolean(dayPanel) || Boolean(menu);
+  const sheetOpen =
+    Boolean(draft) || settingsOpen || searchOpen || rulesOpen || Boolean(dayPanel) || Boolean(menu) || Boolean(workOpen);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (sheetOpen || e.ctrlKey || e.metaKey || e.altKey) return;
@@ -563,6 +646,16 @@ export function App() {
         }}
       >
         miesiąc
+      </button>
+      <button
+        className="chip"
+        aria-pressed={view === "tasks"}
+        onClick={() => {
+          setView("tasks");
+          after?.();
+        }}
+      >
+        zadania
       </button>
       {weekSel && (
         <button
@@ -637,6 +730,7 @@ export function App() {
   };
 
   return (
+    <EpicContext.Provider value={epicInfo}>
     <div className="app">
       <div className="ambient" aria-hidden>
         <div className="blob a" />
@@ -658,7 +752,7 @@ export function App() {
         </button>
         <div className="brand">
           <strong>pulsecal</strong>
-          <span className="period">
+          <span className="period" hidden={view === "tasks"}>
             <button
               type="button"
               className="today-btn"
@@ -754,7 +848,16 @@ export function App() {
         />
 
         <main className="map-shell">
-          {view === "map" ? (
+          {view === "tasks" ? (
+            <TasksView
+              tree={tree}
+              now={now.getTime()}
+              onOpen={(i) => setWorkOpen(i.id)}
+              onCreate={createItem}
+              onStatus={(i) => cycleStatus(i.id)}
+              onOpenEvent={openEventFromWork}
+            />
+          ) : view === "map" ? (
             <CalendarMap
               now={now}
               days={mapDays}
@@ -834,6 +937,7 @@ export function App() {
             knownTags={knownTags}
             anchor={anchor}
             moves={events.find((e) => e.id === draft.id)?.moves}
+            epics={epicChoices}
             onChange={setDraft}
             onClose={() => setDraft(null)}
             onDismiss={dismissDraft}
@@ -868,6 +972,7 @@ export function App() {
             event={menu.e}
             anchor={menu.anchor}
             knownTags={knownTags}
+            epics={epicChoices}
             onClose={() => setMenu(null)}
             onPatch={(p) => void patchEvent(menu.e.id, p)}
             onDelete={() => {
@@ -881,6 +986,23 @@ export function App() {
               setEditor("full");
               setDraft(draftFromEvent(e));
             }}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {workItem && !draft && (
+          <WorkItemSheet
+            key={`work-${workItem.id}`}
+            item={workItem}
+            tree={tree}
+            now={now.getTime()}
+            onSave={saveWork}
+            onDelete={(i) => void deleteWork(i)}
+            onClose={() => setWorkOpen(null)}
+            onOpenItem={(i) => setWorkOpen(i.id)}
+            onOpenEvent={openEventFromWork}
+            onPlan={planInEpic}
           />
         )}
       </AnimatePresence>
@@ -948,5 +1070,6 @@ export function App() {
         )}
       </AnimatePresence>
     </div>
+    </EpicContext.Provider>
   );
 }

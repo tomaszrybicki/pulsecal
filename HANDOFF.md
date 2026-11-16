@@ -116,6 +116,15 @@ Previous sessions: first Cursor IDE (built the MVP), then Claude in a chat sessi
 code audit and rewrote the data and sync layer, then stopped at the owner's request.
 **Start by reading `CLAUDE.md`.**
 
+## v0.22.0: tasks and epics („zadania”)
+- New view `tasks` (`TasksView`), details `WorkItemSheet`, model in `work.ts`, Dexie v4: `items` table +
+  `epicId` index on events. Events get `epicId` (EventSheet field, EventMenu select, label via `EpicTag`).
+- Progress = done tasks + past linked events, recursive over sub-epics (`progressOf`).
+- Google backup: one hidden event per item (see CLAUDE.md conventions). Deletions travel via cancelled events
+  (`showDeleted=true`), never by absence. Tested in the preview without Google; **not tested against real
+  Google** (item backup, `pulseEpic` on events).
+- Ideas not built: drag & drop ordering, due dates on tasks, a kanban board by status.
+
 ## v0.21.0: rename tag, „koloruj”, dots on the left
 - Sidebar tag name is a button → inline input; `renameTag(from, to)` in App rewrites every event with that
   tag key (all dates; recurring instances local-only), moves hidden filter / custom colour / paint flag / rules,

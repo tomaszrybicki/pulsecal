@@ -5,6 +5,7 @@ import { DRAFT_ID } from "../draft";
 import { useDragGesture, type Pt } from "../hooks/useDragGesture";
 import { useOptimisticMove } from "../hooks/useOptimisticMove";
 import { DelBtn } from "./DelBtn";
+import { EpicTag } from "./EpicTag";
 import { TagDots } from "./TagDots";
 import type { CalEvent } from "../types";
 import {
@@ -432,6 +433,7 @@ export function CalendarMap({
                     <TagDots tags={e.tags} />
                     {e.title || "(bez tytułu)"}
                   </strong>
+                  <EpicTag id={e.epicId} />
                   {onDelete && e.id !== DRAFT_ID && <DelBtn onDelete={() => onDelete(e)} />}
                   {e.id !== DRAFT_ID && sameDay(new Date(e.end), d) && (
                     <span className="resize-edge" aria-hidden {...stretchAllDay(e)} />
@@ -500,6 +502,7 @@ export function CalendarMap({
                       {formatClock(new Date(e.start))}–{formatClock(new Date(e.end))}
                       {e.moves ? <span className="mv" title={`Przeniesiony ${e.moves}×`}> · ↷{e.moves}</span> : null}
                     </small>
+                    <EpicTag id={e.epicId} />
                     {onDelete && draggable && <DelBtn onDelete={() => onDelete(e)} />}
                     {draggable && segEnd === e.end && (
                       <>

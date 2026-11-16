@@ -42,7 +42,8 @@ src/
   draft.ts                draft helpers (DRAFT_ID ghost, all-day toggle, when-label, withDraft)
   tags.ts                 tags: normalize, "Tagi: a, b" last line of the Google description, filter rule, color
   quickParse.ts           Polish one-line quick add ("dentysta jutro 14:30 1h #wizyta") → ParsedEntry
-  types.ts                CalEvent, DraftEvent, ViewMode, SyncState
+  types.ts                CalEvent, DraftEvent, ViewMode, SyncState, WorkItem
+  work.ts                 epics/tasks: tree, progress, epic path/colour, saveItem (pending = 1)
   colors.ts               palette + mapping to Google colorId
   time.ts                 date helpers (Monday is the first day of the week, Polish labels)
   sync/google.ts          OAuth (GIS) + sync engine
@@ -65,6 +66,9 @@ src/
     SheetFrame.tsx        shared window shell: bottom sheet / popover at the cursor (desktop) / top palette
     SyncIndicator.tsx, Toast.tsx, sheetMotion.ts
     SettingsSheet.tsx     Client ID, calendar, polling interval
+    TasksView.tsx         "zadania" view: epic/task tree, status pills, progress, quick add
+    WorkItemSheet.tsx     task/epic details (status, parent epic, big description, epic contents)
+    EpicTag.tsx           EpicContext + epic label on calendar events
 public/                   icons, favicon
 ```
 
@@ -74,6 +78,11 @@ public/                   icons, favicon
   uses `singleEvents=false`; a changed series master triggers `reconcileSeries()` (instances endpoint, drop stale
   instances). Never push an instance automatically (tag rules on instances stay local): a PATCH detaches it
   from the series.
+- Tasks/epics (`WorkItem`, Dexie v4 table `items`, `parentId` "" = top level): every change via `saveItem()`
+  (`pending = 1`). Backup = one hidden all-day Google event per item on 2000-01-02, id `pulsetask<id>`,
+  JSON in a ```json block, `private.pulseType=item`; full pull lists them with `privateExtendedProperty`,
+  incremental pull routes them to `applyRemoteItem`. Events link via `CalEvent.epicId` (`private.pulseEpic`,
+  always sent, "" = none).
 - Times are stored as epoch ms (local time). All-day `end` = **last millisecond of the last day**;
   Google's end is exclusive (the next day), so convert at the boundary (`sync/google.ts`).
 - Tags: local field `CalEvent.tags` (casing as typed; compare via `tagKey()` = lowercase; Dexie v3 `*tags` index).

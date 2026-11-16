@@ -2638,3 +2638,407 @@ button.tag-name:hover {
     opacity: 0.9;
   }
 }
+
+/* ───────────── zadania i epiki ───────────── */
+
+.tasks-view {
+  height: 100%;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.tasks-inner {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 12px 16px 140px;
+}
+
+.tasks-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 14px;
+  margin-bottom: 10px;
+}
+
+.tasks-head h2 {
+  font-family: var(--display);
+  font-size: 1.5rem;
+  margin: 0;
+}
+
+.tasks-counts {
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+
+.tasks-hide {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.tasks-empty {
+  max-width: 520px;
+}
+
+.wk-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.wk-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 40px;
+  padding: 4px 8px 4px calc(8px + var(--depth, 0) * 22px);
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+}
+
+.wk-row:hover {
+  background: var(--hover);
+}
+
+.wk-row.epic > .wk-title {
+  font-weight: 600;
+}
+
+.wk-row.st-done > .wk-title span:first-of-type {
+  color: var(--ink-soft);
+  text-decoration: line-through;
+  text-decoration-color: var(--ink-faint);
+}
+
+.wk-fold {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border: 0;
+  border-radius: 50%;
+  padding: 0;
+  background: transparent;
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.wk-fold.open {
+  transform: rotate(90deg);
+}
+
+.wk-status {
+  flex: none;
+  border: 0;
+  border-radius: 999px;
+  padding: 3px 9px;
+  font: inherit;
+  font-size: 0.7rem;
+  white-space: nowrap;
+  cursor: pointer;
+  background: var(--field);
+  color: var(--ink-soft);
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.wk-status:active {
+  transform: scale(0.92);
+}
+
+.wk-status.st-doing {
+  background: #f4c46a;
+  color: #3b2a06;
+}
+
+.wk-status.st-done {
+  background: #8fc79a;
+  color: #10301a;
+}
+
+.wk-title {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  border: 0;
+  padding: 4px 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 0.92rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.wk-title span:first-of-type {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wk-epic-mark {
+  flex: none;
+  width: 11px;
+  height: 11px;
+  border-radius: 38% 62% 55% 45%;
+}
+
+.wk-has-desc {
+  flex: none;
+  color: var(--ink-soft);
+  font-size: 0.75rem;
+}
+
+.wk-progress {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.wk-bar {
+  position: relative;
+  width: 80px;
+  height: 7px;
+  border-radius: 99px;
+  background: var(--track);
+  overflow: hidden;
+}
+
+.wk-bar span {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 99px;
+  background: #6fb37d;
+  transition: width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.wk-pct {
+  min-width: 34px;
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.wk-progress.big {
+  display: flex;
+  margin-bottom: 4px;
+}
+
+.wk-progress.big .wk-bar {
+  flex: 1;
+  height: 10px;
+}
+
+.wk-event {
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
+.wk-event.past {
+  opacity: 0.6;
+}
+
+.wk-cal {
+  flex: none;
+  width: 22px;
+  text-align: center;
+}
+
+.wk-when {
+  flex: none;
+  font-size: 0.75rem;
+}
+
+.wk-ev-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--ink);
+}
+
+.wk-add {
+  display: flex;
+  gap: 6px;
+  padding: 4px 8px 10px calc(8px + var(--depth, 0) * 22px);
+}
+
+.wk-add.compact {
+  padding-bottom: 4px;
+}
+
+.wk-add input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  border-radius: 14px;
+  padding: 10px 14px;
+  background: var(--field);
+  color: var(--ink);
+  font: inherit;
+}
+
+.wk-add button {
+  flex: none;
+  border: 0;
+  border-radius: 999px;
+  padding: 0 12px;
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.wk-add button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.wk-add-link {
+  border: 0;
+  padding: 4px 8px 6px calc(38px + var(--depth, 0) * 22px);
+  background: none;
+  color: var(--ink-soft);
+  font: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.wk-add-link:hover {
+  color: var(--ink);
+}
+
+/* okno zadania / epiku */
+
+.sheet.work-sheet {
+  max-height: 92vh;
+  overflow: auto;
+}
+
+.wk-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 12px;
+}
+
+.wk-fields .seg {
+  margin: 0;
+  align-self: flex-start;
+}
+
+.seg button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.field textarea.wk-desc {
+  min-height: 200px;
+  resize: vertical;
+  font: inherit;
+  line-height: 1.5;
+}
+
+.wk-epic-info {
+  margin: 4px 0 12px;
+}
+
+.wk-mini {
+  list-style: none;
+  margin: 6px 0;
+  padding: 0;
+}
+
+.wk-mini button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  border: 0;
+  border-radius: 12px;
+  padding: 6px 8px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.85rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.wk-mini button:hover {
+  background: var(--hover);
+}
+
+.wk-mini button.past {
+  color: var(--ink-soft);
+}
+
+.wk-plan {
+  border: 0;
+  border-radius: 999px;
+  padding: 9px 14px;
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+/* etykieta epiku na wpisie */
+
+.epic-tag {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: middle;
+  padding: 0 6px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--epic) 22%, var(--surface));
+  border-left: 3px solid var(--epic);
+  color: var(--ink);
+  font-size: 0.66rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.event-blob .epic-tag {
+  margin-top: 3px;
+  align-self: flex-start;
+}
+
+.m-ev .epic-tag {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 38%;
+  margin-left: 4px;
+  font-size: 0.6rem;
+}
+
+.dp-title .epic-tag {
+  margin-left: 4px;
+}
+
+.em-epic {
+  width: 100%;
+  margin-top: 8px;
+  border: 0;
+  border-radius: 12px;
+  padding: 8px 10px;
+  background: var(--field);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.82rem;
+}

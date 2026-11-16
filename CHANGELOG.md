@@ -3,6 +3,20 @@
 Każda wersja to jeden commit `vX.Y.Z: …` (treść commita = wpis z tego pliku) i tag `vX.Y.Z`.
 Najnowsze na górze. Opis funkcji aplikacji jest w [FEATURES.md](FEATURES.md).
 
+## [0.22.0] – 2026-11-16: zadania i epiki
+
+- **Zadania i epiki:** nowy widok „zadania” (obok „mapa” i „miesiąc”), prosta „jira” do spraw osobistych.
+  Epik to większa sprawa; w epiku mogą być zadania, mniejsze epiki i wpisy z kalendarza.
+- **Status:** do zrobienia → w toku → zrobione, kliknięciem w pastylkę. Liczniki u góry i „ukryj zrobione”.
+- **Postęp epiku:** pasek i „zrobione/wszystkie” (zadania zrobione + wpisy z kalendarza już odbyte, razem
+  z pod-epikami).
+- **Szczegóły zadania / epiku:** nazwa, rodzaj, status, epik nadrzędny, duże pole opisu. W epiku też jego
+  zawartość, wpisy z kalendarza i „+ zaplanuj w kalendarzu”.
+- **Wpis w epiku:** pole „Epik” w edycji wpisu i w menu pod prawym przyciskiem; w kalendarzu wpis ma etykietę
+  epiku w jego kolorze.
+- **Kopia w Google:** każde zadanie i epik to ukryty wpis 2 stycznia 2000, więc wracają na nowym urządzeniu.
+  Usuwanie z „Cofnij”.
+
 ## [0.21.0] – 2026-11-15: zmiana nazwy tagu, koloruj, kropki z lewej
 
 - **Zmiana nazwy tagu:** kliknięcie nazwy tagu w panelu bocznym otwiera pole edycji (Enter zapisuje, Esc anuluje).

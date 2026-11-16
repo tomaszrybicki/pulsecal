@@ -1,6 +1,6 @@
 export type EventOrigin = "local" | "google" | "both";
 
-export type ViewMode = "map" | "month";
+export type ViewMode = "map" | "month" | "tasks";
 
 export interface CalEvent {
   id: string;
@@ -20,6 +20,8 @@ export interface CalEvent {
   recurring?: boolean;
   /** ID serii w Google (recurringEventId) — do odświeżenia całej serii po zmianie w Google. */
   seriesId?: string;
+  /** Epik, do którego należy wpis (work.ts). W Google: extendedProperties.private.pulseEpic. */
+  epicId?: string;
   origin: EventOrigin;
   updatedAt: number;
   deleted: boolean;
@@ -36,6 +38,29 @@ export interface DraftEvent {
   allDay: boolean;
   color: string;
   tags: string[];
+  epicId?: string;
+}
+
+export type WorkKind = "epic" | "task";
+export type WorkStatus = "todo" | "doing" | "done";
+
+/** Zadanie albo epik (work.ts). */
+export interface WorkItem {
+  id: string;
+  kind: WorkKind;
+  title: string;
+  description: string;
+  status: WorkStatus;
+  /** Epik nadrzędny ("" = najwyższy poziom; pusty string, bo IndexedDB nie indeksuje null). */
+  parentId: string;
+  order: number;
+  createdAt: number;
+  updatedAt: number;
+  deleted: boolean;
+  /** 1 = zmiana czeka na wysłanie kopii do Google. */
+  pending: 0 | 1;
+  /** 1 = kopia jest już w Google. */
+  remote?: 0 | 1;
 }
 
 export type SyncState = "off" | "idle" | "syncing" | "expired" | "offline" | "error";

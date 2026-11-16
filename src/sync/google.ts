@@ -13,7 +13,7 @@
  */
 import { DEFAULT_GOOGLE_COLOR, GOOGLE_EVENT_COLORS, googleIdForColor, paletteById, paletteByValue } from "../colors";
 import { db } from "../db";
-import type { CalEvent } from "../types";
+import type { CalEvent, WorkItem } from "../types";
 import { applyTagRules } from "../tagRules";
 import { isSettings, type AppSettings, type SettingsBackup } from "../settings";
 import { htmlToText, joinTags, splitTags } from "../tags";
@@ -360,6 +360,7 @@ function parseGEvent(g: GEvent): Omit<CalEvent, "id" | "origin" | "pending"> | n
     googleEtag: g.etag,
     recurring: Boolean(g.recurringEventId),
     seriesId: g.recurringEventId,
+    epicId: g.extendedProperties?.private?.pulseEpic || undefined,
     updatedAt: g.updated ? new Date(g.updated).getTime() : Date.now(),
     moves: Number(g.extendedProperties?.private?.pulseMoves) || 0,
     deleted: false,
@@ -372,7 +373,13 @@ function toGEvent(e: CalEvent): Record<string, unknown> {
     summary: e.title,
     description: joinTags(e.notes, e.tags ?? []),
     extendedProperties: {
-      private: { pulseId: e.id, ...(pal ? { pulseColor: pal.id } : {}), ...(e.moves ? { pulseMoves: String(e.moves) } : {}) },
+      private: {
+        pulseId: e.id,
+        ...(pal ? { pulseColor: pal.id } : {}),
+        ...(e.moves ? { pulseMoves: String(e.moves) } : {}),
+        // zawsze (także pusty) — PATCH scala klucze, więc bez tego nie dałoby się wypiąć wpisu z epiku
+        pulseEpic: e.epicId ?? "",
+      },
     },
   };
   // nasz kolor → jego colorId; dokładny kolor Google → ten sam colorId; kolor kalendarza → bez colorId
@@ -558,6 +565,7 @@ async function reconcileSeries(masterId: string, from: number, to: number): Prom
 /** Zastosuj zdalne wydarzenie lokalnie. Zwraca true, jeśli coś się zmieniło. */
 async function applyRemote(g: GEvent, ignoreEtag = false): Promise<boolean> {
   if (g.id === SETTINGS_EVENT_ID) return false; // ukryty wpis z ustawieniami — nie pokazujemy go
+  if (g.id.startsWith(ITEM_PREFIX)) return applyRemoteItem(g); // kopia zadania/epiku
   const existing = await db.events.where("googleEventId").equals(g.id).first();
 
   if (g.status === "cancelled") {
@@ -634,7 +642,7 @@ async function pullFull(from: Date, to: Date, ignoreEtag = false): Promise<numbe
     await db.events.bulkDelete(stale.map((e) => e.id));
     changed += stale.length;
   }
-  return changed;
+  return changed + (await pullItems());
 }
 
 /**
@@ -682,7 +690,12 @@ export function syncNow(from: Date, to: Date, opts: { forceFull?: boolean } = {}
     const startedAt = Date.now();
     await ensureCalendarColor();
     const recolor = localStorage.getItem(COLOR_RULES_KEY) !== COLOR_RULES_VERSION;
-    const { pushed, removed, failed, error: pushError } = await pushPending();
+    const ev = await pushPending();
+    const it = await pushItems();
+    const pushed = ev.pushed + it.pushed;
+    const removed = ev.removed;
+    const failed = ev.failed + it.failed;
+    const pushError = ev.error ?? it.error;
 
     const meta = readMeta();
     const covered = meta && meta.from <= from.getTime() && meta.to >= to.getTime();
@@ -768,4 +781,128 @@ export async function writeSettingsBackup(settings: AppSettings, updatedAt: numb
     res = await api(calPath(), { method: "POST", body: JSON.stringify({ ...body, id: SETTINGS_EVENT_ID }) });
   }
   if (!res.ok) throw new Error(`Zapis ustawień w Google nieudany (${res.status})`);
+}
+
+/* ───────────────────────── kopia zadań i epików ───────────────────────── */
+
+/**
+ * Każde zadanie/epik to osobny ukryty wpis całodniowy 2.01.2000 (ID „pulsetask<id>”, prywatny, „wolny” czas)
+ * z JSON-em w opisie — jak kopia ustawień, ale osobno, żeby zmiana jednego nie nadpisywała innych
+ * (dwa urządzenia) i żeby nie trafić na limit długości jednego opisu.
+ */
+const ITEM_PREFIX = "pulsetask";
+const ITEM_NOTE =
+  "Zadanie / epik z aplikacji Pulsecal (kopia zapasowa). Nie usuwaj i nie zmieniaj — Pulsecal odczytuje je " +
+  "na innych urządzeniach.";
+
+type ItemData = Pick<
+  WorkItem,
+  "id" | "kind" | "title" | "description" | "status" | "parentId" | "order" | "createdAt" | "updatedAt"
+>;
+
+function itemBody(i: WorkItem): Record<string, unknown> {
+  const data: ItemData = {
+    id: i.id,
+    kind: i.kind,
+    title: i.title,
+    description: i.description,
+    status: i.status,
+    parentId: i.parentId,
+    order: i.order,
+    createdAt: i.createdAt,
+    updatedAt: i.updatedAt,
+  };
+  return {
+    summary: `Pulsecal — ${i.kind === "epic" ? "epik" : "zadanie"}: ${i.title}`,
+    description: `${ITEM_NOTE}\n\n\`\`\`json\n${JSON.stringify(data, null, 2)}\n\`\`\``,
+    start: { date: "2000-01-02", dateTime: null },
+    end: { date: "2000-01-03", dateTime: null },
+    status: "confirmed",
+    transparency: "transparent",
+    visibility: "private",
+    extendedProperties: { private: { pulseType: "item" } },
+  };
+}
+
+function parseItem(g: GEvent): ItemData | null {
+  // zachłannie do ostatniego ``` — opis zadania może sam zawierać ```
+  const m = /```json\s*([\s\S]*)```/.exec(htmlToText(g.description || ""));
+  if (!m) return null;
+  try {
+    const d = JSON.parse(m[1]) as Partial<ItemData>;
+    if (typeof d.id !== "string" || typeof d.title !== "string") return null;
+    if (d.kind !== "epic" && d.kind !== "task") return null;
+    return {
+      id: d.id,
+      kind: d.kind,
+      title: d.title,
+      description: typeof d.description === "string" ? d.description : "",
+      status: d.status === "doing" || d.status === "done" ? d.status : "todo",
+      parentId: typeof d.parentId === "string" ? d.parentId : "",
+      order: Number(d.order) || 0,
+      createdAt: Number(d.createdAt) || 0,
+      updatedAt: Number(d.updatedAt) || 0,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/** Kopia z Google → lokalnie (wygrywa nowsza zmiana; niewysłana lokalna nie jest nadpisywana starszą). */
+async function applyRemoteItem(g: GEvent): Promise<boolean> {
+  const id = g.id.slice(ITEM_PREFIX.length);
+  const cur = await db.items.get(id);
+  if (g.status === "cancelled") {
+    if (!cur || cur.pending) return false;
+    await db.items.delete(id);
+    return true;
+  }
+  const d = parseItem(g);
+  if (!d || d.id !== id) return false;
+  if (cur && (cur.updatedAt === d.updatedAt || (cur.pending && cur.updatedAt > d.updatedAt))) return false;
+  await db.items.put({ ...d, deleted: false, pending: 0, remote: 1 });
+  return true;
+}
+
+/** Wszystkie kopie (także usunięte — żeby usunięcie z innego urządzenia dotarło też po dłuższej przerwie). */
+async function pullItems(): Promise<number> {
+  const list = await listAll({ privateExtendedProperty: "pulseType=item", showDeleted: "true" });
+  let changed = 0;
+  for (const g of list) if (g.id.startsWith(ITEM_PREFIX) && (await applyRemoteItem(g))) changed += 1;
+  return changed;
+}
+
+async function pushItems(): Promise<{ pushed: number; failed: number; error?: Error }> {
+  const queue = await db.items.where("pending").equals(1).toArray();
+  let pushed = 0;
+  let failed = 0;
+  let error: Error | undefined;
+  for (const i of queue) {
+    try {
+      const path = `${calPath()}/${ITEM_PREFIX}${i.id}`;
+      if (i.deleted) {
+        const res = await api(path, { method: "DELETE" });
+        if (!res.ok && res.status !== 404 && res.status !== 410) throw new Error(`Usuwanie zadania nieudane (${res.status})`);
+        await db.items.delete(i.id);
+        continue;
+      }
+      // PATCH przywraca też wpis usunięty wcześniej w Google (status: confirmed); brak → POST z naszym ID
+      let res = await api(path, { method: "PATCH", body: JSON.stringify(itemBody(i)) });
+      if (res.status === 404) {
+        res = await api(calPath(), { method: "POST", body: JSON.stringify({ ...itemBody(i), id: `${ITEM_PREFIX}${i.id}` }) });
+      }
+      if (!res.ok) throw new Error(`Kopia zadania „${i.title}” w Google nieudana (${res.status})`);
+      await db.transaction("rw", db.items, async () => {
+        const cur = await db.items.get(i.id);
+        if (!cur) return;
+        await db.items.update(i.id, { remote: 1, ...(cur.updatedAt === i.updatedAt ? { pending: 0 as const } : {}) });
+      });
+      pushed += 1;
+    } catch (err) {
+      if (err instanceof NeedsAuthError) throw err;
+      failed += 1;
+      error ??= err instanceof Error ? err : new Error(String(err));
+    }
+  }
+  return { pushed, failed, error };
 }

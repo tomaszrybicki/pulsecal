@@ -6,6 +6,7 @@ import { DRAFT_ID } from "../draft";
 import { useDragGesture, type Pt } from "../hooks/useDragGesture";
 import { useOptimisticMove } from "../hooks/useOptimisticMove";
 import { DelBtn } from "./DelBtn";
+import { EpicTag } from "./EpicTag";
 import { TagDots } from "./TagDots";
 import type { CalEvent } from "../types";
 import { WEEKDAY_LABELS, addDays, dayDiff, formatClock, isoDate, sameDay, startOfDay } from "../time";
@@ -372,6 +373,7 @@ function ChipBody({ e, bar }: { e: CalEvent; bar: boolean }) {
       <TagDots tags={e.tags} max={3} />
       {!e.allDay && <span className="t">{formatClock(new Date(e.start))}</span>}
       <span className="n">{e.title || "(bez tytułu)"}</span>
+      <EpicTag id={e.epicId} />
       {e.moves ? (
         <span className="mv" title={`Przeniesiony ${e.moves}×`}>
           ↷{e.moves}
