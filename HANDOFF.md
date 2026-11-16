@@ -116,6 +116,12 @@ Previous sessions: first Cursor IDE (built the MVP), then Claude in a chat sessi
 code audit and rewrote the data and sync layer, then stopped at the owner's request.
 **Start by reading `CLAUDE.md`.**
 
+## v0.26.0: "2 tyg." view chip, default view
+- `ViewChip` (bottom of App.tsx): chip + hover star `chip-default`. „2 tyg.” = `weekSel {start: startOfWeek(focus),
+  weeks: 2}` + month view; the extra „N tyg.” chip shows only for other selections.
+- Default view per device in localStorage `pulsecal:default-view` ("map" | "month" | "2w"), read once for the
+  initial `view` / `weekSel` state. Not in the settings backup on purpose.
+
 ## v0.25.0: sidebar feature links, pinned epics
 - Sidebar is a flex column; `.side-nav` (margin-top: auto) at the bottom: „kalendarz” (back to `lastCalView` ref
   in App), „zadania i epiki” (open task count), „motyw” (theme seg). The „zadania” chip left the top bar.

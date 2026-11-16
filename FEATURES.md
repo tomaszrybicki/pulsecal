@@ -37,6 +37,10 @@ logowanie Google bez własnego serwera (Google Identity Services).
     myszy otwiera jego menu. Każde przeniesienie i usunięcie można cofnąć przyciskiem „Cofnij” w powiadomieniu.
   - Na telefonie wszystko jako kolorowe pigułki z samą nazwą.
   - Liczba widocznych wierszy dopasowuje się do wysokości ekranu.
+- **2 tygodnie** (przycisk „2 tyg.”): siatka dwóch tygodni od tygodnia z wybranym dniem; strzałki przesuwają
+  o dwa tygodnie.
+- **Widok domyślny:** najedź na przycisk widoku i kliknij gwiazdkę ☆ — aplikacja będzie się otwierać w tym
+  widoku (mapa, miesiąc albo 2 tygodnie). Osobno na każdym urządzeniu; na telefonie gwiazdki są w szufladzie.
 - **Nawigacja:**
   - **przycisk „dziś”** w górnym pasku (i klawisz **T**) wraca do dzisiejszego dnia w obecnym widoku;
     wybrany zakres tygodni przesuwa się wtedy na bieżący tydzień;
@@ -57,7 +61,7 @@ logowanie Google bez własnego serwera (Google Identity Services).
 - **Gdzie:** przycisk ☰ w lewym górnym rogu. Na komputerze panel jest stałą kolumną z lewej
   (aplikacja pamięta, czy był otwarty). Na telefonie wysuwa się jako szuflada.
 - **Przyciski funkcyjne:** na górze „nowy wpis”. Tu będą dochodzić kolejne przyciski.
-- **Przełącznik widoku na telefonie:** „mapa” i „miesiąc” są w szufladzie (jak w aplikacji Google Calendar),
+- **Przełącznik widoku na telefonie:** „mapa”, „miesiąc” i „2 tyg.” są w szufladzie (jak w aplikacji Google Calendar),
   bo w górnym pasku telefonu brakuje miejsca. Na komputerze zostają w górnym pasku.
 - **Mały kalendarz** z numerami tygodni:
   - kliknięcie dnia przechodzi do niego w obecnym widoku;
@@ -65,7 +69,10 @@ logowanie Google bez własnego serwera (Google Identity Services).
     pokazuje wtedy dokładnie te tygodnie: w mapie jako kolumny dni, w siatce jako tyle wierszy, ile tygodni;
   - kliknięcie numeru tygodnia pokazuje ten jeden tydzień (dni wypełniają wtedy szerokość ekranu);
   - górny pasek pokazuje zakres („16 – 29 lis 2026”), a × wraca do zwykłego widoku.
+- **Przypięte epiki:** paski postępu przypiętych epików (opisane w „Zadania i epiki”).
 - **Tagi:** lista wszystkich tagów z liczbą wpisów, opisana niżej.
+- **Odnośniki na dole:** „kalendarz”, „zadania i epiki” (z liczbą niezrobionych zadań) i „motyw”
+  (auto / jasny / ciemny). Tu będą dochodzić kolejne funkcje.
 
 ### Tagi
 

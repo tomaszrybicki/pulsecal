@@ -3,6 +3,14 @@
 Każda wersja to jeden commit `vX.Y.Z: …` (treść commita = wpis z tego pliku) i tag `vX.Y.Z`.
 Najnowsze na górze. Opis funkcji aplikacji jest w [FEATURES.md](FEATURES.md).
 
+## [0.26.0] – 2026-11-16: widok 2 tygodni i widok domyślny
+
+- **Przycisk „2 tyg.”** obok „mapa” i „miesiąc”: siatka dwóch tygodni od tygodnia z wybranym dniem.
+  Strzałki przesuwają o dwa tygodnie, „dziś” wraca do bieżącego tygodnia.
+- **Widok domyślny:** po najechaniu na przycisk widoku pojawia się gwiazdka „ustaw jako widok domyślny”.
+  Aplikacja otwiera się potem w tym widoku (mapa, miesiąc albo 2 tygodnie). Ustawienie jest osobne dla
+  każdego urządzenia; na telefonie gwiazdki widać w szufladzie z widokami.
+
 ## [0.25.0] – 2026-11-16: odnośniki w panelu bocznym i przypięte epiki
 
 - **Odnośniki na dole panelu bocznego:** „kalendarz” (wraca do ostatniego widoku kalendarza), „zadania i epiki”

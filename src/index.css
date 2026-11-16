@@ -4442,3 +4442,67 @@ select.jr-status.big {
     transform: translate(10px, -12px);
   }
 }
+
+/* ── przełącznik widoków: gwiazdka „widok domyślny” po najechaniu ── */
+
+.chip-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.chip-default {
+  position: absolute;
+  top: -7px;
+  right: -5px;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border: 0;
+  border-radius: 50%;
+  padding: 0;
+  background: var(--paper);
+  box-shadow: 0 2px 8px rgba(40, 24, 12, 0.18);
+  color: var(--ink-soft);
+  font-size: 0.72rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  transform: scale(0.6);
+  pointer-events: none;
+  transition:
+    opacity 0.15s,
+    transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.chip-wrap:hover .chip-default,
+.chip-default:focus-visible {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+
+.chip-default[aria-pressed="true"] {
+  color: #e0a43a;
+}
+
+/* telefon / dotyk: brak najechania — gwiazdki w szufladzie widać zawsze, w górnym pasku tylko przy domyślnym */
+@media (hover: none) {
+  .side-views .chip-default {
+    opacity: 0.85;
+    transform: none;
+    pointer-events: auto;
+  }
+}
+
+.side-views {
+  flex-wrap: wrap;
+  padding-top: 6px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chip-default {
+    transition: none;
+  }
+}

@@ -84,6 +84,19 @@ const MAP_SHIFT = 14;
 
 const mapStartFor = (d: Date) => addDays(startOfWeek(d), -MAP_SHIFT);
 
+/** Widok po otwarciu aplikacji (ustawiany gwiazdką przy przełączniku widoków; per urządzenie). */
+type DefaultView = "map" | "month" | "2w";
+const DEFAULT_VIEW_KEY = "pulsecal:default-view";
+const VIEW_NAME: Record<DefaultView, string> = { map: "mapa", month: "miesiąc", "2w": "2 tygodnie" };
+function readDefaultView(): DefaultView {
+  try {
+    const v = localStorage.getItem(DEFAULT_VIEW_KEY);
+    return v === "map" || v === "2w" ? v : "month";
+  } catch {
+    return "month";
+  }
+}
+
 function readPollSec(): number {
   const v = Number(localStorage.getItem(POLL_KEY));
   return Number.isFinite(v) && v >= MIN_POLL_SEC ? v : 30;
@@ -101,15 +114,27 @@ function readHiddenTags(): Set<string> {
 export function App() {
   // Minuta wystarcza dla linii „teraz"; tykanie co sekundę re-renderowało całą aplikację.
   const now = useNow(30_000);
-  const [view, setView] = useState<ViewMode>("month");
+  const [defaultView, setDefaultViewState] = useState<DefaultView>(readDefaultView);
+  const setDefaultView = (v: DefaultView) => {
+    try {
+      localStorage.setItem(DEFAULT_VIEW_KEY, v);
+    } catch {
+      /* prywatne okno — zostaje na tę sesję */
+    }
+    setDefaultViewState(v);
+    sync.notify(`Widok domyślny: ${VIEW_NAME[v]}`);
+  };
+  const [view, setView] = useState<ViewMode>(() => (defaultView === "map" ? "map" : "month"));
   // ostatni widok kalendarza — „kalendarz” w panelu bocznym wraca do niego z widoku zadań
-  const lastCalView = useRef<ViewMode>("month");
+  const lastCalView = useRef<ViewMode>(view);
   useEffect(() => {
     if (view !== "tasks") lastCalView.current = view;
   }, [view]);
   const [focus, setFocus] = useState(() => startOfDay(new Date()));
   // tygodnie wybrane w małym kalendarzu (null = zwykły widok: miesiąc / 21 dni wokół fokusu)
-  const [weekSel, setWeekSel] = useState<WeekSelection | null>(null);
+  const [weekSel, setWeekSel] = useState<WeekSelection | null>(() =>
+    defaultView === "2w" ? { start: startOfWeek(new Date()), weeks: 2 } : null,
+  );
   // początek okna dni w mapie — niezależny od fokusu, żeby przewijanie nie skakało
   const [mapStart, setMapStart] = useState(() => mapStartFor(new Date()));
   const [scrollToNow, setScrollToNow] = useState(1);
@@ -692,31 +717,49 @@ export function App() {
     return () => window.removeEventListener("keydown", onKey);
   }, [sheetOpen]);
 
-  /** mapa / miesiąc zawsze widoczne; wybrany zakres tygodni jako osobny, dodatkowy przycisk. */
+  const showTwoWeeks = () => {
+    const start = startOfWeek(focus);
+    setWeekSel({ start, weeks: 2 });
+    setView("month");
+    navigate(start);
+  };
+
+  /** mapa / miesiąc / 2 tyg. zawsze widoczne; inny wybrany zakres tygodni jako osobny, dodatkowy przycisk. */
   const viewChips = (after?: () => void) => (
     <>
-      <button
-        className="chip"
-        aria-pressed={view === "map"}
+      <ViewChip
+        label="mapa"
+        pressed={view === "map"}
+        isDefault={defaultView === "map"}
+        onSetDefault={() => setDefaultView("map")}
         onClick={() => {
           setView("map");
           after?.();
         }}
-      >
-        mapa
-      </button>
-      <button
-        className="chip"
-        aria-pressed={view === "month" && !weekSel}
+      />
+      <ViewChip
+        label="miesiąc"
+        pressed={view === "month" && !weekSel}
+        isDefault={defaultView === "month"}
+        onSetDefault={() => setDefaultView("month")}
         onClick={() => {
           if (weekSel) clearWeekSel();
           setView("month");
           after?.();
         }}
-      >
-        miesiąc
-      </button>
-      {weekSel && (
+      />
+      <ViewChip
+        label="2 tyg."
+        title="Dwa tygodnie od tygodnia z wybranym dniem"
+        pressed={view === "month" && weekSel?.weeks === 2}
+        isDefault={defaultView === "2w"}
+        onSetDefault={() => setDefaultView("2w")}
+        onClick={() => {
+          showTwoWeeks();
+          after?.();
+        }}
+      />
+      {weekSel && weekSel.weeks !== 2 && (
         <button
           className="chip"
           aria-pressed={view === "month"}
@@ -1155,5 +1198,33 @@ export function App() {
       </AnimatePresence>
     </div>
     </EpicContext.Provider>
+  );
+}
+
+/** Przycisk widoku z gwiazdką „ustaw jako domyślny” (pokazuje się po najechaniu). */
+function ViewChip(p: {
+  label: string;
+  title?: string;
+  pressed: boolean;
+  isDefault: boolean;
+  onClick: () => void;
+  onSetDefault: () => void;
+}) {
+  return (
+    <span className={`chip-wrap${p.isDefault ? " is-default" : ""}`}>
+      <button className="chip" aria-pressed={p.pressed} title={p.title} onClick={p.onClick}>
+        {p.label}
+      </button>
+      <button
+        type="button"
+        className="chip-default"
+        aria-pressed={p.isDefault}
+        aria-label={p.isDefault ? `${p.label} — widok domyślny` : `Ustaw „${p.label}” jako widok domyślny`}
+        title={p.isDefault ? "Widok domyślny (po otwarciu aplikacji)" : "Ustaw jako widok domyślny (po otwarciu aplikacji)"}
+        onClick={p.onSetDefault}
+      >
+        {p.isDefault ? "★" : "☆"}
+      </button>
+    </span>
   );
 }
