@@ -5,6 +5,7 @@ import { DRAFT_ID } from "../draft";
 import { useDragGesture, type Pt } from "../hooks/useDragGesture";
 import { useOptimisticMove } from "../hooks/useOptimisticMove";
 import { DelBtn, PlanBtn } from "./DelBtn";
+import { EstSuffix } from "./EstimatePicker";
 import { EpicTag } from "./EpicTag";
 import { TagDots } from "./TagDots";
 import type { CalEvent } from "../types";
@@ -532,6 +533,7 @@ export function CalendarMap({
                   <strong>
                     <TagDots tags={e.tags} />
                     {e.title || "(bez tytułu)"}
+                    <EstSuffix min={e.estimate} />
                   </strong>
                   <EpicTag id={e.epicId} />
                   {onPlan && e.id !== DRAFT_ID && <PlanBtn on={Boolean(e.autoSlot)} onPlan={() => onPlan(e)} />}
@@ -599,6 +601,7 @@ export function CalendarMap({
                     <strong>
                       <TagDots tags={e.tags} />
                       {e.title || "(bez tytułu)"}
+                      <EstSuffix min={e.estimate} />
                     </strong>
                     <small>
                       {formatClock(new Date(e.start))}–{formatClock(new Date(e.end))}

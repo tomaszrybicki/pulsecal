@@ -3,6 +3,22 @@
 Każda wersja to jeden commit `vX.Y.Z: …` (treść commita = wpis z tego pliku) i tag `vX.Y.Z`.
 Najnowsze na górze. Opis funkcji aplikacji jest w [FEATURES.md](FEATURES.md).
 
+## [0.33.0] – 2026-11-16: estymata czasowa wpisów
+
+- **Estymata czasowa wpisu:** szybkie przyciski 5min / 30min / 1h / 2h+ (bez opisu) w szybkiej karcie, w menu pod
+  prawym przyciskiem i w pełnej edycji. Ponowne kliknięcie wybranej usuwa estymatę.
+- **Widać ją w nawiasie za tytułem**, np. „Dentysta (30min)”: w mapie, w miesiącu i w przeglądzie dnia.
+- **Epik: „zostało ~3h 35min”** — suma estymat wpisów niezrobionych zadań (z pod-epikami):
+  - w nagłówku grupy epiku na liście zadań;
+  - w szczegółach epiku;
+  - przy przypiętym epiku w panelu bocznym („2/9 · ~30min”).
+
+  Przy zadaniu z wpisem estymata jest obok daty (◷ jutro 10:00 · 30min).
+- **Ustawienie „Wymagaj estymaty przy dodawaniu wpisu”:** nowego wpisu nie da się zapisać bez wybrania estymaty,
+  a przyciski podpowiadają „wybierz estymatę”. Szybkie dodawanie z wyszukiwania otwiera wtedy kartę wpisu, zamiast
+  zapisywać od razu.
+- Estymata synchronizuje się z Google, a ustawienie jest w kopii ustawień.
+
 ## [0.32.0] – 2026-11-16: mapa pół na pół, orbita i krótkie wpisy
 
 - **Mapa pół na pół:** wpisy całodniowe są w paśmie przyklejonym pod nagłówkami dni, domyślnie na połowie wysokości.

@@ -362,6 +362,7 @@ function parseGEvent(g: GEvent): Omit<CalEvent, "id" | "origin" | "pending"> | n
     seriesId: g.recurringEventId,
     epicId: g.extendedProperties?.private?.pulseEpic || undefined,
     autoSlot: g.extendedProperties?.private?.pulseAuto === "1" || undefined,
+    estimate: Number(g.extendedProperties?.private?.pulseEst) || undefined,
     updatedAt: g.updated ? new Date(g.updated).getTime() : Date.now(),
     moves: Number(g.extendedProperties?.private?.pulseMoves) || 0,
     deleted: false,
@@ -381,6 +382,7 @@ function toGEvent(e: CalEvent): Record<string, unknown> {
         // zawsze (także pusty) — PATCH scala klucze, więc bez tego nie dałoby się wypiąć wpisu z epiku
         pulseEpic: e.epicId ?? "",
         pulseAuto: e.autoSlot ? "1" : "",
+        pulseEst: e.estimate ? String(e.estimate) : "",
       },
     },
   };

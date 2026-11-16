@@ -7,6 +7,7 @@ import type { CalEvent } from "../types";
 import { formatClock, longDateLabel, sameDay } from "../time";
 import { LOW_PRIORITY_TAG, hasTag } from "../tags";
 import { SheetFrame } from "./SheetFrame";
+import { EstSuffix } from "./EstimatePicker";
 
 /** Tagi wyróżnione (pogrubione) w przeglądzie dnia. */
 export const URGENT_TAGS = ["pilne", "ważne"];
@@ -92,7 +93,8 @@ export function DayPanel({ day, events, anchor, onClose, onOpen, onShift, onDele
               <span className="dp-dot" style={{ background: shownColor(e) }} aria-hidden />
               <span className="dp-main">
                 <span className="dp-title">
-                  {e.title || "(bez tytułu)"} <EpicTag id={e.epicId} />
+                  {e.title || "(bez tytułu)"}
+                  <EstSuffix min={e.estimate} /> <EpicTag id={e.epicId} />
                 </span>
                 <span className="dp-when">
                   {e.allDay || !sameDay(new Date(e.start), new Date(e.end - 1))

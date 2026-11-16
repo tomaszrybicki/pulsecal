@@ -5,6 +5,7 @@ import { SheetFrame } from "./SheetFrame";
 import { ColorSwatches } from "./ColorSwatches";
 import { TagInput } from "./TagInput";
 import { EpicPicker } from "./EpicPicker";
+import { EstimatePicker } from "./EstimatePicker";
 
 type Props = {
   event: CalEvent;
@@ -12,7 +13,7 @@ type Props = {
   knownTags: string[];
   onClose: () => void;
   /** Zmiana zapisywana od razu (kolor / tagi). */
-  onPatch: (patch: Partial<Pick<CalEvent, "color" | "tags" | "epicId">>) => void;
+  onPatch: (patch: Partial<Pick<CalEvent, "color" | "tags" | "epicId" | "estimate">>) => void;
   /** Epiki do wyboru (work.ts). */
   epics?: { id: string; label: string }[];
   onCreateEpic?: (name: string) => string;
@@ -25,6 +26,7 @@ export function EventMenu({ event, anchor, knownTags, onClose, onPatch, onDelete
   const [color, setColor] = useState(event.color);
   const [tags, setTags] = useState(event.tags ?? []);
   const [epicId, setEpicId] = useState(event.epicId ?? "");
+  const [estimate, setEstimate] = useState(event.estimate);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -43,6 +45,14 @@ export function EventMenu({ event, anchor, knownTags, onClose, onPatch, onDelete
         onChange={(c) => {
           setColor(c);
           onPatch({ color: c });
+        }}
+      />
+      <EstimatePicker
+        className="em-est"
+        value={estimate}
+        onChange={(m) => {
+          setEstimate(m);
+          onPatch({ estimate: m });
         }}
       />
       <TagInput

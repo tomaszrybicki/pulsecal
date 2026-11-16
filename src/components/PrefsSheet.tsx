@@ -13,6 +13,8 @@ type Props = {
   onSlotMin: (n: number) => void;
   alwaysFull: boolean;
   onAlwaysFull: (on: boolean) => void;
+  requireEstimate: boolean;
+  onRequireEstimate: (on: boolean) => void;
   /** Komputer: kliknięcie i tak zawsze otwiera pełną edycję. */
   isDesktop: boolean;
   onOpenSync: () => void;
@@ -129,10 +131,18 @@ export function PrefsSheet(p: Props) {
           </span>
           Zawsze pełna edycja po kliknięciu wpisu
         </label>
+        <label className="toggle">
+          <input type="checkbox" checked={p.requireEstimate} onChange={(e) => p.onRequireEstimate(e.target.checked)} />
+          <span className="toggle-track" aria-hidden>
+            <span className="toggle-knob" />
+          </span>
+          Wymagaj estymaty przy dodawaniu wpisu
+        </label>
         <p className="hint">
           {p.isDesktop
             ? "Na komputerze kliknięcie zawsze otwiera pełną edycję. Ustawienie dotyczy telefonu."
-            : "Bez szybkiej karty i „Więcej”. Ustawienie tylko na tym urządzeniu."}
+            : "Bez szybkiej karty i „Więcej”. Ustawienie tylko na tym urządzeniu."}{" "}
+          Z estymatą (5min / 30min / 1h / 2h+) nowego wpisu nie da się zapisać bez wybrania jednej z nich.
         </p>
       </section>
 

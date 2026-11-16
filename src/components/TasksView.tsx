@@ -2,6 +2,7 @@ import { useMemo, useState, type ReactNode } from "react";
 import type { CalEvent, Priority, WorkItem, WorkKind, WorkStatus } from "../types";
 import { formatDayShort } from "../time";
 import { whenLabel } from "../draft";
+import { estimateLabel, formatMinutes } from "../estimate";
 import {
   PRIORITIES,
   PRIORITY_ICON,
@@ -15,6 +16,7 @@ import {
   priorityOf,
   progressOf,
   subtreeIds,
+  remainingEstimate,
   taskWhen,
   whenShort,
   type Progress,
@@ -492,6 +494,7 @@ function ListView({
                     </button>
                     <StatusSelect item={g.epic} onPatch={onPatch} />
                     {p && <ProgressBar p={p} />}
+                    <Remaining id={g.epic.id} tree={tree} now={now} />
                   </>
                 ) : (
                   <span className="jr-group-title plain">
@@ -806,7 +809,7 @@ function WhenChip({
 }) {
   const e = taskWhen(task.id, tree, now);
   if (!e) return null;
-  const label = `${task.seriesId ? "↻" : "◷"} ${whenShort(e, now)}`;
+  const label = `${task.seriesId ? "↻" : "◷"} ${whenShort(e, now)}${e.estimate ? ` · ${estimateLabel(e.estimate)}` : ""}`;
   const past = e.end < now;
   if (!onOpenEvent) return <span className={`jr-when static${past ? " past" : ""}`}>{label}</span>;
   return (
@@ -868,6 +871,17 @@ function HelpButton() {
           </ul>
         </div>
       )}
+    </span>
+  );
+}
+
+/** „zostało ~3h 35min” — suma estymat wpisów niezrobionych zadań epiku (nic, gdy brak estymat). */
+export function Remaining({ id, tree, now }: { id: string; tree: Tree; now: number }) {
+  const r = remainingEstimate(id, tree, now);
+  if (!r.minutes) return null;
+  return (
+    <span className="jr-remaining" title={`Zostało wg estymat ${r.tasks} ${r.tasks === 1 ? "wpisu" : "wpisów"} w kalendarzu`}>
+      zostało ~{formatMinutes(r.minutes)}
     </span>
   );
 }

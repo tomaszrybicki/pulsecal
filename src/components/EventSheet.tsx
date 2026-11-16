@@ -8,6 +8,7 @@ import { SheetFrame } from "./SheetFrame";
 import { ColorSwatches } from "./ColorSwatches";
 import { TagInput } from "./TagInput";
 import { EpicPicker } from "./EpicPicker";
+import { EstimatePicker } from "./EstimatePicker";
 
 type Props = {
   draft: DraftEvent;
@@ -33,6 +34,8 @@ type Props = {
   onPlan?: () => void;
   /** np. „9:00–17:00” */
   prodLabel?: string;
+  /** Ustawienie: nowy wpis tylko z estymatą. */
+  requireEstimate?: boolean;
 };
 
 const NATIVE_DATE = prefersNativeDate();
@@ -52,7 +55,9 @@ export function EventSheet({
   stuck = false,
   onPlan,
   prodLabel,
+  requireEstimate = false,
 }: Props) {
+  const needEst = !draft.id && requireEstimate && !draft.estimate;
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onDismiss();
@@ -202,6 +207,14 @@ export function EventSheet({
           </>
         )}
         <div className="field">
+          Estymata
+          <EstimatePicker
+            value={draft.estimate}
+            missing={needEst}
+            onChange={(estimate) => onChange({ ...draft, estimate })}
+          />
+        </div>
+        <div className="field">
           Tagi
           <TagInput value={draft.tags} known={knownTags} onChange={(tags) => onChange({ ...draft, tags })} />
         </div>
@@ -238,7 +251,7 @@ export function EventSheet({
               Anuluj
             </button>
           )}
-          <button type="button" className="primary" onClick={onSave} disabled={!draft.title.trim()}>
+          <button type="button" className="primary" onClick={onSave} disabled={!draft.title.trim() || needEst}>
             Zapisz
           </button>
         </div>

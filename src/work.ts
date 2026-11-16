@@ -188,6 +188,27 @@ export function whenShort(e: Pick<CalEvent, "start" | "allDay">, now: number): s
   return e.allDay ? day : `${day} ${formatClock(d)}`;
 }
 
+/** Ile czasu zostało w epiku wg estymat wpisów niezrobionych zadań (z pod-epikami). */
+export function remainingEstimate(id: string, tree: Tree, now: number, seen = new Set<string>()): { minutes: number; tasks: number } {
+  const r = { minutes: 0, tasks: 0 };
+  if (seen.has(id)) return r;
+  seen.add(id);
+  for (const c of tree.children.get(id) ?? []) {
+    if (c.kind === "epic") {
+      const sub = remainingEstimate(c.id, tree, now, seen);
+      r.minutes += sub.minutes;
+      r.tasks += sub.tasks;
+    } else if (c.status !== "done") {
+      const est = taskWhen(c.id, tree, now)?.estimate;
+      if (est) {
+        r.minutes += est;
+        r.tasks += 1;
+      }
+    }
+  }
+  return r;
+}
+
 /** Wpis zadania do pokazania: najbliższy jeszcze niezakończony (seria), inaczej ostatni. */
 export function taskWhen(id: string, tree: Tree, now: number): CalEvent | undefined {
   const list = tree.events.get(id);

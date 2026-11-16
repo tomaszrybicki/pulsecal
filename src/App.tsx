@@ -34,10 +34,12 @@ import {
   findFreeSlot,
   getAlwaysFull,
   getProdHours,
+  getRequireEstimate,
   getSlotMin,
   minutesLabel,
   setAlwaysFull,
   setProdHours,
+  setRequireEstimate,
   setSlotMin,
   type ProdHours,
 } from "./prefs";
@@ -59,8 +61,10 @@ import {
   withDefaultTags,
 } from "./tags";
 import type { CalEvent, DraftEvent, ViewMode, WorkField, WorkItem, WorkKind } from "./types";
+import { formatMinutes } from "./estimate";
 import {
   SLEEPY_DAYS,
+  remainingEstimate,
   buildTree,
   epicColor,
   lastTouched,
@@ -179,6 +183,7 @@ export function App() {
   const [prodHours, setProdHoursState] = useState<ProdHours>(getProdHours);
   const [slotMin, setSlotMinState] = useState(getSlotMin);
   const [alwaysFull, setAlwaysFullState] = useState(getAlwaysFull);
+  const [requireEstimate, setRequireEstimateState] = useState(getRequireEstimate);
   // zmiana koloru tagu → przerysowanie wszystkiego (tagColor czyta z modułu tags.ts)
   const [tagColorsVer, setTagColorsVer] = useState(0);
   // na komputerze kliknięcie wpisu od razu pokazuje wszystkie opcje (bez „Więcej")
@@ -281,6 +286,10 @@ export function App() {
           done: p.tasksDone,
           total: p.tasks,
           sleepy: e.status !== "done" && t - lastTouched(e.id, tree) > SLEEPY_DAYS * 86_400_000,
+          remaining: (() => {
+            const m = remainingEstimate(e.id, tree, t).minutes;
+            return m ? formatMinutes(m) : "";
+          })(),
         };
       });
     // przeliczane co minutę, nie co tyknięcie zegara („śpi” liczy się w dniach)
@@ -346,6 +355,7 @@ export function App() {
     workFields,
     prodHours,
     slotMin,
+    requireEstimate,
   ]);
 
   useEffect(() => {
@@ -359,6 +369,11 @@ export function App() {
   const saveDraft = async () => {
     const saving = draft;
     if (!draft?.title.trim()) return;
+    // ustawienie „wymagaj estymaty”: nowy wpis bez estymaty się nie zapisze
+    if (!draft.id && requireEstimate && !draft.estimate) {
+      sync.notify("Wybierz estymatę (5min / 30min / 1h / 2h+)", "warn");
+      return;
+    }
     const existing = draft.id ? await db.events.get(draft.id) : undefined;
     // wystąpienie serii wyjęte z epiku → cała seria wypada z epiku (inaczej zadanie serii by je przywróciło)
     if (existing?.recurring && existing.seriesId && existing.epicId && !draft.epicId) await unlinkSeries(existing.seriesId);
@@ -380,6 +395,7 @@ export function App() {
       color: draft.color,
       epicId: draft.epicId || undefined,
       autoSlot: draft.autoSlot || undefined,
+      estimate: draft.estimate || undefined,
       moves: existing ? countMove(existing, when.start) : 0,
       tags: applyTagRules(
         draft.title.trim(),
@@ -978,6 +994,15 @@ export function App() {
 
   const createFromSearch = async (p: ParsedEntry) => {
     setSearchOpen(false);
+    // „wymagaj estymaty”: zamiast zapisu od razu — karta wpisu z wypełnionymi polami, do wybrania estymaty
+    if (requireEstimate) {
+      goToDay(new Date(p.start));
+      openDraft(
+        { title: p.title, notes: "", start: p.start, end: p.end, allDay: p.allDay, color: PALETTE[4].value, tags: p.tags },
+        "quick",
+      );
+      return;
+    }
     const event: CalEvent = {
       id: newEventId(),
       title: p.title,
@@ -1215,6 +1240,7 @@ export function App() {
             moves={events.find((e) => e.id === draft.id)?.moves}
             epics={epicChoices}
             onCreateEpic={createEpicNamed}
+            requireEstimate={requireEstimate}
             onChange={setDraft}
             onSave={() => void saveDraft()}
             onDismiss={dismissDraft}
@@ -1231,6 +1257,7 @@ export function App() {
             moves={events.find((e) => e.id === draft.id)?.moves}
             epics={epicChoices}
             onCreateEpic={createEpicNamed}
+            requireEstimate={requireEstimate}
             stuck={stuckId === draft.id}
             onPlan={() => void planDraft()}
             prodLabel={prodLabel}
@@ -1338,6 +1365,11 @@ export function App() {
             onAlwaysFull={(on) => {
               setAlwaysFull(on);
               setAlwaysFullState(on);
+            }}
+            requireEstimate={requireEstimate}
+            onRequireEstimate={(on) => {
+              setRequireEstimate(on);
+              setRequireEstimateState(on);
             }}
             isDesktop={isDesktop}
             onOpenSync={() => {

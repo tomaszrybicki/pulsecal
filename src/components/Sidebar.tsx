@@ -55,6 +55,8 @@ export type PinnedEpic = {
   total: number;
   /** dawno nic się w nim nie zmieniło */
   sleepy: boolean;
+  /** suma estymat niezrobionych wpisów, np. „3h 35min” ("" = brak) */
+  remaining: string;
 };
 
 const THEMES: [ThemePref, string][] = [
@@ -307,13 +309,16 @@ function PinnedRow({ e, onOpen }: { e: PinnedEpic; onOpen: () => void }) {
       type="button"
       className={`pin-epic${mood}`}
       style={{ ["--fill" as string]: progressColor(ratio), ["--epic" as string]: e.color }}
-      title={`${e.title}: ${e.total ? `${e.done}/${e.total} zadań zrobionych` : "brak zadań"}${state}`}
+      title={`${e.title}: ${e.total ? `${e.done}/${e.total} zadań zrobionych` : "brak zadań"}${e.remaining ? `, zostało ~${e.remaining}` : ""}${state}`}
       onClick={onOpen}
     >
       <span className="pin-epic-head">
         <span className="pin-epic-dot" aria-hidden />
         <span className="pin-epic-name">{e.title || "(bez nazwy)"}</span>
-        <span className="pin-epic-count">{e.total ? `${e.done}/${e.total}` : "—"}</span>
+        <span className="pin-epic-count">
+          {e.total ? `${e.done}/${e.total}` : "—"}
+          {e.remaining && <span className="pin-epic-left"> · ~{e.remaining}</span>}
+        </span>
       </span>
       <span className="pin-epic-bar">
         <span style={{ width: `${Math.round(ratio * 100)}%` }} />

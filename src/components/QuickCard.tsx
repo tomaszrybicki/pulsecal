@@ -6,6 +6,7 @@ import { SheetFrame } from "./SheetFrame";
 import { ColorSwatches } from "./ColorSwatches";
 import { TagInput } from "./TagInput";
 import { EpicPicker } from "./EpicPicker";
+import { EstimatePicker } from "./EstimatePicker";
 
 type Props = {
   draft: DraftEvent;
@@ -22,6 +23,8 @@ type Props = {
   anchor?: Anchor | null;
   epics?: { id: string; label: string }[];
   onCreateEpic?: (name: string) => string;
+  /** Ustawienie: nowy wpis tylko z estymatą. */
+  requireEstimate?: boolean;
 };
 
 /**
@@ -41,8 +44,10 @@ export function QuickCard({
   moves,
   epics = [],
   onCreateEpic,
+  requireEstimate = false,
 }: Props) {
   const isNew = !draft.id;
+  const needEst = isNew && requireEstimate && !draft.estimate;
   const input = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -53,7 +58,7 @@ export function QuickCard({
     return () => window.removeEventListener("keydown", onKey);
   }, [onDismiss]);
 
-  const canSave = draft.title.trim().length > 0;
+  const canSave = draft.title.trim().length > 0 && !needEst;
 
   return (
     <SheetFrame
@@ -84,6 +89,12 @@ export function QuickCard({
             {draft.allDay ? "+ godzina" : "cały dzień"}
           </button>
         </div>
+        <EstimatePicker
+          className="quick-est"
+          value={draft.estimate}
+          missing={needEst}
+          onChange={(estimate) => onChange({ ...draft, estimate })}
+        />
         <TagInput value={draft.tags} known={knownTags} maxSuggestions={6} onChange={(tags) => onChange({ ...draft, tags })} />
         <ColorSwatches small value={draft.color} onChange={(color) => onChange({ ...draft, color })} />
         {onCreateEpic && (

@@ -28,6 +28,7 @@ export function draftFromEvent(e: CalEvent): DraftEvent {
     tags: e.tags ?? [],
     epicId: e.epicId,
     autoSlot: e.autoSlot,
+    estimate: e.estimate,
   };
 }
 
@@ -83,14 +84,23 @@ export function isDirty(d: DraftEvent, original: CalEvent | undefined): boolean 
     d.allDay !== original.allDay ||
     d.tags.join(",") !== (original.tags ?? []).join(",") ||
     (d.epicId ?? "") !== (original.epicId ?? "") ||
-    Boolean(d.autoSlot) !== Boolean(original.autoSlot)
+    Boolean(d.autoSlot) !== Boolean(original.autoSlot) ||
+    (d.estimate ?? 0) !== (original.estimate ?? 0)
   );
 }
 
 /** Szkic jako wpis do narysowania w widokach (podgląd na żywo podczas tworzenia/edycji). */
 export function withDraft(events: CalEvent[], d: DraftEvent | null): CalEvent[] {
   if (!d) return events;
-  const patch = { title: d.title, color: d.color, start: d.start, end: d.end, allDay: d.allDay, tags: d.tags };
+  const patch = {
+    title: d.title,
+    color: d.color,
+    start: d.start,
+    end: d.end,
+    allDay: d.allDay,
+    tags: d.tags,
+    estimate: d.estimate,
+  };
   if (d.id) return events.map((e) => (e.id === d.id ? { ...e, ...patch } : e));
   return [
     ...events,

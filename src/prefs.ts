@@ -17,6 +17,7 @@ const K = {
   to: "pulsecal:prod-to",
   slot: "pulsecal:slot-min",
   full: "pulsecal:always-full",
+  est: "pulsecal:require-estimate",
 };
 
 function readNum(key: string): number | null {
@@ -69,6 +70,19 @@ export function getAlwaysFull(): boolean {
 
 export function setAlwaysFull(on: boolean): void {
   write(K.full, on ? "1" : "0");
+}
+
+/** Nowy wpis da się zapisać dopiero z estymatą czasową. */
+export function getRequireEstimate(): boolean {
+  try {
+    return localStorage.getItem(K.est) === "1";
+  } catch {
+    return false;
+  }
+}
+
+export function setRequireEstimate(on: boolean): void {
+  write(K.est, on ? "1" : "0");
 }
 
 /** „9:00” z minut od północy. */

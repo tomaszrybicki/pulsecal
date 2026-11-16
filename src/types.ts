@@ -24,6 +24,8 @@ export interface CalEvent {
   epicId?: string;
   /** „P”: planowany w najbliższej wolnej godzinie w godzinach produktywności (prefs.ts). W Google: pulseAuto. */
   autoSlot?: boolean;
+  /** Estymata czasowa w minutach (5 / 30 / 60 / 120 = „2h+”, estimate.ts). W Google: pulseEst. */
+  estimate?: number;
   origin: EventOrigin;
   updatedAt: number;
   deleted: boolean;
@@ -42,6 +44,7 @@ export interface DraftEvent {
   tags: string[];
   epicId?: string;
   autoSlot?: boolean;
+  estimate?: number;
   /** „Zaplanuj w kalendarzu” przy zadaniu: nowy wpis zostanie powiązany z tym zadaniem. */
   taskId?: string;
 }

@@ -47,6 +47,7 @@ src/
   links.ts                task ↔ event links: reconcileLinks(), unlinkSeries()
   colors.ts               palette + mapping to Google colorId
   prefs.ts                productive hours, P slot length, always-full-editor pref, findFreeSlot()
+  estimate.ts             time estimate (5 / 30 / 60 / 120 = "2h+") labels; EstimatePicker.tsx = quick buttons
   devSeed.ts              dev-only test data (ids start with "5eed", pending 0); DevSeed.tsx in PrefsSheet
   time.ts                 date helpers (Monday is the first day of the week, Polish labels)
   sync/google.ts          OAuth (GIS) + sync engine

@@ -20,7 +20,8 @@ import {
 } from "../work";
 import { DateField } from "./DateField";
 import { SheetFrame } from "./SheetFrame";
-import { InlineCreate, PinIcon, PriorityIcon, ProgressBar, TypeIcon } from "./TasksView";
+import { InlineCreate, PinIcon, PriorityIcon, ProgressBar, Remaining, TypeIcon } from "./TasksView";
+import { estimateLabel } from "../estimate";
 import { Comments } from "./Comments";
 
 type Props = {
@@ -175,6 +176,7 @@ export function WorkItemSheet(props: Props) {
             <section className="ji-section">
               <h3>zawartość epiku</h3>
               <ProgressBar p={p} />
+              <Remaining id={item.id} tree={tree} now={now} />
               <p className="hint">
                 Zadania: {p.tasksDone}/{p.tasks} zrobione
                 {p.events ? ` · wpisy w kalendarzu: ${p.eventsDone}/${p.events} odbyte` : ""} (razem z pod-epikami).
@@ -314,6 +316,7 @@ export function WorkItemSheet(props: Props) {
                   >
                     {item.seriesId ? "↻ " : "◷ "}
                     {whenShort(when, now)}
+                    {when.estimate ? ` · ${estimateLabel(when.estimate)}` : ""}
                   </button>
                 ) : (
                   <button

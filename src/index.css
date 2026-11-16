@@ -5215,3 +5215,100 @@ button.jr-when:hover {
   height: var(--head-h, 50px);
   background: var(--paper);
 }
+
+/* ── estymata czasowa: szybkie przyciski 5min / 30min / 1h / 2h+ ── */
+
+.est-picker {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.est-picker button {
+  border: 0;
+  border-radius: 999px;
+  padding: 6px 12px;
+  background: var(--field);
+  color: var(--ink-soft);
+  font: inherit;
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.est-picker button:hover {
+  color: var(--ink);
+}
+
+.est-picker button.on {
+  background: var(--ink);
+  color: var(--paper);
+  transform: scale(1.06);
+}
+
+.est-label {
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+}
+
+.est-picker.missing button {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, #e0a43a 70%, transparent);
+}
+
+.est-need {
+  font-size: 0.74rem;
+  color: #c2410c;
+}
+
+.quick-est {
+  margin: 0 0 10px;
+}
+
+.em-est {
+  margin: 0 0 8px;
+}
+
+.em-est button {
+  padding: 4px 10px;
+  font-size: 0.76rem;
+}
+
+/* „(30min)” za tytułem wpisu */
+.est-suffix {
+  font-weight: 400;
+  opacity: 0.75;
+  white-space: nowrap;
+}
+
+.m-ev .est-suffix {
+  flex: none;
+}
+
+/* epik: „zostało ~3h” */
+.jr-remaining {
+  flex: none;
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.ji-section .jr-remaining {
+  display: block;
+  margin-top: 4px;
+}
+
+.pin-epic-left {
+  color: var(--ink-soft);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .est-picker button {
+    transition: none;
+  }
+}

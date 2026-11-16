@@ -116,6 +116,16 @@ Previous sessions: first Cursor IDE (built the MVP), then Claude in a chat sessi
 code audit and rewrote the data and sync layer, then stopped at the owner's request.
 **Start by reading `CLAUDE.md`.**
 
+## v0.33.0: time estimate on entries
+- `CalEvent.estimate` / `DraftEvent.estimate` (minutes; 120 = "2h+"), Google `private.pulseEst` (always sent,
+  "" clears). `EstimatePicker` in QuickCard (no label), EventSheet („Estymata”), EventMenu (`onPatch`).
+  `EstSuffix` after titles in map / month / day panel.
+- `prefs.ts getRequireEstimate()` (`pulsecal:require-estimate`, in settings backup): new drafts can't be saved
+  without an estimate (QuickCard/EventSheet `needEst`, `saveDraft` guard); `createFromSearch` opens a draft
+  instead of saving directly.
+- `work.ts remainingEstimate()` → `Remaining` (TasksView group head, WorkItemSheet) and pinned epics
+  (`PinnedEpic.remaining`); `WhenChip` / „kalendarz” field show the estimate.
+
 ## v0.32.0: map — sticky all-day band, centred on now, orbit dot, short events
 - CalendarMap: `.allday` cells and `.allday-gutter` are sticky under the day heads (`--head-h` = `HEAD_H` 50,
   `--allday-h` = ratio × (scroller height − heads), ResizeObserver). Ratio in `pulsecal:allday-ratio`

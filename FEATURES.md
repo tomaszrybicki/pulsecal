@@ -201,6 +201,17 @@ logowanie Google bez własnego serwera (Google Identity Services).
 - **Wygląd:** podczas przeciągania oryginał blednie, a nad nim płynie kopia. Dni docelowe są podświetlone.
   Po upuszczeniu wpis od razu stoi w nowym miejscu i lekko się „sprężynuje”.
 
+### Estymata czasowa
+
+- Szybkie przyciski **5min / 30min / 1h / 2h+** w szybkiej karcie, w menu pod prawym przyciskiem i w pełnej
+  edycji („Estymata”). Ponowne kliknięcie wybranej usuwa estymatę.
+- Widać ją w nawiasie za tytułem, np. „Dentysta (30min)”: w mapie, w miesiącu i w przeglądzie dnia.
+- W epiku: „zostało ~3h 35min” = suma estymat wpisów niezrobionych zadań (z pod-epikami) — w nagłówku grupy
+  epiku na liście, w szczegółach epiku i przy przypiętym epiku w panelu bocznym („2/9 · ~30min”).
+- „ustawienia” → „Wymagaj estymaty przy dodawaniu wpisu”: nowego wpisu nie da się zapisać bez estymaty
+  (szybkie dodawanie z wyszukiwania otwiera wtedy kartę wpisu).
+- Synchronizuje się z Google; ustawienie jest w kopii ustawień.
+
 ### Licznik przeniesień
 
 - Wpis liczy, ile razy trafił na inny dzień (przeciągnięcie, „>”/„>>”, zmiana daty, przeniesienie w Google).
