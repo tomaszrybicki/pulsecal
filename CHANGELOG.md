@@ -3,6 +3,19 @@
 Każda wersja to jeden commit `vX.Y.Z: …` (treść commita = wpis z tego pliku) i tag `vX.Y.Z`.
 Najnowsze na górze. Opis funkcji aplikacji jest w [FEATURES.md](FEATURES.md).
 
+## [0.32.0] – 2026-11-16: mapa pół na pół, orbita i krótkie wpisy
+
+- **Mapa pół na pół:** wpisy całodniowe są w paśmie przyklejonym pod nagłówkami dni, domyślnie na połowie wysokości.
+  Gdy się nie mieszczą, pasmo przewija się kółkiem. Uchwyt pod napisem „cały dzień” w kolumnie godzin zmienia
+  podział (zapamiętany), a dwuklik wraca do pół na pół.
+- **Godziny wyśrodkowane na „teraz”:** po otwarciu mapy i po nawigacji obecna godzina jest na środku widocznej
+  części godzin.
+- **Kropka „teraz” krąży po orbicie:** po małej elipsie, z przodu większa, z tyłu mniejsza, z delikatnym śladem
+  orbity. Dalej zmienia kształt jak wcześniej.
+- **Krótkie wpisy czytelne:** wpisy krótsze niż ok. pół godziny są jednolinijkowe (nazwa i godzina obok siebie)
+  i mają swoją prawdziwą wysokość. Kwadranse jeden po drugim już na siebie nie nachodzą, a między stykającymi się
+  wpisami jest mały odstęp.
+
 ## [0.31.0] – 2026-11-16: epiki z zadaniami i terminami w kalendarzu
 
 - **Epiki: w środku tylko zadania, a zadanie może mieć termin w kalendarzu.**

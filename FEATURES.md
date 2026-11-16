@@ -24,8 +24,14 @@ logowanie Google bez własnego serwera (Google Identity Services).
 
 ### Widoki
 
-- **Mapa:** 21 dni obok siebie, przewijane w bok, doba w pionie. Na górze wiersz wpisów całodniowych.
-  Linia „teraz” z pulsującym bąblem. Po otwarciu kalendarz pokazuje dzisiejszy dzień i bieżącą godzinę.
+- **Mapa:** 21 dni obok siebie, przewijane w bok, doba w pionie.
+  - Wpisy całodniowe są w paśmie przyklejonym pod nagłówkami dni, domyślnie na pół wysokości (pół na pół
+    z godzinami). Uchwyt pod „cały dzień” w kolumnie godzin zmienia podział, a dwuklik wraca do połowy.
+    Gdy wpisów jest więcej, pasmo przewija się kółkiem.
+  - Po otwarciu i po nawigacji obecna godzina jest na środku widocznej części godzin.
+  - Linia „teraz” z bąblem, który krąży po małej orbicie (z przodu większy, z tyłu mniejszy).
+  - Krótkie wpisy (poniżej ok. pół godziny) są jednolinijkowe, z nazwą i godziną obok siebie. Kwadranse jeden
+    po drugim nie nachodzą na siebie.
 - **Miesiąc:** układ jak w Google Calendar.
   - Wpisy z godziną: wypełniony kolorem blok (jak całodniowe) z obwódką (w ciemnym motywie grubszą), godzina
     i nazwa.

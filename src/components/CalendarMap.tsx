@@ -23,6 +23,27 @@ import {
 const HOUR_H = 72;
 const SNAP = 15 * MINUTE;
 const MIN_DURATION = 15 * MINUTE;
+/** Wysokość przyklejonych nagłówków dni (px, jak --head-h w CSS). */
+const HEAD_H = 50;
+/** Najniższy wpis z godziną (px): 15 min = 18 px, krótsze nie znikają. */
+const MIN_BLOB_H = 16;
+/** Poniżej tej wysokości wpis jest jednolinijkowy (nazwa i godzina obok siebie). */
+const SHORT_BLOB_H = 40;
+/** Odstęp między wpisami, które stykają się w czasie (np. dwa kwadranse po kolei). */
+const BLOB_GAP = 2;
+
+/** Pasmo wpisów całodniowych: udział wysokości mapy pod nagłówkami (domyślnie pół na pół z godzinami). */
+const ALLDAY_RATIO_KEY = "pulsecal:allday-ratio";
+const readAlldayRatio = () => {
+  try {
+    const v = Number(localStorage.getItem(ALLDAY_RATIO_KEY));
+    return v >= 0.1 && v <= 0.8 ? v : 0.5;
+  } catch {
+    return 0.5;
+  }
+};
+
+const blobHeight = (ms: number) => Math.max(MIN_BLOB_H, (ms / 36e5) * HOUR_H - BLOB_GAP);
 
 type Props = {
   now: Date;
@@ -117,8 +138,58 @@ export function CalendarMap({
   const scroller = useRef<HTMLDivElement>(null);
   const { shown, dropped, settle } = useOptimisticMove(events);
   const [preview, setPreview] = useState<Preview | null>(null);
-  // strefy auto-przewijania: u góry przyklejone nagłówki dni, z lewej kolumna godzin, na dole dock
-  const { bind } = useDragGesture({ scroller, edges: { top: 72, left: 90, bottom: 110, right: 40 } });
+
+  // pasmo całodniowe przyklejone pod nagłówkami: wysokość = udział × (wysokość mapy − nagłówki)
+  const [viewH, setViewH] = useState(0);
+  const [alldayRatio, setAlldayRatio] = useState(readAlldayRatio);
+  useLayoutEffect(() => {
+    const el = scroller.current;
+    if (!el) return;
+    setViewH(el.clientHeight);
+    const ro = new ResizeObserver(() => setViewH(el.clientHeight));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  const alldayH = viewH ? Math.round(Math.max(36, (viewH - HEAD_H) * alldayRatio)) : 0;
+
+  /** Uchwyt pod pasmem całodniowym: przeciągnij, żeby zmienić podział; podwójne kliknięcie = pół na pół. */
+  const resizeBand = (ev: React.PointerEvent) => {
+    const el = scroller.current;
+    if (!el || ev.button !== 0) return;
+    ev.preventDefault();
+    const top = el.getBoundingClientRect().top + HEAD_H;
+    const span = Math.max(1, el.clientHeight - HEAD_H);
+    let ratio = alldayRatio;
+    const move = (e: PointerEvent) => {
+      ratio = Math.min(0.8, Math.max(0.1, (e.clientY - top) / span));
+      setAlldayRatio(ratio);
+    };
+    const up = () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      try {
+        localStorage.setItem(ALLDAY_RATIO_KEY, String(ratio));
+      } catch {
+        /* bez zapisu */
+      }
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+  };
+  const resetBand = () => {
+    setAlldayRatio(0.5);
+    try {
+      localStorage.removeItem(ALLDAY_RATIO_KEY);
+    } catch {
+      /* bez zapisu */
+    }
+  };
+
+  // strefy auto-przewijania: u góry przyklejone nagłówki dni i pasmo całodniowe, z lewej kolumna godzin, na dole dock
+  const { bind } = useDragGesture({
+    scroller,
+    edges: { top: HEAD_H + alldayH + 24, left: 90, bottom: 110, right: 40 },
+  });
 
   // aktualne wartości dla efektów, które nie powinny się uruchamiać przy każdej zmianie
   const live = useRef({ days, focusDay, now, onEdge, onVisibleDay, onStep });
@@ -211,7 +282,11 @@ export function CalendarMap({
       const scale = e.deltaMode === 1 ? 16 : 1;
       const dx = e.deltaX * scale;
       const dy = e.deltaY * scale;
-      const overHeads = (e.target as Element | null)?.closest?.(".day-head, .allday");
+      const target = e.target as Element | null;
+      // pasmo całodniowe z większą liczbą wpisów niż się mieści — kółko przewija samo pasmo
+      const band = target?.closest?.(".allday");
+      if (band && band.scrollHeight > band.clientHeight + 1 && Math.abs(dy) >= Math.abs(dx) && !e.shiftKey) return;
+      const overHeads = target?.closest?.(".day-head, .allday");
       const sideways = Math.abs(dx) > Math.abs(dy) || e.shiftKey;
       const delta = sideways ? (Math.abs(dx) > Math.abs(dy) ? dx : dy) : overHeads ? dy : 0;
       if (!delta) return;
@@ -269,12 +344,20 @@ export function CalendarMap({
         const delta = target.getBoundingClientRect().left - el.getBoundingClientRect().left;
         el.scrollLeft = Math.max(0, el.scrollLeft + delta - gutter);
       }
-      const focusMinutes = sameDay(focusDay, now) ? minutesSinceMidnight(now) : 9 * 60;
-      el.scrollTop = Math.max(0, (focusMinutes / 60) * HOUR_H - el.clientHeight * 0.35);
+      // godziny wyśrodkowane wokół obecnej godziny w widocznej części pod pasmem całodniowym
+      const hours = el.querySelector<HTMLElement>(".hours");
+      const band = el.querySelector<HTMLElement>(".allday");
+      if (hours) {
+        const box = el.getBoundingClientRect();
+        const hoursTop = hours.getBoundingClientRect().top - box.top + el.scrollTop;
+        const bandBottom = band ? band.getBoundingClientRect().bottom - box.top : HEAD_H;
+        const nowY = (minutesSinceMidnight(now) / 60) * HOUR_H;
+        el.scrollTop = Math.max(0, hoursTop + nowY - (bandBottom + el.clientHeight) / 2);
+      }
     };
     snapTo();
-    // tylko przy nawigacji (token) i przy montowaniu — nie przy przesunięciu okna ani zmianie fokusu z przewijania
-  }, [scrollToNowToken]);
+    // tylko przy nawigacji (token), przy montowaniu i po pierwszym pomiarze pasma — nie przy przesunięciu okna
+  }, [scrollToNowToken, viewH > 0]);
 
   /** Kolumna dnia pod kursorem (poza siatką → najbliższa skrajna). */
   const columnAt = (x: number, selector: string): { index: number; rect: DOMRect } | null => {
@@ -399,14 +482,28 @@ export function CalendarMap({
 
   return (
     <div className="map-scroll" ref={scroller}>
-      <div className={`grid${days.length <= 7 ? " fit" : ""}`} style={{ ["--days" as string]: days.length }}>
-        <div />
+      <div
+        className={`grid${days.length <= 7 ? " fit" : ""}`}
+        style={{ ["--days" as string]: days.length, ["--head-h" as string]: `${HEAD_H}px`, ["--allday-h" as string]: `${alldayH}px` }}
+      >
+        <div className="map-corner" />
         {days.map((d) => (
           <div key={d.toISOString()} className={`day-head${sameDay(d, now) ? " today" : ""}`}>
             <b>{formatDayHeading(d)}</b>
           </div>
         ))}
-        <div />
+        <div className="allday-gutter">
+          <span>cały dzień</span>
+          <span
+            className="band-grip"
+            role="separator"
+            aria-orientation="horizontal"
+            aria-label="Podział: wpisy całodniowe / godziny (przeciągnij; dwuklik = pół na pół)"
+            title="Przeciągnij, żeby zmienić podział (dwuklik: pół na pół)"
+            onPointerDown={resizeBand}
+            onDoubleClick={resetBand}
+          />
+        </div>
         {days.map((d) => {
           const from = startOfDay(d).getTime();
           const to = addDays(d, 1).getTime();
@@ -482,14 +579,15 @@ export function CalendarMap({
                 const segStart = Math.max(e.start, from);
                 const segEnd = Math.min(e.end, to);
                 const top = ((segStart - from) / 36e5) * HOUR_H;
-                const height = Math.max(28, ((segEnd - segStart) / 36e5) * HOUR_H);
+                const height = blobHeight(segEnd - segStart);
+                const short = height < SHORT_BLOB_H;
                 const width = `calc((100% - 10px) / ${e.cols})`;
                 const left = `calc(5px + ${e.col} * (100% - 10px) / ${e.cols})`;
                 const draggable = e.id !== DRAFT_ID;
                 return (
                   <button
                     key={e.id}
-                    className={`event-blob${stateClass(e)}`}
+                    className={`event-blob${short ? " short" : ""}${stateClass(e)}`}
                     style={{ top, height, width, left, ...blobVars(shownColor(e)) }}
                     {...(draggable ? moveTimed(e) : {})}
                     {...ctx(e)}
@@ -524,7 +622,7 @@ export function CalendarMap({
                   className="event-blob drag-ghost"
                   style={{
                     top: ((Math.max(ghost.start, from) - from) / 36e5) * HOUR_H,
-                    height: Math.max(28, ((Math.min(ghost.end, to) - Math.max(ghost.start, from)) / 36e5) * HOUR_H),
+                    height: blobHeight(Math.min(ghost.end, to) - Math.max(ghost.start, from)),
                     left: 5,
                     right: 5,
                     ...blobVars(shownColor(ghost.e)),
@@ -538,7 +636,11 @@ export function CalendarMap({
               )}
               {isToday && (
                 <div className="now-line" style={{ top: nowTop }}>
-                  <span className="now-blob" />
+                  {/* kropka „teraz” krąży po małej orbicie: z przodu większa, z tyłu mniejsza */}
+                  <span className="now-orbit-ring" aria-hidden />
+                  <span className="now-orbit" aria-hidden>
+                    <span className="now-blob" />
+                  </span>
                 </div>
               )}
             </div>

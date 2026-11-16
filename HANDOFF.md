@@ -116,6 +116,16 @@ Previous sessions: first Cursor IDE (built the MVP), then Claude in a chat sessi
 code audit and rewrote the data and sync layer, then stopped at the owner's request.
 **Start by reading `CLAUDE.md`.**
 
+## v0.32.0: map — sticky all-day band, centred on now, orbit dot, short events
+- CalendarMap: `.allday` cells and `.allday-gutter` are sticky under the day heads (`--head-h` = `HEAD_H` 50,
+  `--allday-h` = ratio × (scroller height − heads), ResizeObserver). Ratio in `pulsecal:allday-ratio`
+  (0.1–0.8, default 0.5), `band-grip` drag / double-click reset. `.map-corner` covers hour labels at top-left.
+  Wheel over an overflowing band scrolls the band. Drag auto-scroll top edge = heads + band.
+- `snapTo` centres now's time-of-day in the visible hours (below the band); also re-runs once after the first
+  height measurement.
+- Timed blobs: `blobHeight()` = real height − 2 px gap, min 16 px; `< SHORT_BLOB_H` → `.short` single line.
+- Now dot: `.now-orbit` wrapper (translate + scale keyframes) around `.now-blob` (morph), `.now-orbit-ring`.
+
 ## v0.31.0: epics contain only tasks; tasks may have calendar events
 - `WorkItem.eventId` / `seriesId` / `statusManual` (all in the item backup). `DraftEvent.taskId` („zaplanuj” on a
   task: `saveDraft` links the task *before* saving the event so reconcile doesn't create a second task).
