@@ -3,6 +3,12 @@
 Każda wersja to jeden commit `vX.Y.Z: …` (treść commita = wpis z tego pliku) i tag `vX.Y.Z`.
 Najnowsze na górze. Opis funkcji aplikacji jest w [FEATURES.md](FEATURES.md).
 
+## [0.39.0] – 2026-11-16: przeciąganie banera epiku między dniami
+
+- **Baner epiku da się przeciągać między dniami:** chwyć go myszą i przesuń (na telefonie przytrzymaj) i upuść na
+  inny dzień w miesiącu albo w mapie. Jest „Cofnij” w powiadomieniu. Zwykłe kliknięcie dalej otwiera szczegóły
+  epiku, a podczas przeciągania oryginał jest przygaszony.
+
 ## [0.38.0] – 2026-11-16: epik na kalendarzu z paskiem zadań
 
 - **„dziś” z widoku zadań** przenosi do kalendarza (ostatniego widoku: mapa, miesiąc albo 2 tyg.).

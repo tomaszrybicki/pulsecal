@@ -5945,3 +5945,19 @@ body.plan-dragging .sheet-backdrop {
 .pin-epic:active {
   cursor: grab;
 }
+
+/* baner epiku da się przeciągać na inny dzień (dotyk: przytrzymanie) */
+.epic-banner {
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.epic-banner:active {
+  cursor: grab;
+}
+
+body.plan-dragging .epic-banner {
+  opacity: 0.55;
+}

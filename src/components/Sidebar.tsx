@@ -1,4 +1,5 @@
-import { useRef, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
+import { useHoldDrag } from "../hooks/useHoldDrag";
 import type { TagStat } from "../db";
 import type { ThemePref } from "../hooks/useTheme";
 import type { ViewMode } from "../types";
@@ -312,43 +313,7 @@ function NavIcon({ d }: { d: string }) {
  * Przypięty epik: klik → szczegóły. Przeciągnięcie (mysz: ruch o kilka px, dotyk: przytrzymanie) → epik na kalendarz.
  */
 function PinnedRow({ e, onOpen, onDrag }: { e: PinnedEpic; onOpen: () => void; onDrag?: (x: number, y: number) => void }) {
-  const start = useRef<{ x: number; y: number; mouse: boolean } | null>(null);
-  const timer = useRef<number | null>(null);
-  const dragged = useRef(false);
-  const stop = () => {
-    if (timer.current !== null) window.clearTimeout(timer.current);
-    timer.current = null;
-    start.current = null;
-  };
-  const begin = (x: number, y: number) => {
-    stop();
-    dragged.current = true;
-    onDrag?.(x, y);
-  };
-  const dragProps = onDrag
-    ? {
-        onPointerDown: (ev: React.PointerEvent) => {
-          dragged.current = false;
-          if (ev.button !== 0) return;
-          const mouse = ev.pointerType === "mouse";
-          start.current = { x: ev.clientX, y: ev.clientY, mouse };
-          if (!mouse) {
-            const { clientX, clientY } = ev;
-            timer.current = window.setTimeout(() => begin(clientX, clientY), 380);
-          }
-        },
-        onPointerMove: (ev: React.PointerEvent) => {
-          const s = start.current;
-          if (!s) return;
-          const dist = Math.hypot(ev.clientX - s.x, ev.clientY - s.y);
-          if (s.mouse && dist > 6) begin(ev.clientX, ev.clientY);
-          else if (!s.mouse && dist > 8) stop();
-        },
-        onPointerUp: stop,
-        onPointerCancel: stop,
-        onContextMenu: (ev: React.MouseEvent) => ev.preventDefault(),
-      }
-    : {};
+  const { props: dragProps, wasDragged } = useHoldDrag(onDrag);
   const ratio = e.total ? e.done / e.total : 0;
   const complete = e.total > 0 && e.done === e.total;
   const almost = !complete && e.total > 0 && ratio >= ALMOST_DONE;
@@ -362,11 +327,7 @@ function PinnedRow({ e, onOpen, onDrag }: { e: PinnedEpic; onOpen: () => void; o
       title={`${e.title}: ${e.total ? `${e.done}/${e.total} zadań zrobionych` : "brak zadań"}${e.remaining ? `, zostało ~${e.remaining}` : ""}${state}${onDrag ? " · przeciągnij na kalendarz" : ""}`}
       {...dragProps}
       onClick={() => {
-        if (dragged.current) {
-          dragged.current = false;
-          return;
-        }
-        onOpen();
+        if (!wasDragged()) onOpen();
       }}
     >
       <span className="pin-epic-head">

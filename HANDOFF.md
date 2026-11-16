@@ -116,6 +116,11 @@ Previous sessions: first Cursor IDE (built the MVP), then Claude in a chat sessi
 code audit and rewrote the data and sync layer, then stopped at the owner's request.
 **Start by reading `CLAUDE.md`.**
 
+## v0.39.0: drag the epic banner between days
+- `hooks/useHoldDrag.ts` (mouse: 6 px move or leaving the element with the button down; touch: hold) shared by
+  `PinnedRow` and `EpicBanner`; `wasDragged()` swallows the click that ends a drag. Views pass `onDragEpic`
+  (App `dragEpic` → `startPlanDrag(epic, x, y, "show")`).
+
 ## v0.38.0: epic banner on the calendar, "dziś" from tasks
 - `WorkItem.showOn` (local midnight, item backup). App `epicBanners` (`Banner[]`: title, colour, day, subtree
   tasks — not done first) → `MonthView` / `CalendarMap` `banners` + `onOpenEpic`.

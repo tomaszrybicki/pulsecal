@@ -86,6 +86,8 @@ type Props = {
   /** Epiki na kalendarzu (baner na górze pasma całodniowego) i otwarcie epiku po kliknięciu. */
   banners?: Banner[];
   onOpenEpic?: (id: string) => void;
+  /** Baner przeciągnięty na inny dzień. */
+  onDragEpic?: (id: string, x: number, y: number) => void;
 };
 
 /** Ile kolumn od krawędzi zaczynamy doładowywać kolejne dni. */
@@ -153,6 +155,7 @@ export function CalendarMap({
   onPlan,
   banners = [],
   onOpenEpic,
+  onDragEpic,
 }: Props) {
   const scroller = useRef<HTMLDivElement>(null);
   const { shown, dropped, settle } = useOptimisticMove(events);
@@ -590,7 +593,8 @@ export function CalendarMap({
               {banners
                 .filter((b) => b.day === from)
                 .map((b) => (
-                  <EpicBanner key={`banner-${b.id}`} b={b} className="allday-banner" onOpen={(id) => onOpenEpic?.(id)} />
+                  <EpicBanner key={`banner-${b.id}`} b={b} className="allday-banner" onOpen={(id) => onOpenEpic?.(id)}
+                    onDrag={onDragEpic} />
                 ))}
               {allDay.map((e) => (
                 <button

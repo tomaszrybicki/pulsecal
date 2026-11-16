@@ -291,7 +291,7 @@ Prosta „jira” do spraw osobistych — trzeci widok „zadania” (obok „ma
 - **Epik na kalendarzu:** przeciągnij przypięty epik z panelu bocznego na dzień (mysz: chwyć i przesuń,
   telefon: przytrzymaj). Tego dnia epik jest specjalnym wpisem całodniowym na dwa wiersze: nazwa, a pod nią
   przesuwający się pasek z nazwami zadań (jak pasek wiadomości w TV; niezrobione najpierw, zrobione z ✓).
-  Najechanie zatrzymuje pasek, klik otwiera epik. W szczegółach epiku „na kalendarzu”: zmiana dnia, „×” zdejmuje,
+  Najechanie zatrzymuje pasek, klik otwiera epik, a sam baner da się przeciągnąć na inny dzień (z „Cofnij”). W szczegółach epiku „na kalendarzu”: zmiana dnia, „×” zdejmuje,
   „+ pokaż” stawia na dziś. W miesiącu (dwa pasy na górze dnia) i w mapie (góra pasma całodniowego).
 - **Przypięte epiki:** pinezka przy epiku w panelu epików albo „przypnij” w szczegółach epiku. Przypięte epiki
   są w panelu bocznym jako paski postępu (zrobione zadania / wszystkie, z pod-epikami); kolor od koralowego

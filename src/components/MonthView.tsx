@@ -39,6 +39,8 @@ type Props = {
   /** Epiki na kalendarzu (baner na dwa pasy) i otwarcie epiku po kliknięciu. */
   banners?: Banner[];
   onOpenEpic?: (id: string) => void;
+  /** Baner przeciągnięty na inny dzień. */
+  onDragEpic?: (id: string, x: number, y: number) => void;
 };
 
 const WHEEL_STEP = 60;
@@ -107,7 +109,7 @@ function layoutWeek(weekStart: Date, events: CalEvent[], reserved: number[] = []
   return segs;
 }
 
-export function MonthView({ now, weeks, month, events, onDay, onDayDetails, onAdd, onEvent, onMove, onStep, onDelete, onContext, onPlan, banners = [], onOpenEpic }: Props) {
+export function MonthView({ now, weeks, month, events, onDay, onDayDetails, onAdd, onEvent, onMove, onStep, onDelete, onContext, onPlan, banners = [], onOpenEpic, onDragEpic }: Props) {
   const reduce = useReducedMotion();
   const wheel = useRef({ acc: 0, last: 0, lock: 0 });
   const swipe = useRef<{ x: number; y: number; t: number } | null>(null);
@@ -337,6 +339,7 @@ export function MonthView({ now, weeks, month, events, onDay, onDayDetails, onAd
                     className="m-banner"
                     style={{ gridColumn: c + 1, gridRow: `${2 + i * 2} / span 2` }}
                     onOpen={(id) => onOpenEpic?.(id)}
+                    onDrag={onDragEpic}
                   />
                 )),
               )}

@@ -791,6 +791,12 @@ export function App() {
     setPlanDrag({ task, x, y, label: "", mode });
   };
 
+  /** Przypięty epik z panelu bocznego albo jego baner w kalendarzu → przeciąganie na dzień. */
+  const dragEpic = (id: string, x: number, y: number) => {
+    const epic = tree.byId.get(id);
+    if (epic) startPlanDrag(epic, x, y, "show");
+  };
+
   /** Epik upuszczony na dzień: baner epiku na kalendarzu (z „Cofnij”). */
   const showEpicOn = (epic: WorkItem, day: Date) => {
     const prev = epic.showOn ?? null;
@@ -1320,10 +1326,7 @@ export function App() {
             closeDrawer();
             setWorkOpen(id);
           }}
-          onDragEpic={(id, x, y) => {
-            const epic = tree.byId.get(id);
-            if (epic) startPlanDrag(epic, x, y, "show");
-          }}
+          onDragEpic={dragEpic}
           onOpenPrefs={() => {
             closeDrawer();
             setPrefsOpen(true);
@@ -1382,6 +1385,7 @@ export function App() {
               {...eventActions}
               banners={epicBanners}
               onOpenEpic={openEpicFromTag}
+              onDragEpic={dragEpic}
               onSlot={(start) => openDraft(timedDraft(start.getTime(), newColor))}
               onAllDaySlot={(day) => openDraft(allDayDraft(day, newColor))}
               onEvent={(e) => openDraft(draftFromEvent(e), editorMode)}
@@ -1405,6 +1409,7 @@ export function App() {
               {...eventActions}
               banners={epicBanners}
               onOpenEpic={openEpicFromTag}
+              onDragEpic={dragEpic}
             />
           )}
 

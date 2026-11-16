@@ -59,6 +59,7 @@ src/
   hooks/useNow.ts         ticking clock
   hooks/useGoogleSync.ts  polling + SyncState + connect/disconnect + toast notices
   hooks/useDragGesture.ts mouse drag / touch long-press drag, auto-scroll, click suppression
+  hooks/useHoldDrag.ts    start of a drag onto the calendar (pinned epic, epic banner) → App startPlanDrag
   hooks/useOptimisticMove.ts  keeps a dropped event in place until liveQuery catches up
   hooks/useMediaQuery.ts  DESKTOP_QUERY (desktop → click opens the full editor)
   hooks/useAnchoredPlacement.ts  place a window next to the click point (flip/clamp to the viewport)
