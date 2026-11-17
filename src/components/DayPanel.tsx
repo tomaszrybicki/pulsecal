@@ -3,7 +3,7 @@ import { useContext, useEffect, useRef, useState, type PointerEvent as RPointerE
 import { EpicContext, EpicTag, type EpicInfo } from "./EpicTag";
 import { EstSuffix } from "./EstimatePicker";
 import { PALETTE } from "../colors";
-import { animOff, tr } from "../motionPrefs";
+import { dayInstant, trDay } from "../motionPrefs";
 import { whenLabel } from "../draft";
 import {
   QUICK_GROUP,
@@ -232,7 +232,7 @@ export function DayPanel({
   const origin = from
     ? { left: from.x, top: from.y, width: from.w, height: from.h, borderRadius: 16, opacity: 1 }
     : { ...target, opacity: 0 };
-  const spring = reduce ? { duration: 0 } : tr({ type: "spring" as const, stiffness: 340, damping: 30, mass: 0.9 });
+  const spring = reduce ? { duration: 0 } : trDay({ type: "spring" as const, stiffness: 340, damping: 30, mass: 0.9 });
 
   const when = (e: CalEvent) =>
     e.allDay
@@ -301,25 +301,25 @@ export function DayPanel({
         className="dx-backdrop"
         onClick={onClose}
         aria-hidden
-        initial={animOff() ? false : { opacity: 0 }}
+        initial={dayInstant() ? false : { opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        transition={tr({ duration: 0.18 })}
+        transition={trDay({ duration: 0.18 })}
       />
       <motion.div
         className="day-expand"
         role="dialog"
         aria-label={`Przegląd dnia: ${longDateLabel(day)}`}
-        initial={animOff() ? false : origin}
+        initial={dayInstant() ? false : origin}
         animate={target}
         exit={origin}
         transition={spring}
       >
         <motion.div
           className="dx-inner"
-          initial={animOff() ? false : { opacity: 0 }}
-          animate={{ opacity: 1, transition: tr({ delay: reduce ? 0 : 0.1, duration: 0.18 }) }}
-          exit={{ opacity: 0, transition: tr({ duration: 0.08 }) }}
+          initial={dayInstant() ? false : { opacity: 0 }}
+          animate={{ opacity: 1, transition: trDay({ delay: reduce ? 0 : 0.1, duration: 0.18 }) }}
+          exit={{ opacity: 0, transition: trDay({ duration: 0.08 }) }}
         >
           <header className="dx-head">
             <span className="dx-num">{day.getDate()}</span>

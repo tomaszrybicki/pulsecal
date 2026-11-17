@@ -116,6 +116,10 @@ Previous sessions: first Cursor IDE (built the MVP), then Claude in a chat sessi
 code audit and rewrote the data and sync layer, then stopped at the owner's request.
 **Start by reading `CLAUDE.md`.**
 
+## v0.46.0: faster "szybkie", new "minimalne"
+- `motionPrefs.ts`: `FAST` 1.7 → 2.4; new mode `min` = like fast, but `dayInstant()` / `trDay()` make the day
+  overview (`DayPanel`) instant (initial false, duration 0). `off` still skips everything globally.
+
 ## v0.45.0: epic groups include sub-epics
 - `EpicInfo.ancestors` (parent epic ids, nearest first; `ancestorIds()` in `work.ts`, built in App's `epicInfo`).
   `inGroup`/`groupOf` take an optional `parents(epicId)`; an epic group matches its own entries and those of

@@ -98,7 +98,8 @@ logowanie Google bez własnego serwera (Google Identity Services).
 - **Ustawienia:** godziny produktywności, długość wpisu z „P”, po ilu przeniesieniach podpowiedzieć pierwszy
   krok, „Zawsze pełna edycja po kliknięciu wpisu” (tylko to urządzenie) i przycisk „Google Calendar…”.
 - **Animacje** (ustawienia → „animacje”, tylko to urządzenie): „pełne” (sprężyste, z odbiciem), „szybkie”
-  (domyślne: te same sprężyny ok. 1,7× szybciej, treść od razu) albo „wyłączone” (wszystko natychmiast).
+  (domyślne: te same sprężyny ok. 2,4× szybciej, treść od razu), „minimalne” (jak szybkie, ale przegląd dnia
+  otwiera się i zamyka natychmiast) albo „wyłączone” (wszystko natychmiast).
   Otwarcie wpisu czy przeglądu dnia nie przelicza już całego kalendarza, więc okno pojawia się szybciej.
 
 ### Tagi

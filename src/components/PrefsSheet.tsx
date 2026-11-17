@@ -169,8 +169,10 @@ export function PrefsSheet(p: Props) {
           {p.animMode === "full"
             ? "Sprężyste, z „odbiciem” — najładniejsze, ale okna pojawiają się wolniej."
             : p.animMode === "fast"
-              ? "Te same sprężyste animacje, ale ok. 1,7× szybsze — okna i treść są od razu."
-              : "Bez animacji: wszystko pojawia się natychmiast (też najlżej dla baterii)."}{" "}
+              ? "Te same sprężyste animacje, ale ok. 2,4× szybsze — okna i treść są od razu."
+              : p.animMode === "min"
+                ? "Jak „szybkie”, ale przegląd dnia („•••”, „+N więcej”) otwiera się i zamyka natychmiast."
+                : "Bez animacji: wszystko pojawia się natychmiast (też najlżej dla baterii)."}{" "}
           Ustawienie tylko na tym urządzeniu.
         </p>
       </section>

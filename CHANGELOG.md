@@ -3,6 +3,12 @@
 Każda wersja to jeden commit `vX.Y.Z: …` (treść commita = wpis z tego pliku) i tag `vX.Y.Z`.
 Najnowsze na górze. Opis funkcji aplikacji jest w [FEATURES.md](FEATURES.md).
 
+## [0.46.0] – 2026-11-17: szybsze „szybkie”, tryb „minimalne”
+
+- **„Szybkie” jeszcze szybsze:** animacje ok. 2,4× szybsze niż „pełne” (wcześniej 1,7×), nadal sprężyste.
+- **Nowy tryb „minimalne”** (ustawienia → animacje): przegląd dnia („•••”, „+N więcej”) otwiera się i zamyka
+  natychmiast, a wszystkie pozostałe animacje zostają jak w „szybkich”.
+
 ## [0.45.0] – 2026-11-17: grupa epiku obejmuje pod-epiki
 
 - **Grupa epiku obejmuje pod-epiki:** w przeglądzie dnia grupa np. „Zdrowie” zbiera też wpisy z epików w nim
