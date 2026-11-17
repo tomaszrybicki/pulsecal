@@ -3,6 +3,17 @@
 Każda wersja to jeden commit `vX.Y.Z: …` (treść commita = wpis z tego pliku) i tag `vX.Y.Z`.
 Najnowsze na górze. Opis funkcji aplikacji jest w [FEATURES.md](FEATURES.md).
 
+## [0.47.0] – 2026-11-17: przegląd dnia: klikanie seriami, „!” przy ważnych, gęściej
+
+- **Klikanie seriami w przeglądzie dnia:** po „>”, „>>” albo „×” nic nad klikniętym wpisem się nie przesuwa, a
+  następny wpis staje dokładnie pod kursorem (też gdy znika cała grupa). Można klikać dalej bez ruszania myszką.
+  Okno nie zmniejsza się już po każdym kliknięciu (puste miejsce zostaje na dole do zamknięcia), a wpis znika z
+  listy od razu, więc szybkie drugie kliknięcie nie trafi drugi raz w ten sam wpis.
+- **„!” przy ważnych:** wpisy z tagiem „ważne” albo „pilne” mają w przeglądzie dnia czerwone „!” między godziną a
+  nazwą.
+- **Gęściej:** niższe wiersze, mniejsze nagłówki grup i odstępy między grupami, więc na ekranie mieści się więcej
+  wpisów.
+
 ## [0.46.0] – 2026-11-17: szybsze „szybkie”, tryb „minimalne”
 
 - **„Szybkie” jeszcze szybsze:** animacje ok. 2,4× szybsze niż „pełne” (wcześniej 1,7×), nadal sprężyste.

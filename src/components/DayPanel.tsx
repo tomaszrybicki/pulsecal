@@ -3,7 +3,7 @@ import { useContext, useEffect, useRef, useState, type PointerEvent as RPointerE
 import { EpicContext, EpicTag, type EpicInfo } from "./EpicTag";
 import { EstSuffix } from "./EstimatePicker";
 import { PALETTE } from "../colors";
-import { dayInstant, trDay } from "../motionPrefs";
+import { dayInstant, tr, trDay } from "../motionPrefs";
 import { whenLabel } from "../draft";
 import {
   QUICK_GROUP,
@@ -72,10 +72,10 @@ type Props = {
 };
 
 const HEAD_H = 58;
-const ROW_H = 30;
-const PAD = 22;
+const ROW_H = 25;
+const PAD = 16;
 /** Nagłówek grupy + odstępy bańki. */
-const GROUP_H = 42;
+const GROUP_H = 30;
 /** Pole „Grupuj…”. */
 const GROUPER_H = 46;
 /** Podpowiedzi pod „Grupuj…”. */
@@ -134,7 +134,19 @@ export function DayPanel({
 }: Props) {
   const reduce = useReducedMotion();
   const epics = useContext(EpicContext);
-  const list = [...events].sort(dayOrder);
+  // „>” / „×”: wpis znika z listy od razu (nie czekając na bazę), więc szybkie drugie kliknięcie trafia już
+  // w następny wiersz, a nie drugi raz w ten sam. id → start w chwili kliknięcia (wpis wielodniowy po
+  // przesunięciu może dalej być tego dnia — wtedy ma inny start i znów jest widoczny).
+  const [gone, setGone] = useState<ReadonlyMap<string, number>>(() => new Map());
+  useEffect(() => {
+    setGone((prev) => {
+      if (!prev.size) return prev;
+      const now = new Map(events.map((e) => [e.id, e.start]));
+      const next = new Map([...prev].filter(([id, start]) => now.get(id) === start));
+      return next.size === prev.size ? prev : next;
+    });
+  }, [events]);
+  const list = events.filter((e) => gone.get(e.id) !== e.start).sort(dayOrder);
   const low = list.filter(isLowPriority);
   const main = list.length - low.length;
   const count = !list.length
@@ -159,12 +171,18 @@ export function DayPanel({
   }
   const itemsOf = (id: string) => buckets.get(id) ?? [];
   const visible = groups.filter((g) => itemsOf(g.id).length > 0 || g.id === fresh);
-  // same „pozostałe” (albo pusto) → zwykła lista bez nagłówków
-  const plain = visible.length === 0 || (visible.length === 1 && visible[0].kind === "rest");
+  // same „pozostałe” (albo pusto) → zwykła lista bez nagłówków; raz pokazane grupy zostają do zamknięcia
+  // (inaczej po zniknięciu ostatniej grupy nagłówek „pozostałe” by zniknął i wiersze by podskoczyły)
+  const grouped = useRef(false);
+  const plainNow = visible.length === 0 || (visible.length === 1 && visible[0].kind === "rest");
+  if (!plainNow) grouped.current = true;
+  const plain = plainNow && !grouped.current;
 
   // przeciąganie grup: kolejność trzymana lokalnie, zapis po puszczeniu
   const [dragOrder, setDragOrder] = useState<string[] | null>(null);
   const dragRef = useRef<string[] | null>(null);
+  /** Trwa przeciąganie grupy — tylko wtedy grupy przesuwają się z animacją (poza tym od razu, bez zjeżdżania). */
+  const [dragging, setDragging] = useState(false);
   const byId = new Map(groups.map((g) => [g.id, g]));
   const ids = (dragOrder ?? visible.map((g) => g.id)).filter((id) => byId.has(id));
   const reorder = (next: string[]) => {
@@ -175,6 +193,7 @@ export function DayPanel({
     const o = dragRef.current;
     dragRef.current = null;
     setDragOrder(null);
+    setDragging(false);
     if (o) onGroups(reorderVisible(groups, o));
   };
 
@@ -210,14 +229,20 @@ export function DayPanel({
   const rowsShown = plain
     ? list.length
     : visible.reduce((n, g) => n + (g.collapsed ? 0 : Math.max(1, itemsOf(g.id).length)), 0);
+  const floor = useRef(0);
+  const lastHeight = useRef(0);
+  const bodyRef = useRef<HTMLDivElement>(null);
+  /** Najmniejsza wysokość treści listy (px) — żeby usunięcie przy dnie przewinięcia nie cofało przewinięcia. */
+  const [minContent, setMinContent] = useState(0);
+  const contentStyle = minContent ? { minHeight: minContent } : undefined;
   const vw = window.innerWidth;
   const vh = window.innerHeight;
   const box = area ?? { x: 0, y: 0, w: vw, h: vh };
   const width = Math.min(820, vw - 24, Math.max(box.w - 32, 320));
-  const height = Math.min(
+  const natural = Math.min(
     HEAD_H +
       PAD +
-      Math.max(1, rowsShown) * (ROW_H + 2) +
+      Math.max(1, rowsShown) * (ROW_H + 1) +
       (plain ? 0 : visible.length * GROUP_H) +
       GROUPER_H +
       (picking ? PICK_H : 0) +
@@ -225,6 +250,10 @@ export function DayPanel({
     vh * 0.82,
     vh - 24,
   );
+  // po „>” / „×” okno się nie zmniejsza (ani nie przesuwa) — wiersze pod klikniętym podjeżdżają w górę,
+  // więc następny wpis jest dokładnie pod kursorem; puste miejsce zostaje na dole do zamknięcia
+  const height = Math.min(Math.max(natural, floor.current), vh * 0.82, vh - 24);
+  lastHeight.current = height;
   const left = clamp(box.x + (box.w - width) / 2, 12, vw - width - 12);
   const centerY = from ? from.y + from.h / 2 : vh / 2;
   const top = clamp(centerY - height / 2, 12, vh - height - 12);
@@ -233,6 +262,28 @@ export function DayPanel({
     ? { left: from.x, top: from.y, width: from.w, height: from.h, borderRadius: 16, opacity: 1 }
     : { ...target, opacity: 0 };
   const spring = reduce ? { duration: 0 } : trDay({ type: "spring" as const, stiffness: 340, damping: 30, mass: 0.9 });
+
+  /** Zabierz wpisy z listy tak, żeby nic nad nimi nie drgnęło (patrz `gone`, `floor`, `minContent`). */
+  const takeAway = (out: CalEvent[]) => {
+    floor.current = lastHeight.current;
+    // przewinięte do samego dołu: krótsza treść cofnęłaby przewinięcie i wiersze zjechałyby w dół
+    const b = bodyRef.current;
+    if (b && b.scrollHeight > b.clientHeight + 1) {
+      const cs = getComputedStyle(b);
+      const need = b.scrollTop + b.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+      setMinContent((m) => Math.max(m, Math.floor(need)));
+    }
+    setGone((prev) => new Map([...prev, ...out.map((e) => [e.id, e.start] as const)]));
+  };
+  const shift = (out: CalEvent[], days: number) => {
+    if (!out.length) return;
+    takeAway(out);
+    onShift(out, days);
+  };
+  const remove = (e: CalEvent) => {
+    takeAway([e]);
+    onDelete(e);
+  };
 
   const when = (e: CalEvent) =>
     e.allDay
@@ -257,6 +308,11 @@ export function DayPanel({
       <button type="button" className="dx-open" onClick={() => onOpen(e)}>
         <span className="dx-dot" style={{ background: shownColor(e) }} aria-hidden />
         <span className="dx-time">{when(e)}</span>
+        {isUrgent(e) && (
+          <span className="dx-bang" title="ważne" aria-label="ważne">
+            !
+          </span>
+        )}
         <span className="dx-title">
           {e.title || "(bez tytułu)"}
           <EstSuffix min={e.estimate} />
@@ -282,13 +338,13 @@ export function DayPanel({
             P
           </button>
         )}
-        <button type="button" className="dx-btn" title="Na następny dzień" aria-label={`${e.title}: na następny dzień`} onClick={() => onShift([e], 1)}>
+        <button type="button" className="dx-btn" title="Na następny dzień" aria-label={`${e.title}: na następny dzień`} onClick={() => shift([e], 1)}>
           &gt;
         </button>
-        <button type="button" className="dx-btn" title="Za tydzień" aria-label={`${e.title}: za tydzień`} onClick={() => onShift([e], 7)}>
+        <button type="button" className="dx-btn" title="Za tydzień" aria-label={`${e.title}: za tydzień`} onClick={() => shift([e], 7)}>
           &gt;&gt;
         </button>
-        <button type="button" className="dx-btn dx-del" title="Usuń" aria-label={`Usuń ${e.title}`} onClick={() => onDelete(e)}>
+        <button type="button" className="dx-btn dx-del" title="Usuń" aria-label={`Usuń ${e.title}`} onClick={() => remove(e)}>
           ×
         </button>
       </span>
@@ -332,7 +388,7 @@ export function DayPanel({
               className="dx-all"
               disabled={!low.length}
               title={`Przenieś na następny dzień wszystko z tagiem „${LOW_PRIORITY_TAG}”`}
-              onClick={() => onShift(low, 1)}
+              onClick={() => shift(low, 1)}
             >
               &gt; wszystkie {LOW_PRIORITY_TAG}
               {low.length ? ` (${low.length})` : ""}
@@ -341,14 +397,14 @@ export function DayPanel({
               ×
             </button>
           </header>
-          <motion.div className="dx-body" layoutScroll>
+          <motion.div ref={bodyRef} className="dx-body" layoutScroll>
             {plain ? (
-              <ul className="dx-list">
+              <ul className="dx-list" style={contentStyle}>
                 {list.map(row)}
                 {!list.length && <li className="dx-empty hint">Nic tego dnia.</li>}
               </ul>
             ) : (
-              <Reorder.Group as="div" axis="y" values={ids} onReorder={reorder} className="dx-groups">
+              <Reorder.Group as="div" axis="y" values={ids} onReorder={reorder} className="dx-groups" style={contentStyle}>
                 {ids.map((id) => {
                   const g = byId.get(id)!;
                   const items = itemsOf(id);
@@ -363,8 +419,10 @@ export function DayPanel({
                       onColor={(c) => colorGroup(id, c)}
                       count={items.length}
                       reduce={Boolean(reduce)}
+                      dragging={dragging}
+                      onDragStart={() => setDragging(true)}
                       onToggle={() => toggleGroup(id)}
-                      onShiftAll={() => onShift(items, 1)}
+                      onShiftAll={() => shift(items, 1)}
                       onRemove={g.kind === "rest" ? undefined : () => removeGroup(id)}
                       onDragEnd={endDrag}
                     >
@@ -400,6 +458,8 @@ function GroupSection({
   onColor,
   count,
   reduce,
+  dragging,
+  onDragStart,
   onToggle,
   onShiftAll,
   onRemove,
@@ -415,6 +475,8 @@ function GroupSection({
   onColor: (color: string | undefined) => void;
   count: number;
   reduce: boolean;
+  dragging: boolean;
+  onDragStart: () => void;
   onToggle: () => void;
   onShiftAll: () => void;
   onRemove?: () => void;
@@ -428,11 +490,17 @@ function GroupSection({
       value={group.id}
       dragListener={false}
       dragControls={controls}
+      onDragStart={onDragStart}
       onDragEnd={onDragEnd}
       className={`dx-group k-${group.kind}${group.collapsed ? " collapsed" : ""}${info.color ? " tinted" : ""}`}
       style={info.color ? { ["--g" as string]: info.color } : undefined}
-      transition={reduce ? { duration: 0 } : undefined}
-      whileDrag={{ scale: 1.015, boxShadow: "0 14px 34px rgba(40, 24, 12, 0.22)" }}
+      // poza przeciąganiem grupy nie zjeżdżają z animacją (np. gdy zniknie grupa wyżej) — od razu na miejscu
+      transition={reduce || !dragging ? { duration: 0 } : undefined}
+      whileDrag={{
+        scale: 1.015,
+        boxShadow: "0 14px 34px rgba(40, 24, 12, 0.22)",
+        transition: reduce ? { duration: 0 } : tr({ type: "spring", stiffness: 500, damping: 32 }),
+      }}
       aria-label={`${info.name}: ${count}`}
     >
       <header className="dx-ghead">

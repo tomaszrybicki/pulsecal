@@ -116,6 +116,15 @@ Previous sessions: first Cursor IDE (built the MVP), then Claude in a chat sessi
 code audit and rewrote the data and sync layer, then stopped at the owner's request.
 **Start by reading `CLAUDE.md`.**
 
+## v0.47.0: day overview — next row stays under the cursor, „!” for important, denser
+- `DayPanel`: `takeAway()` before `onShift`/`onDelete` (row „>”/„>>”/„×”, group „>”, „> wszystkie low priority”):
+  `gone` map (id → start at click; hides rows at once, pruned when `events` no longer has that id+start),
+  `floor` ref (panel height never shrinks after a removal → top stays), `minContent` (content min-height when
+  scrolled near the bottom, so the scroll position doesn't clamp). `grouped` ref: once group headers were shown
+  they stay until close (no jump when only „pozostałe” is left). Group sections animate layout only while a
+  group is dragged (`dragging` state, `transition` instant otherwise). App keys the panel per day.
+- `.dx-bang` badge for `isUrgent()` rows; denser rows/groups (`ROW_H` 25, `GROUP_H` 30, CSS heights/gaps).
+
 ## v0.46.0: faster "szybkie", new "minimalne"
 - `motionPrefs.ts`: `FAST` 1.7 → 2.4; new mode `min` = like fast, but `dayInstant()` / `trDay()` make the day
   overview (`DayPanel`) instant (initial false, duration 0). `off` still skips everything globally.

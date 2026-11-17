@@ -1511,7 +1511,8 @@ export function App() {
       <AnimatePresence>
         {dayPanel && !draft && (
           <DayPanel
-            key="day"
+            // osobny klucz na dzień: inny dzień otwarty w trakcie zamykania = nowy panel (bez „zamrożonej” wysokości)
+            key={`day:${dayPanel.day.getTime()}`}
             day={dayPanel.day}
             from={dayPanel.from}
             area={dayPanel.area}

@@ -44,7 +44,8 @@ logowanie Google bez własnego serwera (Google Identity Services).
   - Gdy wpisy się nie mieszczą: „+N więcej”.
   - **Przegląd dnia:** „+N więcej” albo przycisk „•••” na dole dnia — komórka dnia sprężyście rozsuwa się nad
     kalendarzem (bez osobnego okienka) i po zamknięciu (×, Esc, klik obok) wraca na miejsce. Każdy wpis to jedna
-    linia (godzina, nazwa, epik, tagi); wpisy z godziną po kolei w czasie, potem całodniowe. W nagłówku liczba
+    linia (godzina, nazwa, epik, tagi; „ważne” i „pilne” mają czerwone „!” przed nazwą); wpisy z godziną po
+    kolei w czasie, potem całodniowe. W nagłówku liczba
     wpisów osobno dla „low priority” (np. „1 wpis + 10 low priority”).
   - **Grupy w przeglądzie dnia:** wpisy są w bańkach. Domyślnie „na szybko” (estymata 5 min, zielona) i
     „pozostałe”. Pole „Grupuj…” na dole: wybierz albo wpisz dowolny tag lub epik (albo „5 min”) → powstaje nowa
@@ -57,6 +58,8 @@ logowanie Google bez własnego serwera (Google Identity Services).
     (przyciski po najechaniu): „P”, „>” przenosi na następny dzień, „>>” o tydzień (godzina zostaje). „> wszystkie low priority”
     przenosi na następny dzień wszystko z tagiem „low priority”. „×” usuwa wpis, prawy przycisk
     myszy otwiera jego menu. Każde przeniesienie i usunięcie można cofnąć przyciskiem „Cofnij” w powiadomieniu.
+    Po „>”, „>>” albo „×” lista się nie przesuwa: następny wpis staje dokładnie pod kursorem (okno nie zmniejsza
+    się aż do zamknięcia), więc można klikać seriami bez ruszania myszką.
   - Na telefonie wszystko jako kolorowe pigułki z samą nazwą.
   - Liczba widocznych wierszy dopasowuje się do wysokości ekranu.
 - **2 tygodnie** (przycisk „2 tyg.”): siatka dwóch tygodni od tygodnia z wybranym dniem; strzałki przesuwają

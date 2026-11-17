@@ -6052,7 +6052,7 @@ body.plan-dragging .epic-banner {
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: 6px 8px 10px;
+  padding: 4px 6px 6px;
 }
 
 .dx-list {
@@ -6065,14 +6065,14 @@ body.plan-dragging .epic-banner {
 .dx-groups {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
 }
 
 .dx-group {
   --g: var(--ink-soft);
   position: relative;
-  padding: 2px 4px 4px;
-  border-radius: 16px;
+  padding: 0 3px 2px;
+  border-radius: 12px;
   background: color-mix(in srgb, var(--g) 9%, var(--surface));
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--g) 26%, transparent);
 }
@@ -6086,7 +6086,7 @@ body.plan-dragging .epic-banner {
   display: flex;
   align-items: center;
   gap: 2px;
-  height: 32px;
+  height: 24px;
 }
 
 .dx-grip {
@@ -6094,7 +6094,7 @@ body.plan-dragging .epic-banner {
   display: grid;
   place-items: center;
   width: 22px;
-  height: 26px;
+  height: 22px;
   border-radius: 7px;
   color: var(--ink-soft);
   font-size: 0.9rem;
@@ -6120,7 +6120,7 @@ body.plan-dragging .epic-banner {
   display: flex;
   align-items: center;
   gap: 7px;
-  height: 28px;
+  height: 22px;
   border: 0;
   border-radius: 8px;
   padding: 0 6px;
@@ -6327,9 +6327,9 @@ body.plan-dragging .epic-banner {
   display: flex;
   align-items: center;
   gap: 4px;
-  height: 30px;
-  margin-bottom: 2px;
-  border-radius: 9px;
+  height: 25px;
+  margin-bottom: 1px;
+  border-radius: 8px;
 }
 
 .dx-list li:hover {
@@ -6369,6 +6369,22 @@ body.plan-dragging .epic-banner {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* ważne / pilne: „!” między godziną a tytułem */
+.dx-bang {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 15px;
+  height: 15px;
+  margin: 0 -4px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--danger-ink) 15%, transparent);
+  color: var(--danger-ink);
+  font-size: 0.7rem;
+  font-weight: 800;
+  line-height: 1;
 }
 
 .dx-title {
@@ -6430,7 +6446,7 @@ body.plan-dragging .epic-banner {
 
 .dx-btn {
   min-width: 28px;
-  height: 24px;
+  height: 21px;
   border: 0;
   border-radius: 8px;
   padding: 0 6px;
