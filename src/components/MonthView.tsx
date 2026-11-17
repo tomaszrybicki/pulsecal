@@ -1,4 +1,6 @@
 import { motion, useReducedMotion } from "framer-motion";
+import { animOff, tr } from "../motionPrefs";
+import { memoView } from "../memoView";
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { colorInk } from "../colors";
 import { shownColor, isLowPriority } from "../tags";
@@ -109,7 +111,7 @@ function layoutWeek(weekStart: Date, events: CalEvent[], reserved: number[] = []
   return segs;
 }
 
-export function MonthView({ now, weeks, month, events, onDay, onDayDetails, onAdd, onEvent, onMove, onStep, onDelete, onContext, onPlan, banners = [], onOpenEpic, onDragEpic }: Props) {
+function MonthViewImpl({ now, weeks, month, events, onDay, onDayDetails, onAdd, onEvent, onMove, onStep, onDelete, onContext, onPlan, banners = [], onOpenEpic, onDragEpic }: Props) {
   const reduce = useReducedMotion();
   const wheel = useRef({ acc: 0, last: 0, lock: 0 });
   const swipe = useRef<{ x: number; y: number; t: number } | null>(null);
@@ -275,9 +277,9 @@ export function MonthView({ now, weeks, month, events, onDay, onDayDetails, onAd
         key={isoDate(gridStart)}
         className="m-weeks"
         ref={weeksRef}
-        initial={reduce || !slideDir.current ? false : { opacity: 0.2, y: slideDir.current * 36 }}
+        initial={reduce || animOff() || !slideDir.current ? false : { opacity: 0.2, y: slideDir.current * 36 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ type: "spring", stiffness: 380, damping: 30 }}
+        transition={tr({ type: "spring", stiffness: 380, damping: 30 })}
       >
         {weeks.map((week, w) => {
           const weekBanners = week.map((d) => banners.filter((b) => b.day === startOfDay(d).getTime()));
@@ -468,3 +470,6 @@ function MonthChip({
     </button>
   );
 }
+
+/** Miesiąc bez zbędnych przeliczeń, gdy App zmienia tylko callbacki (np. otwiera okno wpisu). */
+export const MonthView = memoView(MonthViewImpl);

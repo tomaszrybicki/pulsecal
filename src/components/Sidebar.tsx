@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from "react";
+import { memoView } from "../memoView";
 import { useHoldDrag } from "../hooks/useHoldDrag";
 import type { TagStat } from "../db";
 import type { ThemePref } from "../hooks/useTheme";
@@ -69,7 +70,7 @@ const THEMES: [ThemePref, string][] = [
   ["dark", "ciemny"],
 ];
 
-export function Sidebar(p: Props) {
+function SidebarImpl(p: Props) {
   // zmiana nazwy tagu: klucz edytowanego wiersza + wpisywana nazwa
   const [editing, setEditing] = useState<string | null>(null);
   const [name, setName] = useState("");
@@ -351,3 +352,6 @@ function PinnedRow({ e, onOpen, onDrag }: { e: PinnedEpic; onOpen: () => void; o
     </button>
   );
 }
+
+/** Panel boczny bez zbędnych przeliczeń, gdy App zmienia tylko callbacki. */
+export const Sidebar = memoView(SidebarImpl);

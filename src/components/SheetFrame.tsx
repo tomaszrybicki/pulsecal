@@ -77,7 +77,7 @@ export function SheetFrame({
       className={`sheet-backdrop ${backdropClass}${floating ? " anchored" : ""}${palette ? " palette" : ""}`}
       onClick={floating ? undefined : onDismiss}
       role="presentation"
-      {...backdropMotion}
+      {...backdropMotion()}
     >
       <motion.div
         ref={ref}
@@ -95,7 +95,7 @@ export function SheetFrame({
               }
             : undefined
         }
-        {...(floating ? popMotion : palette ? paletteMotion : sheetMotion)}
+        {...(floating ? popMotion() : palette ? paletteMotion() : sheetMotion())}
       >
         {!palette && <div className="grab" />}
         {closable && (

@@ -6467,3 +6467,16 @@ body.plan-dragging .epic-banner {
   opacity: 1;
   filter: none;
 }
+
+/* ═══ animacje „wyłączone” (ustawienia): bez animacji i przejść CSS — wszystko od razu ═══ */
+html[data-anim="off"] *,
+html[data-anim="off"] *::before,
+html[data-anim="off"] *::after {
+  animation: none !important;
+  transition: none !important;
+}
+
+.prefs-seg {
+  align-self: flex-start;
+  margin: 2px 0 6px;
+}

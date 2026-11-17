@@ -1,4 +1,5 @@
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { animOff, tr } from "../motionPrefs";
 import { useEffect, useState } from "react";
 import type { SyncNotice } from "../hooks/useGoogleSync";
 
@@ -27,10 +28,10 @@ export function Toast({ notice }: { notice: SyncNotice | null }) {
             className={`toast ${shown.tone}`}
             role="status"
             onClick={() => setShown(null)}
-            initial={reduce ? { opacity: 0 } : { opacity: 0, y: 24, scale: 0.85, borderRadius: 40 }}
+            initial={animOff() ? false : reduce ? { opacity: 0 } : { opacity: 0, y: 24, scale: 0.85, borderRadius: 40 }}
             animate={reduce ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1, borderRadius: 22 }}
             exit={reduce ? { opacity: 0 } : { opacity: 0, y: 12, scale: 0.9 }}
-            transition={{ type: "spring", stiffness: 520, damping: 24 }}
+            transition={tr({ type: "spring", stiffness: 520, damping: 24 })}
           >
             <span>{shown.text}</span>
             {shown.action && (

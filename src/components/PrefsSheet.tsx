@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { DEFAULT_MOVE_THRESHOLD } from "../moves";
 import { DEFAULT_SLOT_MIN, minutesLabel, type ProdHours } from "../prefs";
+import { ANIM_MODES, type AnimMode } from "../motionPrefs";
 import { SheetFrame } from "./SheetFrame";
 
 type Props = {
@@ -14,6 +15,9 @@ type Props = {
   onAlwaysFull: (on: boolean) => void;
   requireEstimate: boolean;
   onRequireEstimate: (on: boolean) => void;
+  /** Tempo animacji (tylko na tym urządzeniu). */
+  animMode: AnimMode;
+  onAnimMode: (m: AnimMode) => void;
   /** Komputer: kliknięcie i tak zawsze otwiera pełną edycję. */
   isDesktop: boolean;
   onOpenSync: () => void;
@@ -142,6 +146,32 @@ export function PrefsSheet(p: Props) {
             ? "Na komputerze kliknięcie zawsze otwiera pełną edycję. Ustawienie dotyczy telefonu."
             : "Bez szybkiej karty i „Więcej”. Ustawienie tylko na tym urządzeniu."}{" "}
           Z estymatą (5min / 30min / 1h / 2h+) nowego wpisu nie da się zapisać bez wybrania jednej z nich.
+        </p>
+      </section>
+
+      <section className="prefs-group">
+        <h3>animacje</h3>
+        <div className="seg prefs-seg" role="radiogroup" aria-label="Animacje">
+          {ANIM_MODES.map(([v, label]) => (
+            <button
+              key={v}
+              type="button"
+              role="radio"
+              aria-checked={p.animMode === v}
+              className={p.animMode === v ? "on" : ""}
+              onClick={() => p.onAnimMode(v)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <p className="hint">
+          {p.animMode === "full"
+            ? "Sprężyste, z „odbiciem” — najładniejsze, ale okna pojawiają się wolniej."
+            : p.animMode === "fast"
+              ? "Te same sprężyste animacje, ale ok. 1,7× szybsze — okna i treść są od razu."
+              : "Bez animacji: wszystko pojawia się natychmiast (też najlżej dla baterii)."}{" "}
+          Ustawienie tylko na tym urządzeniu.
         </p>
       </section>
 

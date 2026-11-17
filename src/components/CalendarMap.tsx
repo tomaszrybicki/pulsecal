@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { memoView } from "../memoView";
 import { colorInk } from "../colors";
 import { shownColor, isLowPriority } from "../tags";
 import { DRAFT_ID } from "../draft";
@@ -137,7 +138,7 @@ const blobVars = (color: string) => ({
   ["--blob-ink" as string]: colorInk(color),
 });
 
-export function CalendarMap({
+function CalendarMapImpl({
   now,
   days,
   focusDay,
@@ -732,3 +733,6 @@ export function CalendarMap({
     </div>
   );
 }
+
+/** Mapa bez zbędnych przeliczeń, gdy App zmienia tylko callbacki (np. otwiera okno wpisu). */
+export const CalendarMap = memoView(CalendarMapImpl);

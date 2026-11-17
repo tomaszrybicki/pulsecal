@@ -71,14 +71,14 @@ export function SettingsSheet(p: Props) {
       className="sheet-backdrop"
       onClick={p.onClose}
       role="presentation"
-      {...backdropMotion}
+      {...backdropMotion()}
     >
       <motion.div
         className="sheet"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-label="Ustawienia"
-        {...sheetMotion}
+        {...sheetMotion()}
       >
         <div className="grab" />
         <h2>Google Calendar</h2>

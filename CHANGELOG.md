@@ -3,6 +3,15 @@
 Każda wersja to jeden commit `vX.Y.Z: …` (treść commita = wpis z tego pliku) i tag `vX.Y.Z`.
 Najnowsze na górze. Opis funkcji aplikacji jest w [FEATURES.md](FEATURES.md).
 
+## [0.43.0] – 2026-11-17: szybsze otwieranie, ustawienie animacji
+
+- **Szybciej po kliknięciu:** otwarcie wpisu albo przeglądu dnia nie przelicza już całego miesiąca, mapy i panelu
+  bocznego — okno pojawia się ok. 4–5× szybciej niż wcześniej.
+- **Ustawienie „animacje”** (ustawienia, tylko to urządzenie):
+  - „pełne”: sprężyste jak dotąd;
+  - „szybkie” (domyślne): te same sprężyny ok. 1,7× szybciej, a treść przeglądu dnia jest od razu, bez czekania;
+  - „wyłączone”: wszystko pojawia się natychmiast, bez żadnych animacji.
+
 ## [0.42.0] – 2026-11-17: grupy w przeglądzie dnia
 
 - **Grupy w przeglądzie dnia:** na dole rozsuniętego dnia jest pole „Grupuj…”. Wybierz albo wpisz dowolny tag

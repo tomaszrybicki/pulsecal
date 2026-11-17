@@ -1,8 +1,9 @@
 import { AnimatePresence } from "framer-motion";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CalendarMap } from "./components/CalendarMap";
 import { DayPanel, type Rect } from "./components/DayPanel";
 import { getDayGroups, setDayGroups, type DayGroup } from "./dayGroups";
+import { getAnimMode, setAnimMode, type AnimMode } from "./motionPrefs";
 import { EpicContext, EpicOpenContext, type EpicInfo } from "./components/EpicTag";
 import type { Banner } from "./components/EpicBanner";
 import { EventMenu } from "./components/EventMenu";
@@ -191,6 +192,7 @@ export function App() {
   const [slotMin, setSlotMinState] = useState(getSlotMin);
   const [alwaysFull, setAlwaysFullState] = useState(getAlwaysFull);
   const [requireEstimate, setRequireEstimateState] = useState(getRequireEstimate);
+  const [animMode, setAnimModeState] = useState<AnimMode>(getAnimMode);
   // zmiana koloru tagu → przerysowanie wszystkiego (tagColor czyta z modułu tags.ts)
   const [tagColorsVer, setTagColorsVer] = useState(0);
   // na komputerze kliknięcie wpisu od razu pokazuje wszystkie opcje (bez „Więcej")
@@ -487,11 +489,12 @@ export function App() {
   };
 
   /** Kliknięcie etykiety epiku na wpisie → szczegóły epiku. */
-  const openEpicFromTag = (id: string) => {
+  // stała funkcja (tylko settery) — kontekst EpicOpenContext nie zmienia się przy każdym renderze App
+  const openEpicFromTag = useCallback((id: string) => {
     setMenu(null);
     setDayPanel(null);
     setWorkOpen(id);
-  };
+  }, []);
 
   /* ── „P”: najbliższa wolna godzina w godzinach produktywności ── */
 
@@ -1167,6 +1170,14 @@ export function App() {
     </>
   );
 
+  // przyciski widoków w panelu bocznym: ten sam element, dopóki nie zmieni się nic, od czego zależą
+  // (navigate/closeDrawer/setDefaultView to same settery) — panel boczny nie przelicza się przy każdym kliknięciu
+  const sideViewSwitch = useMemo(
+    () => viewChips(closeDrawer),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [view, weekSel, defaultView, focus],
+  );
+
   const periodLabel = weekSel
     ? rangeLabel(weekSel.start, addDays(weekSel.start, weekSel.weeks * 7 - 1))
     : monthLabel(focus);
@@ -1323,7 +1334,7 @@ export function App() {
             navigate(start);
             closeDrawer();
           }}
-          viewSwitch={viewChips(closeDrawer)}
+          viewSwitch={sideViewSwitch}
           view={view}
           onView={(v) => {
             setView(v === "tasks" ? "tasks" : lastCalView.current);
@@ -1610,6 +1621,11 @@ export function App() {
             onRequireEstimate={(on) => {
               setRequireEstimate(on);
               setRequireEstimateState(on);
+            }}
+            animMode={animMode}
+            onAnimMode={(m) => {
+              setAnimMode(m);
+              setAnimModeState(m);
             }}
             isDesktop={isDesktop}
             onOpenSync={() => {

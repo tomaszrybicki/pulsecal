@@ -44,6 +44,8 @@ src/
   App.tsx                 state, view switching, draft/editor state, event moves
   db.ts                   Dexie schema + local CRUD
   dayGroups.ts            day overview groups (quick 5 min / tag / epic / rest): order, collapse, persisted + backup
+  motionPrefs.ts          animation setting full / fast / off: tr() for framer transitions, animOff()
+  memoView.tsx            memo + stable callback proxies for big views (MonthView, CalendarMap, Sidebar)
   draft.ts                draft helpers (DRAFT_ID ghost, all-day toggle, when-label, withDraft)
   tags.ts                 tags: normalize, "Tagi: a, b" last line of the Google description, filter rule, color, isLowPriority
   quickParse.ts           Polish one-line quick add ("dentysta jutro 14:30 1h #wizyta") → ParsedEntry
@@ -113,7 +115,8 @@ public/                   icons, favicon
 - Local event IDs are 32 hex characters (`newEventId()`), which are also valid Google event IDs, so
   POST is idempotent (409 → PATCH). Events that came from Google have the ID `g:<googleId>`.
 - Animations: CSS keyframes for idle "morph" (subtle; only `border-radius` on events),
-  framer-motion springs for sheets and transitions. Always respect `prefers-reduced-motion`.
+  framer-motion springs for sheets and transitions. Always respect `prefers-reduced-motion`, and pass every
+  framer transition through `tr()` (`motionPrefs.ts`, owner's speed setting).
 - iOS/Safari: the OAuth popup **must** be opened synchronously in the click handler (preload GIS first:
   `preloadGoogle()`), otherwise Safari blocks it. A background PWA doesn't poll (iOS has no reliable background).
 - Don't add a backend without asking the owner. It's possible ("we can use our own database"),

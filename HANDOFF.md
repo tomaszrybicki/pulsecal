@@ -116,6 +116,19 @@ Previous sessions: first Cursor IDE (built the MVP), then Claude in a chat sessi
 code audit and rewrote the data and sync layer, then stopped at the owner's request.
 **Start by reading `CLAUDE.md`.**
 
+## v0.43.0: faster click → window, animation setting
+- `src/motionPrefs.ts`: `AnimMode` full / fast (default) / off, localStorage `pulsecal:anim` (per device, not in
+  the backup). `tr(t)` scales a framer transition (fast: stiffness ×k², damping ×k, durations ÷k, no delay;
+  off: duration 0); `animOff()` → use `initial={false}`; `applyAnimMode()` (main.tsx) sets
+  `MotionGlobalConfig.skipAnimations` and `html[data-anim]` (off → CSS animations/transitions none).
+  `sheetMotion.ts` presets are now functions (read the mode at render). New framer transitions: wrap in `tr()`.
+- `src/memoView.tsx`: `memoView(Comp)` = memo + stable proxies for function props (always call the latest).
+  Used for `MonthView`, `CalendarMap`, `Sidebar`; App's inline callbacks no longer re-render them. Keep
+  non-function props stable (useMemo) or memo is lost: `sideViewSwitch` memo, `openEpicFromTag` useCallback,
+  `withDraft` returns the same array while the opened event is unchanged.
+- Measured (dev build, month view): click → window in DOM 46–57 ms → 9–12 ms (MonthView 26.6 ms → skipped,
+  Sidebar 6.5–11 ms → skipped).
+
 ## v0.42.0: groups in the day overview
 - `src/dayGroups.ts`: `DayGroup` (`quick` / `rest` / `tag` / `epic`, `collapsed`), localStorage
   `pulsecal:day-groups`, `cleanGroups` (always has `rest`), `groupOf` = first matching group, `reorderVisible`
