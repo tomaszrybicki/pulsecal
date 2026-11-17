@@ -3,6 +3,15 @@
 Każda wersja to jeden commit `vX.Y.Z: …` (treść commita = wpis z tego pliku) i tag `vX.Y.Z`.
 Najnowsze na górze. Opis funkcji aplikacji jest w [FEATURES.md](FEATURES.md).
 
+## [0.40.0] – 2026-11-17: przegląd dnia rozsuwa się z komórki
+
+- **Przegląd dnia rozsuwa się z komórki dnia:** „•••” albo „+N więcej” w miesiącu nie otwiera już osobnego okienka.
+  Sama komórka dnia sprężyście rozsuwa się nad kalendarzem, a po zamknięciu (×, Esc, klik obok) zsuwa się z powrotem
+  do swojego miejsca.
+- **Szerzej i niżej:** rozsunięty dzień zajmuje prawie całą szerokość siatki, a każdy wpis to jedna linia (kropka,
+  godzina, nazwa z estymatą, epik, tagi, ↷). Przyciski „P”, „>”, „>>” i „×” pokazują się po najechaniu na wiersz.
+- **Kolejność:** wpisy z godziną po kolei w czasie, potem całodniowe.
+
 ## [0.39.0] – 2026-11-16: przeciąganie banera epiku między dniami
 
 - **Baner epiku da się przeciągać między dniami:** chwyć go myszą i przesuń (na telefonie przytrzymaj) i upuść na

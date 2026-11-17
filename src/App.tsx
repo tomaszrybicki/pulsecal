@@ -1,7 +1,7 @@
 import { AnimatePresence } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CalendarMap } from "./components/CalendarMap";
-import { DayPanel } from "./components/DayPanel";
+import { DayPanel, type Rect } from "./components/DayPanel";
 import { EpicContext, EpicOpenContext, type EpicInfo } from "./components/EpicTag";
 import type { Banner } from "./components/EpicBanner";
 import { EventMenu } from "./components/EventMenu";
@@ -84,6 +84,7 @@ import {
   atMinutes,
   formatClock,
   fromIsoDate,
+  isoDate,
   longDateLabel,
   addDays,
   addMonths,
@@ -170,7 +171,8 @@ export function App() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   // przegląd dnia z widoku miesiąca („+N więcej" / „•••")
-  const [dayPanel, setDayPanel] = useState<{ day: Date; anchor: Anchor | null } | null>(null);
+  // rozszerzony dzień: rozsuwa się z komórki dnia w miesiącu (from) nad siatką (area)
+  const [dayPanel, setDayPanel] = useState<{ day: Date; from: Rect | null; area: Rect | null } | null>(null);
   // menu pod prawym przyciskiem myszy na wpisie
   const [menu, setMenu] = useState<{ e: CalEvent; anchor: Anchor } | null>(null);
   const [clientId, setClientId] = useState(getStoredClientId);
@@ -1401,7 +1403,17 @@ export function App() {
                 goToDay(d);
                 setView("map");
               }}
-              onDayDetails={(d) => setDayPanel({ day: startOfDay(d), anchor: pointerAnchor() })}
+              onDayDetails={(d) => {
+                const rect = (el: Element | null): Rect | null => {
+                  const r = el?.getBoundingClientRect();
+                  return r ? { x: r.x, y: r.y, w: r.width, h: r.height } : null;
+                };
+                setDayPanel({
+                  day: startOfDay(d),
+                  from: rect(document.querySelector(`.m-day[data-day="${isoDate(d)}"]`)),
+                  area: rect(document.querySelector(".m-weeks")),
+                });
+              }}
               onAdd={(d) => openDraft(allDayDraft(d, newColor))}
               onEvent={(e) => openDraft(draftFromEvent(e), editorMode)}
               onMove={(e, start, end) => void moveEvent(e, start, end)}
@@ -1491,7 +1503,8 @@ export function App() {
           <DayPanel
             key="day"
             day={dayPanel.day}
-            anchor={dayPanel.anchor}
+            from={dayPanel.from}
+            area={dayPanel.area}
             events={visibleEvents.filter(
               (e) => e.start < addDays(dayPanel.day, 1).getTime() && e.end > dayPanel.day.getTime(),
             )}

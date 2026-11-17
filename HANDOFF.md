@@ -116,6 +116,13 @@ Previous sessions: first Cursor IDE (built the MVP), then Claude in a chat sessi
 code audit and rewrote the data and sync layer, then stopped at the owner's request.
 **Start by reading `CLAUDE.md`.**
 
+## v0.40.0: day overview expands out of the day cell
+- `DayPanel` no longer uses `SheetFrame`: fixed `.day-expand` animated by framer-motion from the cell rect
+  (`from`, measured in App from `.m-day[data-day]`) to a wide rect centred over `.m-weeks` (`area`), and back on
+  exit; content fades in after. Own `.dx-backdrop` (z 18/19, below sheets so EventMenu stays on top).
+- Rows: single line `.dx-*` (30 px). `dayOrder` now sorts timed entries by start time.
+- Note for browser checks: with the preview pane hidden, rAF runs ~2 fps, so animations look stuck.
+
 ## v0.39.0: drag the epic banner between days
 - `hooks/useHoldDrag.ts` (mouse: 6 px move or leaving the element with the button down; touch: hold) shared by
   `PinnedRow` and `EpicBanner`; `wasDragged()` swallows the click that ends a drag. Views pass `onDragEpic`

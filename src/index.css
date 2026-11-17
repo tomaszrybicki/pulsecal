@@ -5961,3 +5961,255 @@ body.plan-dragging .sheet-backdrop {
 body.plan-dragging .epic-banner {
   opacity: 0.55;
 }
+
+/* ═══ rozszerzony dzień: komórka dnia rozsuwa się nad kalendarzem (bez osobnego okienka) ═══ */
+
+.dx-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 18;
+  background: rgba(40, 24, 12, 0.14);
+}
+
+.day-expand {
+  position: fixed;
+  z-index: 19;
+  overflow: hidden;
+  background: var(--surface);
+  box-shadow:
+    0 0 0 1px var(--ink-faint),
+    0 24px 60px rgba(40, 24, 12, 0.28);
+}
+
+.dx-inner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.dx-head {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: none;
+  min-height: 58px;
+  padding: 8px 52px 8px 16px;
+  border-bottom: 1px solid var(--ink-faint);
+}
+
+.dx-num {
+  flex: none;
+  font-family: var(--display);
+  font-size: 1.9rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.dx-date {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.2;
+}
+
+.dx-date b {
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.dx-date .hint {
+  margin: 0;
+  font-size: 0.72rem;
+}
+
+.dx-all {
+  margin-left: auto;
+  flex: none;
+  border: 0;
+  border-radius: 999px;
+  padding: 7px 14px;
+  background: var(--ink);
+  color: var(--on-ink);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.dx-all:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.dx-x {
+  top: 14px;
+  right: 12px;
+}
+
+.dx-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  list-style: none;
+  margin: 0;
+  padding: 6px 8px 10px;
+}
+
+/* jeden wpis = jedna linia */
+.dx-list li {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 30px;
+  margin-bottom: 2px;
+  border-radius: 9px;
+}
+
+.dx-list li:hover {
+  background: var(--hover);
+}
+
+.dx-open {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 100%;
+  border: 0;
+  padding: 0 8px;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.84rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.dx-dot {
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+.dx-time {
+  flex: none;
+  width: 92px;
+  font-size: 0.74rem;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dx-title {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.dx-open .epic-tag {
+  flex: 0 1 auto;
+  min-width: 0;
+  font-size: 0.6rem;
+}
+
+.dx-tags {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 0.7rem;
+  color: var(--ink-soft);
+}
+
+.dx-mv {
+  flex: none;
+  font-size: 0.7rem;
+  color: var(--ink-soft);
+}
+
+.dx-list li.urgent .dx-title {
+  font-weight: 600;
+}
+
+.dx-list li.low .dx-title {
+  opacity: 0.72;
+}
+
+.dx-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  flex: none;
+  padding-right: 4px;
+}
+
+.dx-btn {
+  min-width: 28px;
+  height: 24px;
+  border: 0;
+  border-radius: 8px;
+  padding: 0 6px;
+  background: transparent;
+  color: var(--ink-soft);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.dx-btn:hover {
+  background: var(--field);
+  color: var(--ink);
+}
+
+.dx-btn.dx-del:hover {
+  background: var(--danger-bg);
+  color: var(--danger-ink);
+}
+
+.dx-btn.dx-plan.on {
+  background: #2f7d5b;
+  color: #fffaf2;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  /* przyciski wpisu widać po najechaniu na wiersz (włączone „P” zawsze) */
+  .dx-actions .dx-btn {
+    opacity: 0;
+    transition: opacity 0.12s;
+  }
+
+  .dx-list li:hover .dx-btn,
+  .dx-actions .dx-btn:focus-visible,
+  .dx-actions .dx-plan.on {
+    opacity: 1;
+  }
+}
+
+.dx-empty {
+  padding: 10px 12px;
+}
+
+@media (max-width: 600px) {
+  .dx-time {
+    width: 74px;
+  }
+
+  .dx-tags {
+    display: none;
+  }
+
+  .dx-all {
+    padding: 6px 10px;
+    font-size: 0.72rem;
+  }
+}

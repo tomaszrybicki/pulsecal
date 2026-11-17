@@ -42,8 +42,10 @@ logowanie Google bez własnego serwera (Google Identity Services).
   - Wpisy całodniowe i kilkudniowe: kolorowe paski przez kilka dni, także przez granicę tygodnia.
   - Kolejność w dniu: najpierw wpisy z godziną, potem całodniowe i kilkudniowe; w każdej grupie alfabetycznie.
   - Gdy wpisy się nie mieszczą: „+N więcej”.
-  - **Przegląd dnia:** „+N więcej” albo przycisk „•••” na dole dnia otwiera okienko ze wszystkimi wpisami dnia.
-    Przy każdym: „>” przenosi na następny dzień, „>>” o tydzień (godzina zostaje). „> wszystkie low priority”
+  - **Przegląd dnia:** „+N więcej” albo przycisk „•••” na dole dnia — komórka dnia sprężyście rozsuwa się nad
+    kalendarzem (bez osobnego okienka) i po zamknięciu (×, Esc, klik obok) wraca na miejsce. Każdy wpis to jedna
+    linia (godzina, nazwa, epik, tagi); wpisy z godziną po kolei w czasie, potem całodniowe. Przy każdym
+    (przyciski po najechaniu): „P”, „>” przenosi na następny dzień, „>>” o tydzień (godzina zostaje). „> wszystkie low priority”
     przenosi na następny dzień wszystko z tagiem „low priority” (takie wpisy są na liście lekko przygaszone). „×” usuwa wpis, prawy przycisk
     myszy otwiera jego menu. Każde przeniesienie i usunięcie można cofnąć przyciskiem „Cofnij” w powiadomieniu.
   - Na telefonie wszystko jako kolorowe pigułki z samą nazwą.
