@@ -2,6 +2,7 @@ import { Reorder, motion, useDragControls, useReducedMotion } from "framer-motio
 import { useContext, useEffect, useRef, useState, type PointerEvent as RPointerEvent, type ReactNode } from "react";
 import { EpicContext, EpicTag, type EpicInfo } from "./EpicTag";
 import { EstSuffix } from "./EstimatePicker";
+import { PALETTE } from "../colors";
 import { animOff, tr } from "../motionPrefs";
 import { whenLabel } from "../draft";
 import {
@@ -80,12 +81,20 @@ const GROUPER_H = 46;
 /** Podpowiedzi pod „Grupuj…”. */
 const PICK_H = 78;
 const QUICK_COLOR = "#2f7d5b";
+/** Rząd kolorów pod nagłówkiem grupy. */
+const PAINT_H = 38;
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(Math.max(v, lo), Math.max(lo, hi));
 
 type GroupInfo = { name: string; sub: string; color: string | null };
 
+/** Nazwa i kolor grupy (kolor wybrany ręcznie wygrywa z kolorem tagu / epiku). */
 function groupInfo(g: DayGroup, epics: ReadonlyMap<string, EpicInfo>): GroupInfo {
+  const base = autoInfo(g, epics);
+  return g.color ? { ...base, color: g.color } : base;
+}
+
+function autoInfo(g: DayGroup, epics: ReadonlyMap<string, EpicInfo>): GroupInfo {
   switch (g.kind) {
     case "quick":
       return { name: "na szybko", sub: `${QUICK_MIN} min`, color: QUICK_COLOR };
@@ -138,6 +147,8 @@ export function DayPanel({
   // grupy: wpis → pierwsza pasująca; widoczne tylko te z wpisami (i świeżo dodana, żeby było widać efekt)
   const [fresh, setFresh] = useState<string | null>(null);
   const [picking, setPicking] = useState(false);
+  /** Grupa z otwartym wyborem koloru. */
+  const [painting, setPainting] = useState<string | null>(null);
   const buckets = new Map<string, CalEvent[]>();
   for (const e of list) {
     const id = groupOf(e, groups);
@@ -181,6 +192,10 @@ export function DayPanel({
   };
   const toggleGroup = (id: string) =>
     onGroups(groups.map((g) => (g.id === id ? { ...g, collapsed: !g.collapsed } : g)));
+  const colorGroup = (id: string, color: string | undefined) => {
+    onGroups(groups.map((g) => (g.id === id ? { ...g, color } : g)));
+    setPainting(null);
+  };
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -204,7 +219,8 @@ export function DayPanel({
       Math.max(1, rowsShown) * (ROW_H + 2) +
       (plain ? 0 : visible.length * GROUP_H) +
       GROUPER_H +
-      (picking ? PICK_H : 0),
+      (picking ? PICK_H : 0) +
+      (painting && !plain ? PAINT_H : 0),
     vh * 0.82,
     vh - 24,
   );
@@ -340,6 +356,10 @@ export function DayPanel({
                       key={id}
                       group={g}
                       info={groupInfo(g, epics)}
+                      autoColor={autoInfo(g, epics).color}
+                      painting={painting === id}
+                      onPaint={() => setPainting((p) => (p === id ? null : id))}
+                      onColor={(c) => colorGroup(id, c)}
                       count={items.length}
                       reduce={Boolean(reduce)}
                       onToggle={() => toggleGroup(id)}
@@ -373,6 +393,10 @@ export function DayPanel({
 function GroupSection({
   group,
   info,
+  autoColor,
+  painting,
+  onPaint,
+  onColor,
   count,
   reduce,
   onToggle,
@@ -383,6 +407,11 @@ function GroupSection({
 }: {
   group: DayGroup;
   info: GroupInfo;
+  /** Kolor „auto” (tagu / epiku), do przycisku „auto”. */
+  autoColor: string | null;
+  painting: boolean;
+  onPaint: () => void;
+  onColor: (color: string | undefined) => void;
   count: number;
   reduce: boolean;
   onToggle: () => void;
@@ -399,7 +428,7 @@ function GroupSection({
       dragListener={false}
       dragControls={controls}
       onDragEnd={onDragEnd}
-      className={`dx-group k-${group.kind}${group.collapsed ? " collapsed" : ""}`}
+      className={`dx-group k-${group.kind}${group.collapsed ? " collapsed" : ""}${info.color ? " tinted" : ""}`}
       style={info.color ? { ["--g" as string]: info.color } : undefined}
       transition={reduce ? { duration: 0 } : undefined}
       whileDrag={{ scale: 1.015, boxShadow: "0 14px 34px rgba(40, 24, 12, 0.22)" }}
@@ -417,11 +446,18 @@ function GroupSection({
         >
           ⠿
         </span>
+        <button
+          type="button"
+          className={`dx-gcolor${info.color ? "" : " none"}`}
+          aria-expanded={painting}
+          aria-label={`Kolor grupy ${info.name}`}
+          title="Kolor grupy"
+          onClick={onPaint}
+        />
         <button type="button" className="dx-gname" aria-expanded={!group.collapsed} onClick={onToggle}>
           <span className="dx-chev" aria-hidden>
             {group.collapsed ? "▸" : "▾"}
           </span>
-          {info.color && group.kind !== "quick" && <span className="dx-gdot" aria-hidden />}
           <b>{info.name}</b>
           <span className="dx-gsub">
             {info.sub ? `${info.sub} · ` : ""}
@@ -452,6 +488,39 @@ function GroupSection({
           )}
         </span>
       </header>
+      {painting && (
+        <div className="dx-paint swatches small" role="group" aria-label={`Kolor grupy ${info.name}`}>
+          <button
+            type="button"
+            className="dx-auto"
+            aria-pressed={!group.color}
+            title={autoColor ? "Kolor tagu / epiku" : "Bez koloru"}
+            style={autoColor ? { ["--g" as string]: autoColor } : undefined}
+            onClick={() => onColor(undefined)}
+          >
+            auto
+          </button>
+          {PALETTE.map((c) => (
+            <button
+              key={c.id}
+              type="button"
+              className="swatch"
+              aria-label={`Kolor ${c.id}`}
+              style={{ background: c.value }}
+              aria-pressed={group.color === c.value}
+              onClick={() => onColor(c.value)}
+            />
+          ))}
+          <button
+            type="button"
+            className="swatch"
+            aria-label="Kolor zielony"
+            style={{ background: QUICK_COLOR }}
+            aria-pressed={group.color === QUICK_COLOR}
+            onClick={() => onColor(QUICK_COLOR)}
+          />
+        </div>
+      )}
       {!group.collapsed && <ul className="dx-list">{children}</ul>}
     </Reorder.Item>
   );

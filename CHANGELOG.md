@@ -3,6 +3,12 @@
 Każda wersja to jeden commit `vX.Y.Z: …` (treść commita = wpis z tego pliku) i tag `vX.Y.Z`.
 Najnowsze na górze. Opis funkcji aplikacji jest w [FEATURES.md](FEATURES.md).
 
+## [0.44.0] – 2026-11-17: kolor każdej grupy w przeglądzie dnia
+
+- **Kolor każdej grupy w przeglądzie dnia:** kółko obok uchwytu ⠿ otwiera rząd kolorów pod nagłówkiem grupy.
+  Wybierz kolor z palety albo „auto” (kolor tagu / epiku, zielony dla „na szybko”). Kolor ma też „pozostałe”.
+  Kolory zapamiętują się na stałe razem z resztą ustawień grup.
+
 ## [0.43.0] – 2026-11-17: szybsze otwieranie, ustawienie animacji
 
 - **Szybciej po kliknięciu:** otwarcie wpisu albo przeglądu dnia nie przelicza już całego miesiąca, mapy i panelu

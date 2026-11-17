@@ -17,6 +17,8 @@ export type DayGroup = {
   key: string;
   /** Zwinięta: widać tylko nagłówek. */
   collapsed?: boolean;
+  /** Kolor wybrany ręcznie (#rrggbb); brak = kolor tagu / epiku („auto”). */
+  color?: string;
 };
 
 /** Najkrótsza estymata (5 min) — grupa „na szybko”. */
@@ -45,6 +47,7 @@ export function cleanGroups(raw: unknown): DayGroup[] {
     else if (x.kind === "epic" && typeof x.key === "string" && x.key) g = epicGroup(x.key);
     if (!g || seen.has(g.id)) continue;
     if (x.collapsed) g.collapsed = true;
+    if (typeof x.color === "string" && /^#[0-9a-f]{6}$/i.test(x.color)) g.color = x.color;
     seen.add(g.id);
     out.push(g);
   }

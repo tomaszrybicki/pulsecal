@@ -49,9 +49,10 @@ logowanie Google bez własnego serwera (Google Identity Services).
   - **Grupy w przeglądzie dnia:** wpisy są w bańkach. Domyślnie „na szybko” (estymata 5 min, zielona) i
     „pozostałe”. Pole „Grupuj…” na dole: wybierz albo wpisz dowolny tag lub epik (albo „5 min”) → powstaje nowa
     bańka w kolorze tagu/epiku. Wpis trafia do pierwszej pasującej grupy od góry. Grupę przesuwa się wyżej/niżej,
-    ciągnąc za uchwyt ⠿ (też „pozostałe”); klik w nazwę zwija/rozwija; „>” przenosi całą grupę na następny dzień,
+    ciągnąc za uchwyt ⠿ (też „pozostałe”); kółko koloru obok uchwytu zmienia kolor grupy (paleta albo „auto” =
+    kolor tagu/epiku); klik w nazwę zwija/rozwija; „>” przenosi całą grupę na następny dzień,
     „×” usuwa grupę (wpisy zostają). Grupy bez wpisów danego dnia są schowane; usuniesz je w „Grupuj…”
-    („twoje grupy”). Kolejność i zwinięcie zapamiętują się na stałe (też w kopii ustawień w Google). Przy każdym
+    („twoje grupy”). Kolejność, kolory i zwinięcie zapamiętują się na stałe (też w kopii ustawień w Google). Przy każdym
     (przyciski po najechaniu): „P”, „>” przenosi na następny dzień, „>>” o tydzień (godzina zostaje). „> wszystkie low priority”
     przenosi na następny dzień wszystko z tagiem „low priority”. „×” usuwa wpis, prawy przycisk
     myszy otwiera jego menu. Każde przeniesienie i usunięcie można cofnąć przyciskiem „Cofnij” w powiadomieniu.

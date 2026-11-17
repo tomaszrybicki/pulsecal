@@ -116,6 +116,12 @@ Previous sessions: first Cursor IDE (built the MVP), then Claude in a chat sessi
 code audit and rewrote the data and sync layer, then stopped at the owner's request.
 **Start by reading `CLAUDE.md`.**
 
+## v0.44.0: colour per day group
+- `DayGroup.color` (#rrggbb, validated in `cleanGroups`; none = auto: tag / epic colour, "quick" green,
+  "rest" neutral). `DayPanel`: `.dx-gcolor` dot in the group header → `.dx-paint` row (auto + `PALETTE` +
+  green); `painting` state in DayPanel (adds `PAINT_H` to the target height). `.tinted` class = group has a
+  colour (a coloured "rest" gets the bubble look).
+
 ## v0.43.0: faster click → window, animation setting
 - `src/motionPrefs.ts`: `AnimMode` full / fast (default) / off, localStorage `pulsecal:anim` (per device, not in
   the backup). `tr(t)` scales a framer transition (fast: stiffness ×k², damping ×k, durations ÷k, no delay;
