@@ -251,6 +251,19 @@ export function subtreeIds(id: string, tree: Tree): Set<string> {
 }
 
 /** „Remont › Kuchnia” — ścieżka epiku od góry. */
+/** Id nadrzędnych elementów (rodzic, dziadek, …), bez pętli. */
+export function ancestorIds(id: string, byId: Map<string, WorkItem>): string[] {
+  const out: string[] = [];
+  const seen = new Set<string>([id]);
+  let cur = byId.get(id)?.parentId;
+  while (cur && !seen.has(cur)) {
+    seen.add(cur);
+    out.push(cur);
+    cur = byId.get(cur)?.parentId;
+  }
+  return out;
+}
+
 export function epicPath(id: string, byId: Map<string, WorkItem>): string {
   const parts: string[] = [];
   const seen = new Set<string>();

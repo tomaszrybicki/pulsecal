@@ -1,6 +1,12 @@
 import { createContext, useContext } from "react";
 
-export type EpicInfo = { title: string; path: string; color: string };
+export type EpicInfo = {
+  title: string;
+  path: string;
+  color: string;
+  /** Epiki nadrzędne (najbliższy pierwszy) — np. grupa „Zdrowie” obejmuje też „Zdrowie › internista”. */
+  ancestors: string[];
+};
 
 /** Epiki do etykiet na wpisach w kalendarzu (App podaje mapę id → nazwa/kolor). */
 export const EpicContext = createContext<ReadonlyMap<string, EpicInfo>>(new Map());

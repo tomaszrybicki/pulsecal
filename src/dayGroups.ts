@@ -72,22 +72,26 @@ export function setDayGroups(groups: DayGroup[]): void {
   }
 }
 
-export function inGroup(g: DayGroup, e: CalEvent): boolean {
+/** Epiki nadrzędne danego epiku (najbliższy pierwszy). */
+export type EpicParents = (epicId: string) => readonly string[];
+
+/** Czy wpis należy do grupy; grupa epiku obejmuje też wpisy z jego pod-epików. */
+export function inGroup(g: DayGroup, e: CalEvent, parents?: EpicParents): boolean {
   switch (g.kind) {
     case "quick":
       return e.estimate === QUICK_MIN;
     case "tag":
       return hasTag(e.tags ?? [], g.key);
     case "epic":
-      return e.epicId === g.key;
+      return Boolean(e.epicId) && (e.epicId === g.key || (parents?.(e.epicId!).includes(g.key) ?? false));
     default:
       return false;
   }
 }
 
 /** Id grupy, do której trafia wpis (pierwsza pasująca, inaczej „pozostałe”). */
-export function groupOf(e: CalEvent, groups: DayGroup[]): string {
-  return groups.find((g) => inGroup(g, e))?.id ?? REST_GROUP.id;
+export function groupOf(e: CalEvent, groups: DayGroup[], parents?: EpicParents): string {
+  return groups.find((g) => inGroup(g, e, parents))?.id ?? REST_GROUP.id;
 }
 
 /**

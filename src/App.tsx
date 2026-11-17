@@ -65,22 +65,7 @@ import {
 } from "./tags";
 import type { CalEvent, DraftEvent, ViewMode, WorkField, WorkItem, WorkKind } from "./types";
 import { formatMinutes, storedEstimate } from "./estimate";
-import {
-  SLEEPY_DAYS,
-  remainingEstimate,
-  subtreeIds,
-  buildTree,
-  epicColor,
-  lastTouched,
-  progressOf,
-  epicOptions,
-  epicPath,
-  getWorkFields,
-  newItem,
-  nextNum,
-  saveItem,
-  setWorkFields,
-} from "./work";
+import { ancestorIds, SLEEPY_DAYS, remainingEstimate, subtreeIds, buildTree, epicColor, lastTouched, progressOf, epicOptions, epicPath, getWorkFields, newItem, nextNum, saveItem, setWorkFields } from "./work";
 import {
   MINUTE,
   atMinutes,
@@ -324,7 +309,14 @@ export function App() {
   const epicInfo = useMemo(() => {
     const m = new Map<string, EpicInfo>();
     for (const i of tree.byId.values()) {
-      if (i.kind === "epic") m.set(i.id, { title: i.title, path: epicPath(i.id, tree.byId), color: epicColor(i.id) });
+      if (i.kind === "epic") {
+        m.set(i.id, {
+          title: i.title,
+          path: epicPath(i.id, tree.byId),
+          color: epicColor(i.id),
+          ancestors: ancestorIds(i.id, tree.byId),
+        });
+      }
     }
     return m;
   }, [tree]);

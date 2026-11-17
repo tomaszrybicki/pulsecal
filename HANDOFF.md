@@ -116,6 +116,12 @@ Previous sessions: first Cursor IDE (built the MVP), then Claude in a chat sessi
 code audit and rewrote the data and sync layer, then stopped at the owner's request.
 **Start by reading `CLAUDE.md`.**
 
+## v0.45.0: epic groups include sub-epics
+- `EpicInfo.ancestors` (parent epic ids, nearest first; `ancestorIds()` in `work.ts`, built in App's `epicInfo`).
+  `inGroup`/`groupOf` take an optional `parents(epicId)`; an epic group matches its own entries and those of
+  any descendant epic. First matching group still wins, so a sub-epic group placed above keeps its entries.
+- „Grupuj…” lists nested epics by path („Zdrowie › internista”).
+
 ## v0.44.0: colour per day group
 - `DayGroup.color` (#rrggbb, validated in `cleanGroups`; none = auto: tag / epic colour, "quick" green,
   "rest" neutral). `DayPanel`: `.dx-gcolor` dot in the group header → `.dx-paint` row (auto + `PALETTE` +

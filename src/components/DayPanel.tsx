@@ -102,6 +102,7 @@ function autoInfo(g: DayGroup, epics: ReadonlyMap<string, EpicInfo>): GroupInfo 
       return { name: g.key, sub: "tag", color: tagColor(g.key) };
     case "epic": {
       const ep = epics.get(g.key);
+      // grupa epiku obejmuje też jego pod-epiki (dayGroups.ts inGroup)
       return { name: ep?.title ?? "(usunięty epik)", sub: "epik", color: ep?.color ?? "#8a8178" };
     }
     default:
@@ -151,7 +152,7 @@ export function DayPanel({
   const [painting, setPainting] = useState<string | null>(null);
   const buckets = new Map<string, CalEvent[]>();
   for (const e of list) {
-    const id = groupOf(e, groups);
+    const id = groupOf(e, groups, (epicId) => epics.get(epicId)?.ancestors ?? []);
     const b = buckets.get(id);
     if (b) b.push(e);
     else buckets.set(id, [e]);
@@ -559,7 +560,7 @@ function Grouper({
   }
   for (const [id, ep] of epics) {
     const g = epicGroup(id);
-    if (!taken.has(g.id)) all.push({ group: g, label: ep.title, hint: "epik", color: ep.color });
+    if (!taken.has(g.id)) all.push({ group: g, label: ep.ancestors.length ? ep.path : ep.title, hint: "epik", color: ep.color });
   }
   const hay = (c: Candidate) => `${c.label}${c.group.kind === "quick" ? " na szybko" : ""}`.toLocaleLowerCase("pl");
   const matches = (q ? all.filter((c) => hay(c).includes(q)) : all)

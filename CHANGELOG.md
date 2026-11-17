@@ -3,6 +3,13 @@
 Każda wersja to jeden commit `vX.Y.Z: …` (treść commita = wpis z tego pliku) i tag `vX.Y.Z`.
 Najnowsze na górze. Opis funkcji aplikacji jest w [FEATURES.md](FEATURES.md).
 
+## [0.45.0] – 2026-11-17: grupa epiku obejmuje pod-epiki
+
+- **Grupa epiku obejmuje pod-epiki:** w przeglądzie dnia grupa np. „Zdrowie” zbiera też wpisy z epików w nim
+  zawartych („Zdrowie › internista” itd., na każdym poziomie). Jeśli pod-epik ma własną grupę wyżej na liście,
+  jego wpisy zostają w niej.
+- W „Grupuj…” pod-epiki są pokazane ze ścieżką („Zdrowie › internista”), a wpisanie „zdrowie” znajduje oba.
+
 ## [0.44.0] – 2026-11-17: kolor każdej grupy w przeglądzie dnia
 
 - **Kolor każdej grupy w przeglądzie dnia:** kółko obok uchwytu ⠿ otwiera rząd kolorów pod nagłówkiem grupy.
