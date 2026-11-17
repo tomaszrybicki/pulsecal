@@ -43,6 +43,7 @@ skip browser testing or do one minimal check. Test in the browser only for bigge
 src/
   App.tsx                 state, view switching, draft/editor state, event moves
   db.ts                   Dexie schema + local CRUD
+  dayGroups.ts            day overview groups (quick 5 min / tag / epic / rest): order, collapse, persisted + backup
   draft.ts                draft helpers (DRAFT_ID ghost, all-day toggle, when-label, withDraft)
   tags.ts                 tags: normalize, "Tagi: a, b" last line of the Google description, filter rule, color, isLowPriority
   quickParse.ts           Polish one-line quick add ("dentysta jutro 14:30 1h #wizyta") → ParsedEntry

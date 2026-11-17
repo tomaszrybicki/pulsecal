@@ -3,6 +3,16 @@
 Każda wersja to jeden commit `vX.Y.Z: …` (treść commita = wpis z tego pliku) i tag `vX.Y.Z`.
 Najnowsze na górze. Opis funkcji aplikacji jest w [FEATURES.md](FEATURES.md).
 
+## [0.42.0] – 2026-11-17: grupy w przeglądzie dnia
+
+- **Grupy w przeglądzie dnia:** na dole rozsuniętego dnia jest pole „Grupuj…”. Wybierz albo wpisz dowolny tag
+  lub epik, a jego wpisy trafią do osobnej bańki w jego kolorze, tak jak „na szybko” (5 min). Wpis trafia do
+  pierwszej pasującej grupy od góry; reszta jest w „pozostałe”.
+- **Przesuwanie grup:** chwyć grupę za ⠿ i przeciągnij wyżej albo niżej (także „na szybko” i „pozostałe”).
+- **Akcje grupy:** klik w nazwę zwija/rozwija, „>” przenosi całą grupę na następny dzień, „×” usuwa grupę
+  (wpisy zostają). Grupy bez wpisów danego dnia są schowane; usuniesz je też w „Grupuj…” („twoje grupy”).
+- **Na stałe:** grupy, ich kolejność i zwinięcie są zapamiętane (także w kopii ustawień w Google).
+
 ## [0.41.0] – 2026-11-17: bańka „na szybko”, przygaszone low priority
 
 - **„Na szybko” w przeglądzie dnia:** wpisy z estymatą 5 min są na samej górze rozsuniętego dnia, w osobnej

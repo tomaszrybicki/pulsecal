@@ -6061,34 +6061,217 @@ body.plan-dragging .epic-banner {
   padding: 0;
 }
 
-/* „na szybko”: wpisy z najkrótszą estymatą (5 min) w osobnej bańce na górze */
-.dx-quick {
-  margin: 2px 0 10px;
-  padding: 4px 4px 2px;
-  border-radius: 16px;
-  background: color-mix(in srgb, #2f7d5b 9%, var(--surface));
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, #2f7d5b 26%, transparent);
-}
-
-.dx-quick-head {
+/* grupy w przeglądzie dnia: bańki w kolorze tagu / epiku („na szybko” = zielona), przeciągane za ⠿ */
+.dx-groups {
   display: flex;
-  align-items: baseline;
+  flex-direction: column;
   gap: 8px;
-  margin: 0;
-  padding: 4px 10px 4px;
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  color: color-mix(in srgb, #2f7d5b 80%, var(--ink));
 }
 
-.dx-quick-head span {
-  font-weight: 400;
+.dx-group {
+  --g: var(--ink-soft);
+  position: relative;
+  padding: 2px 4px 4px;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--g) 9%, var(--surface));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--g) 26%, transparent);
+}
+
+.dx-group.k-rest {
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--ink-faint);
+}
+
+.dx-ghead {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 32px;
+}
+
+.dx-grip {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 26px;
+  border-radius: 7px;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+  opacity: 0.55;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.dx-grip:hover {
+  background: var(--hover);
+  opacity: 1;
+}
+
+.dx-grip:active {
+  cursor: grabbing;
+}
+
+.dx-gname {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 28px;
+  border: 0;
+  border-radius: 8px;
+  padding: 0 6px;
+  background: none;
+  color: color-mix(in srgb, var(--g) 78%, var(--ink));
+  font: inherit;
+  font-size: 0.74rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.dx-group.k-rest .dx-gname {
   color: var(--ink-soft);
 }
 
-.dx-quick .dx-list li:hover {
-  background: color-mix(in srgb, #2f7d5b 12%, var(--surface));
+.dx-gname b {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.dx-gsub {
+  flex: none;
+  color: var(--ink-soft);
+}
+
+.dx-chev {
+  flex: none;
+  width: 9px;
+  font-size: 0.6rem;
+  color: var(--ink-soft);
+}
+
+.dx-gdot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--g);
+}
+
+.dx-gactions {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  flex: none;
+  padding-right: 2px;
+}
+
+.dx-gactions .dx-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.dx-group .dx-list li:hover {
+  background: color-mix(in srgb, var(--g) 12%, var(--surface));
+}
+
+.dx-group.k-rest .dx-list li:hover {
+  background: var(--hover);
+}
+
+.dx-group .dx-empty {
+  padding: 0 10px;
+  font-size: 0.74rem;
+}
+
+/* „Grupuj…”: pole na dole rozsuniętego dnia + podpowiedzi (tagi, epiki, „5 min”) */
+.dx-grouper {
+  flex: none;
+  padding: 7px 12px 9px;
+  border-top: 1px solid var(--ink-faint);
+}
+
+.dx-ginput {
+  width: 100%;
+  height: 30px;
+  border: 1px dashed var(--ink-faint);
+  border-radius: 10px;
+  padding: 0 10px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.8rem;
+}
+
+.dx-ginput:focus {
+  outline: none;
+  border-style: solid;
+  border-color: var(--ink-soft);
+  background: var(--field);
+}
+
+.dx-picks {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  max-height: 64px;
+  margin-top: 7px;
+  overflow-y: auto;
+}
+
+.dx-pick {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 24px;
+  border: 0;
+  border-radius: 999px;
+  padding: 0 9px;
+  background: color-mix(in srgb, var(--g, var(--ink-soft)) 14%, var(--surface));
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.74rem;
+  cursor: pointer;
+}
+
+.dx-pick:hover {
+  background: color-mix(in srgb, var(--g, var(--ink-soft)) 26%, var(--surface));
+}
+
+.dx-pick small {
+  color: var(--ink-soft);
+  font-size: 0.64rem;
+}
+
+.dx-pick.new {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--ink-faint);
+}
+
+.dx-pick.mine:hover {
+  background: var(--danger-bg);
+  color: var(--danger-ink);
+}
+
+.dx-mine {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  margin-left: 6px;
+}
+
+.dx-picks .hint {
+  margin: 0;
+  font-size: 0.7rem;
 }
 
 /* jeden wpis = jedna linia */
@@ -6236,6 +6419,16 @@ body.plan-dragging .epic-banner {
   .dx-list li:hover .dx-btn,
   .dx-actions .dx-btn:focus-visible,
   .dx-actions .dx-plan.on {
+    opacity: 1;
+  }
+
+  .dx-gactions .dx-btn {
+    opacity: 0;
+    transition: opacity 0.12s;
+  }
+
+  .dx-ghead:hover .dx-btn:not(:disabled),
+  .dx-gactions .dx-btn:focus-visible {
     opacity: 1;
   }
 }

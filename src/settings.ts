@@ -9,6 +9,7 @@ import { getWorkFields, setWorkFields } from "./work";
 import { getMoveThreshold, setMoveThreshold } from "./moves";
 import { getProdHours, getRequireEstimate, getSlotMin, setProdHours, setRequireEstimate, setSlotMin } from "./prefs";
 import { getPaintTags, getTagColors, reloadPaintTags, reloadTagColors } from "./tags";
+import { getDayGroups, setDayGroups, type DayGroup } from "./dayGroups";
 
 export type AppSettings = {
   v: 1;
@@ -31,6 +32,8 @@ export type AppSettings = {
   slotMin?: number;
   /** Nowy wpis tylko z estymatą czasową. */
   requireEstimate?: boolean;
+  /** Grupy w przeglądzie dnia (kolejność, zwinięcie). */
+  dayGroups?: DayGroup[];
   /** 2 = reguły zawierają już domyślną „!” (starsze kopie jej nie mają). */
   rulesV?: number;
 };
@@ -80,6 +83,7 @@ export function collectSettings(): AppSettings {
     prodTo: getProdHours().to,
     slotMin: getSlotMin(),
     requireEstimate: getRequireEstimate(),
+    dayGroups: getDayGroups(),
   };
 }
 
@@ -134,6 +138,7 @@ export function applySettings(b: SettingsBackup): void {
   }
   if (s.slotMin) setSlotMin(s.slotMin);
   if (typeof s.requireEstimate === "boolean") setRequireEstimate(s.requireEstimate);
+  if (Array.isArray(s.dayGroups)) setDayGroups(s.dayGroups);
   const json = settingsJson(collectSettings());
   localStorage.setItem(SEEN, json);
   localStorage.setItem(BACKED, json);

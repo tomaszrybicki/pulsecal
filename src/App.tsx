@@ -2,6 +2,7 @@ import { AnimatePresence } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CalendarMap } from "./components/CalendarMap";
 import { DayPanel, type Rect } from "./components/DayPanel";
+import { getDayGroups, setDayGroups, type DayGroup } from "./dayGroups";
 import { EpicContext, EpicOpenContext, type EpicInfo } from "./components/EpicTag";
 import type { Banner } from "./components/EpicBanner";
 import { EventMenu } from "./components/EventMenu";
@@ -326,6 +327,11 @@ export function App() {
     return m;
   }, [tree]);
   const epicChoices = useMemo(() => epicOptions(tree), [tree]);
+  const [dayGroups, setDayGroupsState] = useState<DayGroup[]>(getDayGroups);
+  const changeDayGroups = (next: DayGroup[]) => {
+    setDayGroups(next);
+    setDayGroupsState(getDayGroups());
+  };
   const [workOpen, setWorkOpen] = useState<string | null>(null);
   const [workFields, setWorkFieldsState] = useState<WorkField[]>(getWorkFields);
   const [fieldsOpen, setFieldsOpen] = useState(false);
@@ -380,6 +386,7 @@ export function App() {
     prodHours,
     slotMin,
     requireEstimate,
+    dayGroups,
   ]);
 
   useEffect(() => {
@@ -1514,6 +1521,9 @@ export function App() {
             onDelete={(e) => void deleteEvent(e.id)}
             onContext={eventActions.onContext}
             onPlan={(e) => void planEvent(e)}
+            groups={dayGroups}
+            onGroups={changeDayGroups}
+            knownTags={knownTags}
           />
         )}
       </AnimatePresence>

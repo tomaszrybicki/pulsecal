@@ -116,6 +116,17 @@ Previous sessions: first Cursor IDE (built the MVP), then Claude in a chat sessi
 code audit and rewrote the data and sync layer, then stopped at the owner's request.
 **Start by reading `CLAUDE.md`.**
 
+## v0.42.0: groups in the day overview
+- `src/dayGroups.ts`: `DayGroup` (`quick` / `rest` / `tag` / `epic`, `collapsed`), localStorage
+  `pulsecal:day-groups`, `cleanGroups` (always has `rest`), `groupOf` = first matching group, `reorderVisible`
+  (visible groups take their old slots in the new order, hidden ones stay put). In the settings backup
+  (`AppSettings.dayGroups`); App holds `dayGroups` state (in the backup deps) and passes `groups`/`onGroups`.
+- `DayPanel`: `Reorder.Group` of `GroupSection`s (drag only from the ⠿ grip via `useDragControls`; order kept
+  locally during drag, saved on drag end). Only groups with entries are shown (plus the one just added); only
+  "rest" → plain list without headers. `Grouper` footer: suggestions (tags, epics, "5 min"), Enter = first
+  match or a new tag group from the typed text; "twoje grupy" chips remove groups.
+- Synthetic drags in a hidden preview pane need stepped pointer events with pauses (rAF ~2 fps).
+
 ## v0.41.0: "na szybko" bubble in the day overview, faded low priority
 - `DayPanel`: entries with `estimate === ESTIMATES[0]` (5 min) render first in `.dx-quick` (own `<ul>`), the rest
   below in time order; the scroll container is now `.dx-body`. Header count splits off low priority.

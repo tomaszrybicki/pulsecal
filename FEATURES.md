@@ -44,9 +44,14 @@ logowanie Google bez własnego serwera (Google Identity Services).
   - Gdy wpisy się nie mieszczą: „+N więcej”.
   - **Przegląd dnia:** „+N więcej” albo przycisk „•••” na dole dnia — komórka dnia sprężyście rozsuwa się nad
     kalendarzem (bez osobnego okienka) i po zamknięciu (×, Esc, klik obok) wraca na miejsce. Każdy wpis to jedna
-    linia (godzina, nazwa, epik, tagi); wpisy z godziną po kolei w czasie, potem całodniowe. Wpisy z estymatą
-    5 min są na samej górze w osobnej zielonkawej bańce „na szybko”. W nagłówku liczba wpisów osobno dla
-    „low priority” (np. „1 wpis + 10 low priority”). Przy każdym
+    linia (godzina, nazwa, epik, tagi); wpisy z godziną po kolei w czasie, potem całodniowe. W nagłówku liczba
+    wpisów osobno dla „low priority” (np. „1 wpis + 10 low priority”).
+  - **Grupy w przeglądzie dnia:** wpisy są w bańkach. Domyślnie „na szybko” (estymata 5 min, zielona) i
+    „pozostałe”. Pole „Grupuj…” na dole: wybierz albo wpisz dowolny tag lub epik (albo „5 min”) → powstaje nowa
+    bańka w kolorze tagu/epiku. Wpis trafia do pierwszej pasującej grupy od góry. Grupę przesuwa się wyżej/niżej,
+    ciągnąc za uchwyt ⠿ (też „pozostałe”); klik w nazwę zwija/rozwija; „>” przenosi całą grupę na następny dzień,
+    „×” usuwa grupę (wpisy zostają). Grupy bez wpisów danego dnia są schowane; usuniesz je w „Grupuj…”
+    („twoje grupy”). Kolejność i zwinięcie zapamiętują się na stałe (też w kopii ustawień w Google). Przy każdym
     (przyciski po najechaniu): „P”, „>” przenosi na następny dzień, „>>” o tydzień (godzina zostaje). „> wszystkie low priority”
     przenosi na następny dzień wszystko z tagiem „low priority”. „×” usuwa wpis, prawy przycisk
     myszy otwiera jego menu. Każde przeniesienie i usunięcie można cofnąć przyciskiem „Cofnij” w powiadomieniu.
