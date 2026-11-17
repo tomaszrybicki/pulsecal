@@ -44,7 +44,7 @@ src/
   App.tsx                 state, view switching, draft/editor state, event moves
   db.ts                   Dexie schema + local CRUD
   draft.ts                draft helpers (DRAFT_ID ghost, all-day toggle, when-label, withDraft)
-  tags.ts                 tags: normalize, "Tagi: a, b" last line of the Google description, filter rule, color
+  tags.ts                 tags: normalize, "Tagi: a, b" last line of the Google description, filter rule, color, isLowPriority
   quickParse.ts           Polish one-line quick add ("dentysta jutro 14:30 1h #wizyta") → ParsedEntry
   types.ts                CalEvent, DraftEvent, ViewMode, SyncState, WorkItem
   work.ts                 epics/tasks: tree (tree.events = task id → linked events), progress, saveItem

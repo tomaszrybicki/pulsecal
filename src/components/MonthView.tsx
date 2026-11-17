@@ -1,7 +1,7 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { colorInk } from "../colors";
-import { shownColor } from "../tags";
+import { shownColor, isLowPriority } from "../tags";
 import { DRAFT_ID } from "../draft";
 import { useDragGesture, type Pt } from "../hooks/useDragGesture";
 import { useOptimisticMove } from "../hooks/useOptimisticMove";
@@ -438,7 +438,7 @@ function MonthChip({
     <button
       type="button"
       data-ev={e.id}
-      className={`m-ev${seg.bar ? " bar" : " timed"}${seg.contL ? " cont-l" : ""}${seg.contR ? " cont-r" : ""}${e.id === DRAFT_ID ? " ghost-draft" : ""}${className}`}
+      className={`m-ev${seg.bar ? " bar" : " timed"}${seg.contL ? " cont-l" : ""}${seg.contR ? " cont-r" : ""}${e.id === DRAFT_ID ? " ghost-draft" : ""}${isLowPriority(e) ? " low" : ""}${className}`}
       style={{
         gridColumn: `${seg.col + 1} / span ${seg.span}`,
         gridRow: seg.lane + 2,

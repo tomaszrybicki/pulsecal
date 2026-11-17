@@ -3,6 +3,14 @@
 Każda wersja to jeden commit `vX.Y.Z: …` (treść commita = wpis z tego pliku) i tag `vX.Y.Z`.
 Najnowsze na górze. Opis funkcji aplikacji jest w [FEATURES.md](FEATURES.md).
 
+## [0.41.0] – 2026-11-17: bańka „na szybko”, przygaszone low priority
+
+- **„Na szybko” w przeglądzie dnia:** wpisy z estymatą 5 min są na samej górze rozsuniętego dnia, w osobnej
+  zielonkawej bańce. Reszta pod nią, po kolei w czasie.
+- **Low priority mniej przytłacza:** wpisy z tagiem „low priority” są przygaszone i szarawe w miesiącu, w mapie
+  i w przeglądzie dnia (po najechaniu wracają do pełnego koloru). Nagłówek dnia liczy je osobno, np.
+  „1 wpis + 10 low priority”.
+
 ## [0.40.0] – 2026-11-17: przegląd dnia rozsuwa się z komórki
 
 - **Przegląd dnia rozsuwa się z komórki dnia:** „•••” albo „+N więcej” w miesiącu nie otwiera już osobnego okienka.

@@ -34,6 +34,8 @@ type Ev = {
   epic?: string;
   moves?: number;
   auto?: boolean;
+  /** estymata w minutach */
+  est?: number;
 };
 
 export async function hasSeed(): Promise<boolean> {
@@ -155,9 +157,12 @@ export async function seedTestData(): Promise<{ events: number; items: number }>
     { title: "Odpisać na maile", day: 1, at: "10:00", min: 15, color: C.sky, tags: ["praca"], auto: true },
     { title: "Kino: nowy film Villeneuve'a", day: 2, at: "19:00", min: 150, color: C.lilac, tags: ["rozrywka"] },
     { title: "Umyć okna", day: 2, color: C.butter, moves: 3, tags: ["low priority"] },
-    { title: "Odebrać paczkę", day: 2, color: C.peach, tags: ["low priority"] },
+    { title: "Odebrać paczkę", day: 2, color: C.peach, tags: ["low priority"], est: 5 },
     { title: "Zakupy spożywcze", day: 2, at: "17:00", min: 45, color: C.mint, tags: ["low priority"] },
-    { title: "Telefon do babci", day: 2, at: "20:00", min: 20, color: C.coral, tags: ["rodzina"] },
+    { title: "Telefon do babci", day: 2, at: "20:00", min: 20, color: C.coral, tags: ["rodzina"], est: 5 },
+    { title: "Podlać kwiaty", day: 2, color: C.mint, est: 5 },
+    { title: "Wynieść karton na makulaturę", day: 2, color: C.butter, tags: ["low priority"] },
+    { title: "Posegregować zdjęcia", day: 2, color: C.lilac, tags: ["low priority"], est: 120 },
     { title: "Rower", day: 2, at: "7:00", min: 60, color: C.mint, tags: ["zdrowie"] },
     { title: "!Zadzwonić do urzędu", day: 3, at: "11:00", min: 15, color: C.coral, tags: ["ważne"] },
     { title: "Fachowiec — kuchnia", day: 4, at: "10:00", min: 60, color: C.butter, epic: "kuchnia" },
@@ -193,6 +198,7 @@ export async function seedTestData(): Promise<{ events: number; items: number }>
       moves: e.moves,
       epicId: e.epic ? ids[e.epic] : undefined,
       autoSlot: e.auto || undefined,
+      estimate: e.est,
       origin: "local",
       updatedAt: now,
       deleted: false,

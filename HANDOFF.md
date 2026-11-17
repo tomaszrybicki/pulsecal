@@ -1,4 +1,4 @@
-# HANDOFF: Pulsecal work status (2026-11-15)
+# HANDOFF: Pulsecal work status (2026-11-17)
 
 ## TODO (owner's list)
 - [ ] **Conflict handling between Google Calendar and the local DB.** Today it is last-writer-wins
@@ -115,6 +115,14 @@ Versions and commits: see `CHANGELOG.md` and the "Versions and commits" section 
 Previous sessions: first Cursor IDE (built the MVP), then Claude in a chat session, which did the
 code audit and rewrote the data and sync layer, then stopped at the owner's request.
 **Start by reading `CLAUDE.md`.**
+
+## v0.41.0: "na szybko" bubble in the day overview, faded low priority
+- `DayPanel`: entries with `estimate === ESTIMATES[0]` (5 min) render first in `.dx-quick` (own `<ul>`), the rest
+  below in time order; the scroll container is now `.dx-body`. Header count splits off low priority.
+- `isLowPriority()` moved to `tags.ts`; month chips (`.m-ev.low`) and map blobs (`.event-blob.low`) get
+  opacity 0.45 + `saturate(0.3)`, full on hover/focus (not while drag-source/ghost). Day-panel rows: `li.low`.
+- Dev seed: a few more day+2 entries (two with estimate 5, more low priority). Old seed in a preview needs
+  `?seed=0` then `?seed=1` to pick them up.
 
 ## v0.40.0: day overview expands out of the day cell
 - `DayPanel` no longer uses `SheetFrame`: fixed `.day-expand` animated by framer-motion from the cell rect

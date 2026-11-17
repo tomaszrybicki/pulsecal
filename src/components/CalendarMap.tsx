@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { colorInk } from "../colors";
-import { shownColor } from "../tags";
+import { shownColor, isLowPriority } from "../tags";
 import { DRAFT_ID } from "../draft";
 import { useDragGesture, type Pt } from "../hooks/useDragGesture";
 import { useOptimisticMove } from "../hooks/useOptimisticMove";
@@ -537,7 +537,7 @@ export function CalendarMap({
   };
 
   const stateClass = (e: CalEvent) =>
-    `${e.id === DRAFT_ID ? " ghost-draft" : ""}${preview?.e.id === e.id ? " drag-source" : ""}${dropped === e.id ? " dropped" : ""}`;
+    `${e.id === DRAFT_ID ? " ghost-draft" : ""}${preview?.e.id === e.id ? " drag-source" : ""}${dropped === e.id ? " dropped" : ""}${isLowPriority(e) ? " low" : ""}`;
 
   return (
     <div className="map-scroll" ref={scroller}>

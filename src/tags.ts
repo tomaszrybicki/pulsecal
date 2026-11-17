@@ -44,6 +44,11 @@ export const IMPORTANT_TAG = "ważne";
 /** Wpisy, które „> wszystkie low priority” w przeglądzie dnia przenosi na następny dzień. */
 export const LOW_PRIORITY_TAG = "low priority";
 
+/** Wpis z tagiem „low priority” — w widokach przygaszony, żeby nie przytłaczał. */
+export function isLowPriority(e: { tags?: string[] }): boolean {
+  return hasTag(e.tags ?? [], LOW_PRIORITY_TAG);
+}
+
 /** Tagi zawsze obecne na liście i w podpowiedziach (nawet bez wpisów), z własnym kolorem domyślnym. */
 export const DEFAULT_TAGS: { tag: string; color: string }[] = [
   { tag: IMPORTANT_TAG, color: "#ff6b4a" },

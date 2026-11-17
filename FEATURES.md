@@ -44,9 +44,11 @@ logowanie Google bez własnego serwera (Google Identity Services).
   - Gdy wpisy się nie mieszczą: „+N więcej”.
   - **Przegląd dnia:** „+N więcej” albo przycisk „•••” na dole dnia — komórka dnia sprężyście rozsuwa się nad
     kalendarzem (bez osobnego okienka) i po zamknięciu (×, Esc, klik obok) wraca na miejsce. Każdy wpis to jedna
-    linia (godzina, nazwa, epik, tagi); wpisy z godziną po kolei w czasie, potem całodniowe. Przy każdym
+    linia (godzina, nazwa, epik, tagi); wpisy z godziną po kolei w czasie, potem całodniowe. Wpisy z estymatą
+    5 min są na samej górze w osobnej zielonkawej bańce „na szybko”. W nagłówku liczba wpisów osobno dla
+    „low priority” (np. „1 wpis + 10 low priority”). Przy każdym
     (przyciski po najechaniu): „P”, „>” przenosi na następny dzień, „>>” o tydzień (godzina zostaje). „> wszystkie low priority”
-    przenosi na następny dzień wszystko z tagiem „low priority” (takie wpisy są na liście lekko przygaszone). „×” usuwa wpis, prawy przycisk
+    przenosi na następny dzień wszystko z tagiem „low priority”. „×” usuwa wpis, prawy przycisk
     myszy otwiera jego menu. Każde przeniesienie i usunięcie można cofnąć przyciskiem „Cofnij” w powiadomieniu.
   - Na telefonie wszystko jako kolorowe pigułki z samą nazwą.
   - Liczba widocznych wierszy dopasowuje się do wysokości ekranu.
@@ -99,6 +101,8 @@ logowanie Google bez własnego serwera (Google Identity Services).
   które go dodają), z „Cofnij”. Domyślnych tagów nie da się usunąć.
 - **Domyślne tagi:** „ważne” (koralowy) i „low priority” (szary) są zawsze na liście i w podpowiedziach, nawet
   bez wpisów. „low priority” przenosi „> wszystkie low priority” w przeglądzie dnia.
+- **Low priority mniej przytłacza:** wpisy z tagiem „low priority” są przygaszone i szarawe w miesiącu, w mapie
+  i w przeglądzie dnia; po najechaniu wracają do pełnego koloru.
 - **Reguły tagów** (panel boczny → „tagi” → „reguły”): „zawiera słowo → tag” (słowo w tytule lub notatce, np.
   „dentysta” → „wizyta”; całe słowa, bez względu na wielkość liter) albo „tytuł zaczyna się od → tag”.
   Działają przy zapisie, w szybkim dodawaniu i dla wpisów z Google; tylko dodają tagi (tag usunięty ręcznie
