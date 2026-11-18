@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { DEFAULT_MOVE_THRESHOLD } from "../moves";
 import { DEFAULT_SLOT_MIN, minutesLabel, type ProdHours } from "../prefs";
 import { ANIM_MODES, type AnimMode } from "../motionPrefs";
+import { ACHIEVEMENTS, CHEER_MODES, getCheerMode, getStats, reached, setCheerMode, type CheerMode } from "../cheers";
 import { SheetFrame } from "./SheetFrame";
 
 type Props = {
@@ -177,6 +178,8 @@ export function PrefsSheet(p: Props) {
         </p>
       </section>
 
+      <Achievements />
+
       <div className="row-actions">
         <button type="button" className="ghost" onClick={p.onOpenSync}>
           Google Calendar…
@@ -186,5 +189,81 @@ export function PrefsSheet(p: Props) {
         </button>
       </div>
     </SheetFrame>
+  );
+}
+
+const shortDate = (ts: number) => new Date(ts).toLocaleDateString("pl-PL", { day: "numeric", month: "short" });
+
+/** Zachęty (dymki po zamknięciu / usunięciu) i lista mini-osiągnięć, schowana pod przyciskiem. */
+function Achievements() {
+  const [mode, setMode] = useState<CheerMode>(getCheerMode);
+  const [open, setOpen] = useState(false);
+  const stats = getStats();
+  const got = ACHIEVEMENTS.filter((a) => stats.unlocked[a.id]).length;
+  return (
+    <section className="prefs-group">
+      <h3>zachęty</h3>
+      <div className="seg prefs-seg" role="radiogroup" aria-label="Zachęty">
+        {CHEER_MODES.map(([v, label]) => (
+          <button
+            key={v}
+            type="button"
+            role="radio"
+            aria-checked={mode === v}
+            className={mode === v ? "on" : ""}
+            onClick={() => {
+              setCheerMode(v);
+              setMode(v);
+            }}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+      <p className="hint">
+        {mode === "all"
+          ? "Po zamknięciu zadania albo usunięciu wpisu u góry na chwilę wyskakuje „Świetna robota!”, a kilka pod rząd to „On fire!”."
+          : mode === "awards"
+            ? "Bez dymków po każdym zamknięciu — tylko nowe osiągnięcia."
+            : "Nic nie wyskakuje; osiągnięcia dalej się liczą."}{" "}
+        Tylko na tym urządzeniu.
+      </p>
+      <button type="button" className="ach-toggle" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
+        <span aria-hidden>🏆</span>
+        osiągnięcia
+        <span className="ach-count">
+          {got} z {ACHIEVEMENTS.length}
+        </span>
+        <span className="dx-chev" aria-hidden>
+          {open ? "▾" : "▸"}
+        </span>
+      </button>
+      {open && (
+        <ul className="ach-list">
+          {ACHIEVEMENTS.map((a) => {
+            const when = stats.unlocked[a.id];
+            const hidden = a.secret && !when;
+            const [n, need] = a.goal(stats);
+            return (
+              <li key={a.id} className={when ? "" : "locked"}>
+                <span className="ach-icon" aria-hidden>
+                  {hidden ? "❔" : a.icon}
+                </span>
+                <span className="ach-body">
+                  <b>{hidden ? "???" : a.name}</b>
+                  <span>{hidden ? "Ukryte — odkryjesz przy okazji." : a.desc}</span>
+                  {!when && !hidden && need > 1 && (
+                    <span className="ach-bar" title={`${Math.min(n, need)} z ${need}`}>
+                      <i style={{ width: `${Math.min(100, (n / need) * 100)}%` }} />
+                    </span>
+                  )}
+                </span>
+                <span className="ach-when">{when ? shortDate(when) : !hidden && need > 1 && !reached(a, stats) ? `${Math.min(n, need)}/${need}` : ""}</span>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </section>
   );
 }

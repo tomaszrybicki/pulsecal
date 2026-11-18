@@ -3,6 +3,19 @@
 Każda wersja to jeden commit `vX.Y.Z: …` (treść commita = wpis z tego pliku) i tag `vX.Y.Z`.
 Najnowsze na górze. Opis funkcji aplikacji jest w [FEATURES.md](FEATURES.md).
 
+## [0.48.0] – 2026-11-18: zachęty i mini-osiągnięcia
+
+- **Zachęty:** po zamknięciu zadania albo epiku (status „zrobione”, z listy, tablicy albo okna zadania) i po
+  usunięciu wpisu, zadania albo epiku u góry ekranu na chwilę wyskakuje sprężysty dymek z iskierkami:
+  „Świetna robota!”, „Odhaczone!”, „Porządek!”… Kilka pod rząd (do 2 minut przerwy) to „Dwa z rzędu!”,
+  „On fire! 🔥 ×3”, „Nie do zatrzymania!”, „Tryb turbo! ⚡”. Zamknięty epik to „Epik zamknięty! 🏔️”.
+  Dymek nie łapie kliknięć i znika po ok. 1,7 s, więc nie przeszkadza w klikaniu dalej.
+- **Mini-osiągnięcia (15):** m.in. „Pierwszy krok”, „Rozgrzewka” (5 jednego dnia), „On fire” (3 pod rząd),
+  „Domykacz” (10 zadań), „Epicko!” (zamknięty epik), „Porządki” (10 usuniętych), „Tydzień w rytmie” (7 dni
+  pod rząd), „Setka”, plus 2 ukryte. Nowe osiągnięcie pokazuje się pod dymkiem.
+- **Ustawienia → „zachęty”:** „wszystko” / „tylko osiągnięcia” / „nic”, a pod przyciskiem „🏆 osiągnięcia”
+  rozwijana lista: zdobyte z datą, reszta z paskiem postępu, ukryte jako „???”. Liczy się na tym urządzeniu.
+
 ## [0.47.0] – 2026-11-17: przegląd dnia: klikanie seriami, „!” przy ważnych, gęściej
 
 - **Klikanie seriami w przeglądzie dnia:** po „>”, „>>” albo „×” nic nad klikniętym wpisem się nie przesuwa, a

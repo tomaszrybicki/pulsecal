@@ -116,6 +116,18 @@ Previous sessions: first Cursor IDE (built the MVP), then Claude in a chat sessi
 code audit and rewrote the data and sync layer, then stopped at the owner's request.
 **Start by reading `CLAUDE.md`.**
 
+## v0.48.0: cheers and mini achievements
+- `cheers.ts`: `recordWin({kind: "done"|"delete", source: "event"|"task"|"epic"})` updates stats
+  (localStorage `pulsecal:wins`, per device, NOT in the settings backup — counters change on every win, which
+  would make the backup differ between devices on every session), session combo (≤ 2 min between wins),
+  checks `ACHIEVEMENTS` (`goal(stats)` → [have, need]) and emits a `Cheer` to `onCheer` listeners.
+  Mode `pulsecal:cheers`: all / awards / off.
+- Called from App only on user actions: `deleteEvent` (covers day overview, editor, menu), `deleteWork`,
+  `patchItem` (status → done: list, board, status select) and `saveWork` (WorkItemSheet). The automatic
+  status from links (event ended → task done) does not count. Undo does not take a win back.
+- Events have no "done" state, so for calendar entries only deleting counts.
+- `Cheers.tsx` in App next to `Toast`; `PrefsSheet` → `Achievements` section (mode + expandable list).
+
 ## v0.47.0: day overview — next row stays under the cursor, „!” for important, denser
 - `DayPanel`: `takeAway()` before `onShift`/`onDelete` (row „>”/„>>”/„×”, group „>”, „> wszystkie low priority”):
   `gone` map (id → start at click; hides rows at once, pruned when `events` no longer has that id+start),

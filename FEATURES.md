@@ -104,6 +104,11 @@ logowanie Google bez własnego serwera (Google Identity Services).
   (domyślne: te same sprężyny ok. 2,4× szybciej, treść od razu), „minimalne” (jak szybkie, ale przegląd dnia
   otwiera się i zamyka natychmiast) albo „wyłączone” (wszystko natychmiast).
   Otwarcie wpisu czy przeglądu dnia nie przelicza już całego kalendarza, więc okno pojawia się szybciej.
+- **Zachęty i osiągnięcia** (ustawienia → „zachęty”, tylko to urządzenie): po zamknięciu zadania / epiku
+  (status „zrobione”) albo usunięciu wpisu / zadania u góry ekranu na chwilę wyskakuje sprężysty dymek
+  („Świetna robota!”, kilka pod rząd → „On fire! 🔥 ×3”, „Nie do zatrzymania!”). Dymek nie łapie kliknięć.
+  15 mini-osiągnięć (2 ukryte); nowe pokazuje się pod dymkiem, a pełna lista z postępem jest pod przyciskiem
+  „🏆 osiągnięcia”. Do wyboru: „wszystko”, „tylko osiągnięcia” albo „nic”.
 
 ### Tagi
 

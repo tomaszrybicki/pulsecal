@@ -46,6 +46,7 @@ src/
   dayGroups.ts            day overview groups (quick 5 min / tag / epic / rest): order, collapse, persisted + backup
   motionPrefs.ts          animation setting full / fast / off: tr() for framer transitions, animOff()
   memoView.tsx            memo + stable callback proxies for big views (MonthView, CalendarMap, Sidebar)
+  cheers.ts               cheers + mini achievements: recordWin() on task done / delete, stats in localStorage
   draft.ts                draft helpers (DRAFT_ID ghost, all-day toggle, when-label, withDraft)
   tags.ts                 tags: normalize, "Tagi: a, b" last line of the Google description, filter rule, color, isLowPriority
   quickParse.ts           Polish one-line quick add ("dentysta jutro 14:30 1h #wizyta") → ParsedEntry
@@ -77,6 +78,7 @@ src/
     SearchSheet.tsx       search (title/notes/tags) + "Utwórz …" from quickParse; opened by the dock pill or "/"
     SheetFrame.tsx        shared window shell: bottom sheet / popover at the cursor (desktop) / top palette
     SyncIndicator.tsx, Toast.tsx, sheetMotion.ts
+    Cheers.tsx            cheer bubble + achievement pill at the top (pointer-events none), listens to onCheer()
     SettingsSheet.tsx     Client ID, calendar, polling interval
     TasksView.tsx         "zadania" view, Jira-like: epic panel, list (grouped table) / board (drag between statuses)
     WorkItemSheet.tsx     Jira-like issue details: title, description, epic contents | status + fields panel

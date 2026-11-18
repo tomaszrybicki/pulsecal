@@ -21,6 +21,8 @@ import { WorkItemSheet } from "./components/WorkItemSheet";
 import { WorkFieldsSheet } from "./components/WorkFieldsSheet";
 import { SyncIndicator } from "./components/SyncIndicator";
 import { Toast } from "./components/Toast";
+import { Cheers } from "./components/Cheers";
+import { recordWin } from "./cheers";
 import { PALETTE } from "./colors";
 import { db, eventsInRange, newEventId, pendingCount, removeLocal, saveLocal, tagStats, type TagStat } from "./db";
 import { allDayDraft, draftFromEvent, isDirty, timedDraft, whenLabel, withDraft } from "./draft";
@@ -631,6 +633,7 @@ export function App() {
     const before = await db.events.get(id);
     if (!before) return;
     await removeLocal(id);
+    recordWin({ kind: "delete", source: "event" });
     sync.requestSync(8000);
     sync.notify(`Usunięto „${before.title}”`, "ok", {
       label: "Cofnij",
@@ -729,12 +732,17 @@ export function App() {
       const cur = await db.items.get(id);
       // status zmieniony ręcznie (lista, tablica) — już nie zmienia się sam po zakończeniu wpisu
       const manual = patch.status !== undefined && patch.status !== cur?.status ? { statusManual: true } : {};
-      if (cur && !cur.deleted) await saveItem({ ...cur, ...patch, ...manual });
+      if (cur && !cur.deleted) {
+        await saveItem({ ...cur, ...patch, ...manual });
+        if (patch.status === "done" && cur.status !== "done") recordWin({ kind: "done", source: cur.kind === "epic" ? "epic" : "task" });
+      }
     });
     sync.requestSync(3000);
   };
 
   const saveWork = (item: WorkItem) => {
+    const prev = tree.byId.get(item.id);
+    if (item.status === "done" && prev && prev.status !== "done") recordWin({ kind: "done", source: item.kind === "epic" ? "epic" : "task" });
     void saveItem(item);
     sync.requestSync(2000);
   };
@@ -753,6 +761,7 @@ export function App() {
       if (item.remote) await saveItem({ ...item, deleted: true });
       else await db.items.delete(item.id);
     });
+    recordWin({ kind: "delete", source: item.kind === "epic" ? "epic" : "task" });
     sync.requestSync(4000);
     sync.notify(`Usunięto ${item.kind === "epic" ? "epik" : "zadanie"} „${item.title}”`, "ok", {
       label: "Cofnij",
@@ -1457,6 +1466,7 @@ export function App() {
       </div>
 
       <Toast notice={sync.notice} />
+      <Cheers />
 
       {planDrag && (
         <div className="plan-ghost" style={{ transform: `translate(${planDrag.x + 14}px, ${planDrag.y + 12}px)` }} aria-hidden>
