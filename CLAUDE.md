@@ -126,7 +126,10 @@ public/                   icons, favicon
 
 ## Owner's environment
 Windows, the project lives in `C:\Users\Tomasz\Projects\pulsecal`. `node_modules` is installed for win32.
-Local git repo on `master`, no remote yet (and no `gh` CLI installed).
+Git repo on `master`, pushed to the **public** GitHub repo https://github.com/tomaszrybicki/pulsecal
+(remote `origin`; push `master` and tags after each version: `git push origin master --follow-tags`).
+No licence (all rights reserved). Repo-local `user.email` is the GitHub noreply address — keep it, the owner's
+private e-mail must not appear in commits. No `gh` CLI installed.
 
 ## Versions and commits (owner's request)
 Every finished batch of work is a version, committed as soon as it is done:

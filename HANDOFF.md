@@ -116,6 +116,13 @@ Previous sessions: first Cursor IDE (built the MVP), then Claude in a chat sessi
 code audit and rewrote the data and sync layer, then stopped at the owner's request.
 **Start by reading `CLAUDE.md`.**
 
+## v0.48.1: GitHub README, public repo
+- `README.md` rewritten in Polish for GitHub (features, mermaid diagram of the sync, setup, Google OAuth
+  client steps, iPhone/HTTPS, privacy, limits, structure). No licence (owner's choice).
+- Repo is public at https://github.com/tomaszrybicki/pulsecal. History was rewritten before the first push:
+  author/committer/tagger e-mail → `28840025+tomaszrybicki@users.noreply.github.com` (also the repo-local
+  `user.email`). Next natural step: deploy to GitHub Pages (HTTPS) so the iPhone PWA + Google login work.
+
 ## v0.48.0: cheers and mini achievements
 - `cheers.ts`: `recordWin({kind: "done"|"delete", source: "event"|"task"|"epic"})` updates stats
   (localStorage `pulsecal:wins`, per device, NOT in the settings backup — counters change on every win, which

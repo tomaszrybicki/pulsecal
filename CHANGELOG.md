@@ -3,6 +3,14 @@
 Każda wersja to jeden commit `vX.Y.Z: …` (treść commita = wpis z tego pliku) i tag `vX.Y.Z`.
 Najnowsze na górze. Opis funkcji aplikacji jest w [FEATURES.md](FEATURES.md).
 
+## [0.48.1] – 2026-11-19: README na GitHub
+
+- **README na GitHub:** nowy opis projektu po polsku: czym jest Pulsecal, najważniejsze funkcje, schemat
+  działania (lokalna baza → Google Calendar), uruchomienie, krok po kroku podłączenie Google Calendar
+  (własny OAuth Client ID), instalacja na iPhonie, prywatność, ograniczenia i struktura projektu.
+- Repozytorium jest publiczne na GitHubie: https://github.com/tomaszrybicki/pulsecal (bez licencji —
+  wszystkie prawa zastrzeżone). W historii commitów zamiast prywatnego e-maila jest adres noreply GitHuba.
+
 ## [0.48.0] – 2026-11-18: zachęty i mini-osiągnięcia
 
 - **Zachęty:** po zamknięciu zadania albo epiku (status „zrobione”, z listy, tablicy albo okna zadania) i po
