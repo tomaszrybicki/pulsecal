@@ -7,6 +7,7 @@ import { ColorSwatches } from "./ColorSwatches";
 import { TagInput } from "./TagInput";
 import { EpicPicker } from "./EpicPicker";
 import { EstimatePicker } from "./EstimatePicker";
+import { MovesHint } from "./MovesHint";
 
 type Props = {
   draft: DraftEvent;
@@ -19,6 +20,10 @@ type Props = {
   knownTags: string[];
   /** Ile razy wpis przeniesiono na inny dzień. */
   moves?: number;
+  /** Podpowiedź „prosty krok” wyłączona dla tego wpisu. */
+  nudgeOff?: boolean;
+  /** Włącz / wyłącz podpowiedź dla tego wpisu (od razu zapisuje). */
+  onNudgeOff?: (off: boolean) => void;
   /** Punkt kliknięcia na komputerze → karta wyskakuje przy kursorze. */
   anchor?: Anchor | null;
   epics?: { id: string; label: string }[];
@@ -42,6 +47,8 @@ export function QuickCard({
   knownTags,
   anchor = null,
   moves,
+  nudgeOff = false,
+  onNudgeOff,
   epics = [],
   onCreateEpic,
   requireEstimate = false,
@@ -88,7 +95,7 @@ export function QuickCard({
           missing={needEst}
           onChange={(estimate) => onChange({ ...draft, estimate })}
         />
-        {moves ? <p className="moves-hint">↷ przeniesiony {moves}×</p> : null}
+        {moves ? <MovesHint moves={moves} off={nudgeOff} onToggle={onNudgeOff} /> : null}
         <div className="quick-when">
           <span>{whenLabel(draft)}</span>
           <button type="button" className="mini-chip" onClick={() => onChange(toggleAllDay(draft))}>

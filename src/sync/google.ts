@@ -365,6 +365,8 @@ function parseGEvent(g: GEvent): Omit<CalEvent, "id" | "origin" | "pending"> | n
     estimate: Number(g.extendedProperties?.private?.pulseEst) || undefined,
     updatedAt: g.updated ? new Date(g.updated).getTime() : Date.now(),
     moves: Number(g.extendedProperties?.private?.pulseMoves) || 0,
+    nudgedAt: Number(g.extendedProperties?.private?.pulseNudgedAt) || undefined,
+    nudgeOff: g.extendedProperties?.private?.pulseNoNudge === "1" || undefined,
     deleted: false,
   };
 }
@@ -379,6 +381,8 @@ function toGEvent(e: CalEvent): Record<string, unknown> {
         pulseId: e.id,
         ...(pal ? { pulseColor: pal.id } : {}),
         ...(e.moves ? { pulseMoves: String(e.moves) } : {}),
+        ...(e.nudgedAt ? { pulseNudgedAt: String(e.nudgedAt) } : {}),
+        pulseNoNudge: e.nudgeOff ? "1" : "",
         // zawsze (także pusty) — PATCH scala klucze, więc bez tego nie dałoby się wypiąć wpisu z epiku
         pulseEpic: e.epicId ?? "",
         pulseAuto: e.autoSlot ? "1" : "",
@@ -599,12 +603,18 @@ async function applyRemote(g: GEvent, ignoreEtag = false): Promise<boolean> {
     if (!ignoreEtag && existing.googleEtag && existing.googleEtag === g.etag) return false;
     // lokalna, niewysłana zmiana nowsza od zdalnej → zostawiamy lokalną (wyśle się przy następnym syncu)
     if (existing.pending && existing.updatedAt >= parsed.updatedAt) return false;
-    // przeniesione w Google na inny dzień → też liczy się jako przeniesienie
+    // przeniesione w Google na inny dzień → też liczy się jako przeniesienie. Przeniesienie w Pulsecal na innym
+    // urządzeniu już podbiło licznik w Google (pulseMoves) — wtedy nie liczymy go drugi raz.
     const knownMoves = Math.max(parsed.moves ?? 0, existing.moves ?? 0);
     const moved = !sameDay(new Date(existing.start), new Date(parsed.start));
+    const counted = (parsed.moves ?? 0) > (existing.moves ?? 0);
+    const nudgedAt = Math.max(parsed.nudgedAt ?? 0, existing.nudgedAt ?? 0) || undefined;
     await db.events.put({
       ...withAuto({ title: existing.title, notes: existing.notes }),
-      moves: moved ? knownMoves + 1 : knownMoves,
+      moves: moved && !counted ? knownMoves + 1 : knownMoves,
+      nudgedAt,
+      // wystąpienia serii nie wysyłamy, więc jego „bez podpowiedzi” jest tylko lokalne
+      nudgeOff: parsed.recurring ? existing.nudgeOff : parsed.nudgeOff,
       id: existing.id,
       origin: existing.origin === "local" ? "both" : existing.origin,
     });

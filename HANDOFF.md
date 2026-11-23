@@ -116,6 +116,20 @@ Previous sessions: first Cursor IDE (built the MVP), then Claude in a chat sessi
 code audit and rewrote the data and sync layer, then stopped at the owner's request.
 **Start by reading `CLAUDE.md`.**
 
+## v0.51.0: move prompt every N moves since the last one, per-event off switch
+- `moves.ts`: `moveStep(prev, nextStart)` → `{ moves, nudge }`; the prompt fires when `moves - base >= N`, where
+  `base = min(nudgedAt ?? floor(prevMoves / N) * N, prevMoves)` (the fallback keeps the old 10/20/30 rhythm for
+  events from before `nudgedAt`). `moveFields(step)` stores `nudgedAt = moves` with the prompting move.
+  All four move paths in App (saveDraft, planEvent „P”, moveEvent, shiftEvents) use it; shiftEvents prompts
+  (and stamps `nudgedAt`) only for the first event.
+- `CalEvent.nudgedAt` / `nudgeOff` ↔ Google `pulseNudgedAt` / `pulseNoNudge` (always sent, "" = on).
+  `applyRemote`: `nudgedAt` = max of both; `nudgeOff` stays local for recurring instances (never pushed).
+- Fix in `applyRemote`: a move made in Pulsecal on another device already raised `pulseMoves`, so the pull
+  only adds +1 when the start moved to another day AND Google's counter did not grow (moved in Google itself).
+- UI: `components/MovesHint.tsx` („↷ przeniesiony N×” + `.nudge-toggle`) in QuickCard and EventSheet; the stuck
+  hint has „nie pytaj przy tym wpisie”. Toggle = `patchEvent(id, { nudgeOff })` (saved at once, not via the draft).
+  The context menu's „Edytuj” now clears `stuckId`.
+
 ## v0.50.0: day group focus (priority)
 - `DayGroup.focus` (at most one, never "rest"; enforced in `cleanGroups`, persisted + settings backup).
   `groupOf` returns the focused group when it matches, otherwise the first matching group as before.

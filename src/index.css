@@ -2538,6 +2538,33 @@ button.pill-plus:active {
   color: var(--ink-soft);
 }
 
+/* „wyłącz podpowiedź” / „nie pytaj przy tym wpisie”: dyskretny tekstowy przycisk przy liczniku ↷ */
+.nudge-toggle {
+  margin-left: 8px;
+  border: 0;
+  padding: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 0.74rem;
+  opacity: 0.6;
+  text-decoration: underline dotted;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+.nudge-toggle:hover,
+.nudge-toggle:focus-visible {
+  opacity: 1;
+}
+.nudge-toggle.off {
+  text-decoration: none;
+  opacity: 0.8;
+}
+.stuck-hint .nudge-toggle {
+  display: block;
+  margin: 4px 0 0;
+}
+
 .sheet.move-prompt textarea {
   font: inherit;
 }

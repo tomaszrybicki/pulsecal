@@ -33,7 +33,7 @@ import { DESKTOP_QUERY, useMediaQuery } from "./hooks/useMediaQuery";
 import { useNow } from "./hooks/useNow";
 import { useSettingsBackup } from "./hooks/useSettingsBackup";
 import { useTheme } from "./hooks/useTheme";
-import { countMove, crossesThreshold, getMoveThreshold, setMoveThreshold } from "./moves";
+import { getMoveThreshold, moveFields, moveStep, setMoveThreshold } from "./moves";
 import { reconcileLinks, unlinkSeries } from "./links";
 import {
   findFreeSlot,
@@ -411,6 +411,7 @@ export function App() {
       if (slot) when = { ...slot, allDay: false };
       else noSlot(new Date(draft.start));
     }
+    const step = existing ? moveStep(existing, when.start) : null;
     const event: CalEvent = {
       ...existing,
       id: existing?.id ?? newEventId(),
@@ -424,7 +425,7 @@ export function App() {
       autoSlot: draft.autoSlot || undefined,
       // „?” (nie wiem) pozwala zapisać przy wymaganej estymacie, ale się nie zapisuje
       estimate: storedEstimate(draft.estimate),
-      moves: existing ? countMove(existing, when.start) : 0,
+      ...(step ? moveFields(step) : { moves: 0 }),
       tags: applyTagRules(
         draft.title.trim(),
         draft.notes,
@@ -444,7 +445,7 @@ export function App() {
     await saveLocal(event);
     // klik obok mógł już otworzyć inny wpis — zamykamy tylko ten, który zapisaliśmy
     setDraft((cur) => (cur === saving ? null : cur));
-    if (existing && crossesThreshold(existing.moves ?? 0, event.moves ?? 0)) promptMoved(event);
+    if (step?.nudge) promptMoved(event);
     if (!isVisible(event.tags, hiddenTags)) sync.notify("Zapisano. Wpis jest ukryty przez filtr tagów.", "warn");
     sync.requestSync();
   };
@@ -539,11 +540,12 @@ export function App() {
     // brak wolnego miejsca w godzinach produktywności tego dnia → następny dzień (i dalej)
     const slot = await slotFrom(day, cur);
     if (!slot) return noSlot(day);
-    const next = { ...cur, allDay: false, start: slot.start, end: slot.end, autoSlot: true, moves: countMove(cur, slot.start) };
+    const step = moveStep(cur, slot.start);
+    const next = { ...cur, allDay: false, start: slot.start, end: slot.end, autoSlot: true, ...moveFields(step) };
     await saveLocal(next);
     sync.requestSync(2000);
     const moved = !sameDay(day, new Date(slot.start));
-    if (crossesThreshold(cur.moves ?? 0, next.moves ?? 0)) promptMoved(next);
+    if (step.nudge) promptMoved(next);
     const time = `${formatClock(new Date(slot.start))}–${formatClock(new Date(slot.end))}`;
     sync.notify(
       moved
@@ -584,14 +586,15 @@ export function App() {
   const moveEvent = async (e: CalEvent, start: number, end: number) => {
     const current = await db.events.get(e.id);
     if (!current) return;
-    let next = { ...current, start, end, moves: countMove(current, start) };
+    const step = moveStep(current, start);
+    let next = { ...current, start, end, ...moveFields(step) };
     if (current.autoSlot && !sameDay(new Date(current.start), new Date(start))) {
       const slot = await slotOn(new Date(start), current);
       if (slot) next = { ...next, allDay: false, start: slot.start, end: slot.end };
       else noSlot(new Date(start));
     }
     await saveLocal(next);
-    if (crossesThreshold(current.moves ?? 0, next.moves)) promptMoved(next);
+    if (step.nudge) promptMoved(next);
     sync.requestSync();
   };
 
@@ -602,14 +605,17 @@ export function App() {
     let prompt: CalEvent | null = null;
     for (const e of before) {
       const start = addDays(new Date(e.start), days).getTime();
-      let next = { ...e, start, end: addDays(new Date(e.end), days).getTime(), moves: countMove(e, start) };
+      // podpowiedź tylko dla pierwszego wpisu, który ją „wybił”; pozostałe dostaną ją przy następnym przeniesieniu
+      const step = moveStep(e, start);
+      const nudge: boolean = step.nudge && !prompt;
+      let next: CalEvent = { ...e, start, end: addDays(new Date(e.end), days).getTime(), ...moveFields({ ...step, nudge }) };
       if (e.autoSlot) {
         const slot = await slotOn(new Date(start), e);
         if (slot) next = { ...next, allDay: false, start: slot.start, end: slot.end };
         else noSlot(new Date(start));
       }
       await saveLocal(next);
-      if (!prompt && crossesThreshold(e.moves ?? 0, next.moves)) prompt = next;
+      if (nudge) prompt = next;
     }
     if (prompt) promptMoved(prompt);
     sync.requestSync(4000);
@@ -1186,6 +1192,8 @@ export function App() {
   /* ── tagi ── */
 
   const visibleEvents = useMemo(() => events.filter((e) => isVisible(e.tags, hiddenTags)), [events, hiddenTags]);
+  // zapisany wpis otwarty w edycji (licznik przeniesień, „bez podpowiedzi”)
+  const draftEvent = draft?.id ? events.find((e) => e.id === draft.id) : undefined;
   const shownEvents = useMemo(() => withDraft(visibleEvents, draft), [visibleEvents, draft]);
 
   const toggleTag = (tag: string) =>
@@ -1485,7 +1493,9 @@ export function App() {
             draft={draft}
             knownTags={knownTags}
             anchor={anchor}
-            moves={events.find((e) => e.id === draft.id)?.moves}
+            moves={draftEvent?.moves}
+            nudgeOff={draftEvent?.nudgeOff}
+            onNudgeOff={draftEvent ? (off) => void patchEvent(draftEvent.id, { nudgeOff: off || undefined }) : undefined}
             epics={epicChoices}
             onCreateEpic={createEpicNamed}
             requireEstimate={requireEstimate}
@@ -1502,7 +1512,9 @@ export function App() {
             draft={draft}
             knownTags={knownTags}
             anchor={anchor}
-            moves={events.find((e) => e.id === draft.id)?.moves}
+            moves={draftEvent?.moves}
+            nudgeOff={draftEvent?.nudgeOff}
+            onNudgeOff={draftEvent ? (off) => void patchEvent(draftEvent.id, { nudgeOff: off || undefined }) : undefined}
             epics={epicChoices}
             onCreateEpic={createEpicNamed}
             requireEstimate={requireEstimate}
@@ -1560,6 +1572,7 @@ export function App() {
             onEdit={() => {
               const e = menu.e;
               setMenu(null);
+              setStuckId(null);
               setAnchor(menu.anchor);
               setEditor("full");
               setDraft(draftFromEvent(e));

@@ -14,6 +14,10 @@ export interface CalEvent {
   tags: string[];
   /** Ile razy wpis przeniesiono na inny dzień (moves.ts). W Google: extendedProperties.private.pulseMoves. */
   moves?: number;
+  /** Przy którym przeniesieniu była ostatnia podpowiedź „prosty krok” (moves.ts). W Google: pulseNudgedAt. */
+  nudgedAt?: number;
+  /** Bez podpowiedzi „prosty krok” dla tego wpisu (licznik dalej liczy). W Google: pulseNoNudge. */
+  nudgeOff?: boolean;
   googleEventId?: string;
   googleEtag?: string;
   /** Instancja wydarzenia cyklicznego z Google (edycja dotyczy tylko tej instancji). */

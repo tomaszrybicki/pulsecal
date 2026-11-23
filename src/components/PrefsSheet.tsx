@@ -116,8 +116,9 @@ export function PrefsSheet(p: Props) {
           />
         </label>
         <p className="hint">
-          Przy {moveDraft || "N"}., {Number(moveDraft) * 2 || "2N"}., {Number(moveDraft) * 3 || "3N"}.… przeniesieniu
-          otwiera się pełna edycja wpisu z kursorem w tytule.
+          Po {moveDraft || "N"} przeniesieniach otwiera się pełna edycja wpisu z kursorem w tytule; potem wpis można
+          znowu przenieść {moveDraft || "N"} razy, zanim pojawi się ponownie. W oknie wpisu wyłączysz ją dla jednego wpisu
+          („wyłącz podpowiedź” przy liczniku ↷).
         </p>
       </section>
 

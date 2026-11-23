@@ -9,6 +9,7 @@ import { ColorSwatches } from "./ColorSwatches";
 import { TagInput } from "./TagInput";
 import { EpicPicker } from "./EpicPicker";
 import { EstimatePicker } from "./EstimatePicker";
+import { MovesHint } from "./MovesHint";
 
 type Props = {
   draft: DraftEvent;
@@ -22,6 +23,10 @@ type Props = {
   knownTags: string[];
   /** Ile razy wpis przeniesiono na inny dzień. */
   moves?: number;
+  /** Podpowiedź „prosty krok” wyłączona dla tego wpisu. */
+  nudgeOff?: boolean;
+  /** Włącz / wyłącz podpowiedź dla tego wpisu (od razu zapisuje). */
+  onNudgeOff?: (off: boolean) => void;
   /** Punkt kliknięcia na komputerze → okno wyskakuje przy kursorze. */
   anchor?: Anchor | null;
   /** Epiki do wyboru (work.ts). */
@@ -50,6 +55,8 @@ export function EventSheet({
   knownTags,
   anchor = null,
   moves,
+  nudgeOff = false,
+  onNudgeOff,
   epics = [],
   onCreateEpic,
   stuck = false,
@@ -90,12 +97,22 @@ export function EventSheet({
   return (
     <SheetFrame anchor={anchor} label="Wpis" onDismiss={onDismiss} closable>
         <h2>{draft.id ? "Wpis" : "Nowy blob"}</h2>
-        {stuck ? (
+        {stuck && !nudgeOff ? (
           <p className="stuck-hint">
             ↷ {moves}. przeniesienie. Zacznij od prostego kroku — wpisz go jako tytuł.
+            {onNudgeOff && (
+              <button
+                type="button"
+                className="nudge-toggle"
+                title="Licznik dalej liczy, ale to okno nie pojawi się już przy tym wpisie"
+                onClick={() => onNudgeOff(true)}
+              >
+                nie pytaj przy tym wpisie
+              </button>
+            )}
           </p>
         ) : moves ? (
-          <p className="moves-hint">↷ przeniesiony {moves}×</p>
+          <MovesHint moves={moves} off={nudgeOff} onToggle={onNudgeOff} />
         ) : null}
         <label className="field">
           Tytuł

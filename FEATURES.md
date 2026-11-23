@@ -250,8 +250,12 @@ logowanie Google bez własnego serwera (Google Identity Services).
 
 - Wpis liczy, ile razy trafił na inny dzień (przeciągnięcie, „>”/„>>”, zmiana daty, przeniesienie w Google).
   Widać to jako „↷N” na wpisie, w przeglądzie dnia i w edycji. Zmiana godziny w tym samym dniu się nie liczy.
-- Co N przeniesień (przy 10., 20., 30.…; „ustawienia”, domyślnie 10) pojawia się krótka informacja i od razu otwiera
-  się pełna edycja wpisu z kursorem w tytule i podpowiedzią „Zacznij od prostego kroku — wpisz go jako tytuł”.
+- Co N przeniesień („ustawienia”, domyślnie 10) pojawia się krótka informacja i od razu otwiera się pełna edycja
+  wpisu z kursorem w tytule i podpowiedzią „Zacznij od prostego kroku — wpisz go jako tytuł”. N liczy się od
+  ostatniej podpowiedzi: po niej wpis można znowu przenieść N razy, zanim pojawi się ponownie.
+- **Bez podpowiedzi dla jednego wpisu:** „nie pytaj przy tym wpisie” w oknie podpowiedzi albo „wyłącz podpowiedź”
+  przy „↷ przeniesiony N×” w edycji i szybkiej karcie (wtedy widać „🔕 bez podpowiedzi”; kliknięcie włącza ją
+  z powrotem). Licznik dalej liczy; ustawienie synchronizuje się z Google.
 
 ### Przycisk „P” — godziny produktywności
 

@@ -3,6 +3,20 @@
 Każda wersja to jeden commit `vX.Y.Z: …` (treść commita = wpis z tego pliku) i tag `vX.Y.Z`.
 Najnowsze na górze. Opis funkcji aplikacji jest w [FEATURES.md](FEATURES.md).
 
+## [0.51.0] – 2026-11-23: podpowiedź przy przenoszeniu co N razy, wyłączana dla wpisu
+
+- **Podpowiedź „prosty krok” co N przeniesień, licząc od ostatniej:** po oknie wpis można znowu przenieść
+  N razy (ustawienie „przenoszenie”, domyślnie 10), zanim pojawi się ono ponownie, i tak dalej. Wpis pamięta,
+  przy którym przeniesieniu było ostatnie okno, więc zmiana ustawienia albo przeniesienia na innym urządzeniu
+  nie powodują już okna za wcześnie ani nie sprawiają, że się nie pokaże.
+- **Wyłączanie podpowiedzi dla jednego wpisu:** w oknie podpowiedzi jest dyskretny odnośnik „nie pytaj przy tym
+  wpisie”, a w edycji i szybkiej karcie, przy liczniku „↷ przeniesiony N×”, przełącznik „wyłącz podpowiedź” /
+  „🔕 bez podpowiedzi” (kliknięcie włącza z powrotem). Licznik dalej liczy. Ustawienie wpisu synchronizuje się
+  z Google.
+- **Poprawka:** przeniesienie zrobione w Pulsecal na innym urządzeniu (np. na telefonie) nie jest już liczone
+  drugi raz po pobraniu z Google.
+- **Poprawka:** okno wpisu otwarte z menu („Edytuj”) po podpowiedzi nie pokazuje jej znowu.
+
 ## [0.50.0] – 2026-11-23: pierwszeństwo grupy w przeglądzie dnia
 
 - **Pierwszeństwo grupy („focus”) w przeglądzie dnia:** nowy mały przycisk ◎ w nagłówku grupy (obok „>”).

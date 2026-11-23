@@ -56,6 +56,7 @@ src/
   links.ts                task ↔ event links: reconcileLinks(), unlinkSeries()
   colors.ts               palette + mapping to Google colorId
   prefs.ts                productive hours, P slot length, always-full-editor pref, findFreeSlot()
+  moves.ts                move counter + "simple step" prompt every N moves since the last (nudgedAt, nudgeOff)
   estimate.ts             time estimate (5 / 30 / 60 / 120 = "2h+") labels; EstimatePicker.tsx = quick buttons
   devSeed.ts              dev-only test data (ids start with "5eed", pending 0), auto-added via devAutoSeed()
   time.ts                 date helpers (Monday is the first day of the week, Polish labels)
@@ -73,6 +74,7 @@ src/
     MonthView.tsx         GCal-style month: week rows with lanes, bars, "+N", drag + corner stretch
     QuickCard.tsx         quick add / rename card (phone default for tapping an event)
     EventSheet.tsx        full editor (desktop default; right-side panel on wide screens)
+    MovesHint.tsx         "↷ przeniesiony N×" + per-event "wyłącz podpowiedź" toggle (QuickCard, EventSheet)
     Sidebar.tsx           left panel: action buttons, MiniCalendar, tag filter list (docked / drawer)
     MiniCalendar.tsx      mini month with ISO week numbers; drag or week number → WeekSelection
     TagInput.tsx          tag chips editor with suggestions
