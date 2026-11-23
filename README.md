@@ -74,13 +74,33 @@ npm install
 npm run dev
 ```
 
-Aplikacja otworzy się pod adresem `http://localhost:5173`.
+Wersja deweloperska otworzy się pod adresem `http://localhost:5174` (zmiany w plikach widać od razu).
 
 | Polecenie | Co robi |
 | --- | --- |
-| `npm run dev` | serwer deweloperski (dostępny też w sieci lokalnej: `http://<ip-komputera>:5173`) |
+| `npm run dev` | serwer deweloperski na porcie 5174 (dostępny też w sieci lokalnej) |
 | `npm run build` | sprawdzenie typów (TypeScript) i wersja produkcyjna w `dist/` |
 | `npm run preview` | podgląd wersji produkcyjnej |
+| `npm run serve:install` | stały serwer na tym komputerze (patrz niżej) |
+
+### Stały serwer na komputerze (Windows)
+
+`npm run serve:install` dodaje Pulsecal do autostartu Windows i od razu uruchamia go w tle (bez okna):
+
+- działa pod adresem **`http://localhost:5173`** (i w sieci lokalnej), w wersji produkcyjnej z trybem offline;
+- serwuje **ostatni commit**, a nie niezapisane zmiany w plikach, więc w trakcie pracy nad kodem działa
+  ostatnia wydana wersja;
+- co 10 s sprawdza, czy w repozytorium jest nowy commit, i wtedy sam buduje go w tle i podmienia
+  (otwarta aplikacja zaktualizuje się sama). Jeśli budowanie się nie uda, zostaje poprzednia wersja.
+
+| Polecenie | Co robi |
+| --- | --- |
+| `npm run serve:status` | czy działa, która wersja jest serwowana, gdzie jest log |
+| `npm run serve:rebuild` | przebuduj ostatni commit od nowa |
+| `npm run serve:restart` / `serve:stop` | uruchom ponownie / zatrzymaj |
+| `npm run serve:uninstall` | usuń z autostartu i zatrzymaj |
+
+Pliki serwera (zbudowana wersja, log `server.log`) są w ukrytym katalogu `.serve/`, poza repozytorium.
 
 ## Połączenie z Google Calendar (opcjonalne)
 
@@ -91,7 +111,8 @@ Bez Google Pulsecal działa w pełni lokalnie. Żeby mieć kopię w Google Calen
 2. W „APIs & Services → Library” włącz **Google Calendar API**.
 3. Skonfiguruj ekran zgody OAuth: typ **External**, a w „Test users” dodaj swoje konto Google.
 4. W „Credentials” utwórz **OAuth client ID** typu **Web application**. W „Authorized JavaScript origins”
-   dodaj `http://localhost:5173` oraz adres HTTPS, pod którym aplikacja będzie działać. Adresy przekierowania
+   dodaj `http://localhost:5173` (stały serwer), `http://localhost:5174` (`npm run dev`) oraz adres HTTPS,
+   pod którym aplikacja będzie działać. Adresy przekierowania
    (redirect URI) nie są potrzebne.
 5. W Pulsecal kliknij kropkę w prawym górnym rogu, wklej **OAuth Client ID**, kliknij „Połącz” i wybierz kalendarz.
 
@@ -134,6 +155,7 @@ src/
   sync/google.ts     logowanie Google i synchronizacja
   components/        widoki i okna: mapa, miesiąc, przegląd dnia, zadania, edycja, ustawienia…
   hooks/             synchronizacja, przeciąganie, zegar…
+scripts/serve.mjs    stały serwer na komputerze (autostart, przebudowa po nowym commicie)
 public/              ikony aplikacji (PWA)
 ```
 

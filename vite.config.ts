@@ -3,6 +3,8 @@ import react from "@vitejs/plugin-react-swc";
 import { VitePWA } from "vite-plugin-pwa";
 
 export default defineConfig({
+  // `npm run dev` na 5174: port 5173 zajmuje stały serwer z ostatniego commita (scripts/serve.mjs)
+  server: { port: 5174, strictPort: true, watch: { ignored: ["**/.serve/**"] } },
   plugins: [
     react(),
     VitePWA({

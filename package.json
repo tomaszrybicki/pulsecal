@@ -1,12 +1,19 @@
 {
   "name": "pulsecal",
   "private": true,
-  "version": "0.48.1",
+  "version": "0.49.0",
   "type": "module",
   "scripts": {
     "dev": "vite --host",
     "build": "tsc --noEmit && vite build",
-    "preview": "vite preview --host"
+    "preview": "vite preview --host",
+    "serve": "node scripts/serve.mjs run",
+    "serve:status": "node scripts/serve.mjs status",
+    "serve:stop": "node scripts/serve.mjs stop",
+    "serve:restart": "node scripts/serve.mjs restart",
+    "serve:rebuild": "node scripts/serve.mjs rebuild",
+    "serve:install": "node scripts/serve.mjs install",
+    "serve:uninstall": "node scripts/serve.mjs uninstall"
   },
   "dependencies": {
     "dexie": "^4.2.0",

@@ -116,6 +116,19 @@ Previous sessions: first Cursor IDE (built the MVP), then Claude in a chat sessi
 code audit and rewrote the data and sync layer, then stopped at the owner's request.
 **Start by reading `CLAUDE.md`.**
 
+## v0.49.0: always-on local server
+- `scripts/serve.mjs` (no deps beyond vite): builds the latest commit (separate `GIT_INDEX_FILE` +
+  `checkout-index` into `.serve/src` inside the repo, so bare imports resolve to the repo's `node_modules`),
+  `vite build --outDir .serve/next`, stops the preview server, swaps `next` → `current`, starts `vite preview`
+  (`configFile: false`, port 5173 strict, host). Polls `git rev-parse HEAD` every 10 s; a failed build keeps the
+  old version and is not retried until HEAD changes or `serve:rebuild`. PID file is checked against the process
+  command line (PIDs get reused after reboot).
+- Autostart: `Pulsecal server.lnk` in `%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup` → hidden
+  `powershell Start-Process node … run` (no VBScript: Windows is phasing it out). Tested: install, shortcut
+  launch, manual rebuild, stop, rebuild on a new commit.
+- `npm run dev` moved to port 5174 (`strictPort`, ignores `.serve/`); `.claude/launch.json` uses 5174, so the
+  preview pane's test data now lives on origin `localhost:5174`.
+
 ## v0.48.1: GitHub README, public repo
 - `README.md` rewritten in Polish for GitHub (features, mermaid diagram of the sync, setup, Google OAuth
   client steps, iPhone/HTTPS, privacy, limits, structure). No licence (owner's choice).

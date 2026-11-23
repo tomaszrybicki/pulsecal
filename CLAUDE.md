@@ -25,14 +25,15 @@ Product goals, in order:
 ## Commands
 ```bash
 npm install
-npm run dev      # vite --host (iPhone on the same LAN: http://<pc-ip>:5173)
+npm run dev      # vite --host on port 5174 (strict): Claude's preview pane / working tree
 npm run build    # tsc --noEmit && vite build
 npm run preview
+npm run serve:status   # owner's always-on server (scripts/serve.mjs), see "Owner's environment"
 ```
 There are no tests and no linter. "Done" means `npm run build` passes with no errors.
 **Test data (owner's request):** there is no button for it in the app. The Claude preview pane (the browser built
 into the IDE) must always have test data: it carries the dev flag `pulsecal:dev-autoseed`, so `devAutoSeed()`
-(main.tsx, dev only) re-adds missing seed data on load. If it is missing, open `http://localhost:5173/?seed=1`
+(main.tsx, dev only) re-adds missing seed data on load. If it is missing, open `http://localhost:5174/?seed=1`
 once in the preview (`?seed=0` turns it off and removes the data). Never seed the owner's own browser.
 **Keep usage down (owner's request):** for small changes you are confident about, `npm run build` is enough —
 skip browser testing or do one minimal check. Test in the browser only for bigger or risky changes
@@ -89,6 +90,7 @@ src/
     Comments.tsx          comments on tasks/epics (WorkItem.comments, newest first, edit/delete)
     PrefsSheet.tsx        "ustawienia": productive hours, P slot length, move threshold, always full editor
 public/                   icons, favicon
+scripts/serve.mjs         owner's always-on server: builds the latest commit into .serve/, serves it on 5173
 ```
 
 ## Conventions and decisions
@@ -128,6 +130,12 @@ public/                   icons, favicon
 Windows, the project lives in `C:\Users\Tomasz\Projects\pulsecal`. `node_modules` is installed for win32.
 Git repo on `master`, pushed to the **public** GitHub repo https://github.com/tomaszrybicki/pulsecal
 (remote `origin`; push `master` and tags after each version: `git push origin master --follow-tags`).
+**Always-on server (owner's request):** `scripts/serve.mjs` starts at Windows logon (shortcut
+`Pulsecal server.lnk` in the user's Startup folder → hidden PowerShell → node). It serves the production build of
+the **latest commit** (`git read-tree` + `checkout-index` into `.serve/src`, `vite build`, swap into
+`.serve/current`, `vite preview` on **5173**, LAN too) and polls HEAD every 10 s, so each new version commit goes
+live by itself. Uncommitted work is never served. Don't stop it or take port 5173: Claude's dev server/preview
+uses **5174**. Log: `.serve/server.log`; `npm run serve:status|rebuild|restart|stop|install|uninstall`.
 No licence (all rights reserved). Repo-local `user.email` is the GitHub noreply address — keep it, the owner's
 private e-mail must not appear in commits. No `gh` CLI installed.
 

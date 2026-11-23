@@ -364,6 +364,10 @@ Prosta „jira” do spraw osobistych — trzeci widok „zadania” (obok „ma
 - **Ograniczony ruch:** gdy jest włączony w systemie, animacje się wyłączają.
 - **Tryb ciemny:** na dole panelu bocznego „motyw: auto / jasny / ciemny”; auto podąża za ustawieniem systemu.
 - **PWA:** instalowalne, z ikoną, działa offline. Nowa wersja instaluje się sama.
+- **Stały serwer na komputerze:** Pulsecal uruchamia się sam po zalogowaniu do Windows, w tle i bez okna,
+  pod adresem `http://localhost:5173` (też w sieci lokalnej). Działa na nim zawsze ostatnia wydana wersja:
+  po każdym nowym commicie serwer w ciągu kilkunastu sekund sam ją buduje i podmienia, a otwarta aplikacja
+  aktualizuje się sama. Niezapisane zmiany w kodzie na niego nie trafiają. Stan: `npm run serve:status`.
 
 ---
 

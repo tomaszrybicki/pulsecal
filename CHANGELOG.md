@@ -3,6 +3,17 @@
 Każda wersja to jeden commit `vX.Y.Z: …` (treść commita = wpis z tego pliku) i tag `vX.Y.Z`.
 Najnowsze na górze. Opis funkcji aplikacji jest w [FEATURES.md](FEATURES.md).
 
+## [0.49.0] – 2026-11-23: stały serwer na komputerze
+
+- **Stały serwer na komputerze:** Pulsecal uruchamia się sam po zalogowaniu do Windows, w tle i bez okna,
+  pod adresem `http://localhost:5173` (też w sieci lokalnej), w wersji produkcyjnej z trybem offline.
+- **Sam się aktualizuje:** co 10 s sprawdza, czy w repozytorium jest nowy commit; jeśli tak, buduje go w tle
+  i podmienia (otwarta aplikacja zaktualizuje się sama). Serwuje zawsze ostatni commit, nigdy niezapisane
+  zmiany w plikach. Nieudane budowanie zostawia poprzednią wersję.
+- Polecenia: `npm run serve:status`, `serve:rebuild`, `serve:restart`, `serve:stop`, `serve:install`,
+  `serve:uninstall`; log w `.serve/server.log`.
+- `npm run dev` działa teraz na porcie 5174 (5173 zajmuje stały serwer).
+
 ## [0.48.1] – 2026-11-19: README na GitHub
 
 - **README na GitHub:** nowy opis projektu po polsku: czym jest Pulsecal, najważniejsze funkcje, schemat
