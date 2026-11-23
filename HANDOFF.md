@@ -116,6 +116,12 @@ Previous sessions: first Cursor IDE (built the MVP), then Claude in a chat sessi
 code audit and rewrote the data and sync layer, then stopped at the owner's request.
 **Start by reading `CLAUDE.md`.**
 
+## v0.50.0: day group focus (priority)
+- `DayGroup.focus` (at most one, never "rest"; enforced in `cleanGroups`, persisted + settings backup).
+  `groupOf` returns the focused group when it matches, otherwise the first matching group as before.
+  `toggleFocus(groups, id)` in `dayGroups.ts`; DayPanel header button `.dx-focus` (◎ / ◉) in `.dx-gactions`,
+  always visible when on; `.dx-group.focus` has a stronger outline.
+
 ## v0.49.0: always-on local server
 - `scripts/serve.mjs` (no deps beyond vite): builds the latest commit (separate `GIT_INDEX_FILE` +
   `checkout-index` into `.serve/src` inside the repo, so bare imports resolve to the repo's `node_modules`),

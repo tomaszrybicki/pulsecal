@@ -50,7 +50,9 @@ logowanie Google bez własnego serwera (Google Identity Services).
   - **Grupy w przeglądzie dnia:** wpisy są w bańkach. Domyślnie „na szybko” (estymata 5 min, zielona) i
     „pozostałe”. Pole „Grupuj…” na dole: wybierz albo wpisz dowolny tag lub epik (albo „5 min”) → powstaje nowa
     bańka w kolorze tagu/epiku. Grupa epiku obejmuje też wpisy z jego pod-epików (np. „Zdrowie” zbiera też
-    „Zdrowie › internista”). Wpis trafia do pierwszej pasującej grupy od góry. Grupę przesuwa się wyżej/niżej,
+    „Zdrowie › internista”). Wpis trafia do pierwszej pasującej grupy od góry — chyba że inna pasująca grupa ma
+    pierwszeństwo: przycisk ◎ w nagłówku grupy (◉ = włączone, jedna grupa naraz) sprawia, że wpisy pasujące
+    też do innych grup trafiają właśnie do niej, bez zmiany kolejności grup. Grupę przesuwa się wyżej/niżej,
     ciągnąc za uchwyt ⠿ (też „pozostałe”); kółko koloru obok uchwytu zmienia kolor grupy (paleta albo „auto” =
     kolor tagu/epiku); klik w nazwę zwija/rozwija; „>” przenosi całą grupę na następny dzień,
     „×” usuwa grupę (wpisy zostają). Grupy bez wpisów danego dnia są schowane; usuniesz je w „Grupuj…”

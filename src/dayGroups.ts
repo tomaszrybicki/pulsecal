@@ -1,6 +1,7 @@
 /**
  * Grupy w przeglądzie dnia (rozsunięty dzień): „na szybko” (estymata 5 min), wybrane tagi i epiki, „pozostałe”.
  * Kolejność = kolejność wyświetlania; wpis trafia do PIERWSZEJ pasującej grupy, „pozostałe” zbiera resztę.
+ * Wyjątek: grupa z pierwszeństwem („focus”, ◉) bierze wszystkie swoje wpisy, nawet gdy wyżej jest inna pasująca.
  * Zapis w localStorage + w kopii ustawień w Google (settings.ts).
  */
 import { ESTIMATES } from "./estimate";
@@ -19,6 +20,8 @@ export type DayGroup = {
   collapsed?: boolean;
   /** Kolor wybrany ręcznie (#rrggbb); brak = kolor tagu / epiku („auto”). */
   color?: string;
+  /** Pierwszeństwo („focus”): wpis pasujący też do innych grup trafia tutaj, bez względu na kolejność. Najwyżej jedna. */
+  focus?: boolean;
 };
 
 /** Najkrótsza estymata (5 min) — grupa „na szybko”. */
@@ -38,6 +41,7 @@ export function cleanGroups(raw: unknown): DayGroup[] {
   if (!Array.isArray(raw)) return DEFAULT_GROUPS;
   const out: DayGroup[] = [];
   const seen = new Set<string>();
+  let focused = false;
   for (const x of raw as Partial<DayGroup>[]) {
     if (!x || typeof x !== "object") continue;
     let g: DayGroup | null = null;
@@ -48,6 +52,10 @@ export function cleanGroups(raw: unknown): DayGroup[] {
     if (!g || seen.has(g.id)) continue;
     if (x.collapsed) g.collapsed = true;
     if (typeof x.color === "string" && /^#[0-9a-f]{6}$/i.test(x.color)) g.color = x.color;
+    if (x.focus && !focused && g.kind !== "rest") {
+      g.focus = true;
+      focused = true;
+    }
     seen.add(g.id);
     out.push(g);
   }
@@ -89,9 +97,20 @@ export function inGroup(g: DayGroup, e: CalEvent, parents?: EpicParents): boolea
   }
 }
 
-/** Id grupy, do której trafia wpis (pierwsza pasująca, inaczej „pozostałe”). */
+/** Id grupy, do której trafia wpis: grupa z pierwszeństwem, jeśli pasuje; inaczej pierwsza pasująca; inaczej „pozostałe”. */
 export function groupOf(e: CalEvent, groups: DayGroup[], parents?: EpicParents): string {
+  const focus = groups.find((g) => g.focus);
+  if (focus && inGroup(focus, e, parents)) return focus.id;
   return groups.find((g) => inGroup(g, e, parents))?.id ?? REST_GROUP.id;
+}
+
+/** Włącz pierwszeństwo tej grupy (wyłącza je w pozostałych) albo wyłącz, jeśli już je ma. */
+export function toggleFocus(groups: DayGroup[], id: string): DayGroup[] {
+  return groups.map((g) => {
+    const { focus: _f, ...rest } = g;
+    void _f;
+    return g.id === id && !g.focus ? { ...rest, focus: true } : rest;
+  });
 }
 
 /**

@@ -13,6 +13,7 @@ import {
   groupOf,
   reorderVisible,
   tagGroup,
+  toggleFocus,
   type DayGroup,
 } from "../dayGroups";
 import type { CalEvent } from "../types";
@@ -424,6 +425,7 @@ export function DayPanel({
                       onToggle={() => toggleGroup(id)}
                       onShiftAll={() => shift(items, 1)}
                       onRemove={g.kind === "rest" ? undefined : () => removeGroup(id)}
+                      onFocusToggle={g.kind === "rest" ? undefined : () => onGroups(toggleFocus(groups, id))}
                       onDragEnd={endDrag}
                     >
                       {items.length ? items.map(row) : <li className="dx-empty hint">Tego dnia nic tu nie ma.</li>}
@@ -463,6 +465,7 @@ function GroupSection({
   onToggle,
   onShiftAll,
   onRemove,
+  onFocusToggle,
   onDragEnd,
   children,
 }: {
@@ -480,6 +483,8 @@ function GroupSection({
   onToggle: () => void;
   onShiftAll: () => void;
   onRemove?: () => void;
+  /** ◎ / ◉: pierwszeństwo grupy (nie dla „pozostałe”). */
+  onFocusToggle?: () => void;
   onDragEnd: () => void;
   children: ReactNode;
 }) {
@@ -492,7 +497,7 @@ function GroupSection({
       dragControls={controls}
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
-      className={`dx-group k-${group.kind}${group.collapsed ? " collapsed" : ""}${info.color ? " tinted" : ""}`}
+      className={`dx-group k-${group.kind}${group.collapsed ? " collapsed" : ""}${info.color ? " tinted" : ""}${group.focus ? " focus" : ""}`}
       style={info.color ? { ["--g" as string]: info.color } : undefined}
       // poza przeciąganiem grupy nie zjeżdżają z animacją (np. gdy zniknie grupa wyżej) — od razu na miejscu
       transition={reduce || !dragging ? { duration: 0 } : undefined}
@@ -534,6 +539,22 @@ function GroupSection({
           </span>
         </button>
         <span className="dx-gactions">
+          {onFocusToggle && (
+            <button
+              type="button"
+              className={`dx-btn dx-focus${group.focus ? " on" : ""}`}
+              aria-pressed={Boolean(group.focus)}
+              title={
+                group.focus
+                  ? "Pierwszeństwo: wpisy pasujące też do innych grup trafiają tutaj (kliknij, żeby wyłączyć)"
+                  : "Daj tej grupie pierwszeństwo: wpisy pasujące też do innych grup trafią tutaj"
+              }
+              aria-label={`${info.name}: pierwszeństwo`}
+              onClick={onFocusToggle}
+            >
+              {group.focus ? "◉" : "◎"}
+            </button>
+          )}
           <button
             type="button"
             className="dx-btn"
@@ -655,7 +676,7 @@ function Grouper({
         className="dx-ginput"
         value={text}
         placeholder="Grupuj… (tag albo epik)"
-        title="Wpis trafia do pierwszej pasującej grupy od góry. Kolejność zmienisz, przeciągając ⠿."
+        title="Wpis trafia do pierwszej pasującej grupy od góry, chyba że inna pasująca ma pierwszeństwo (◉). Kolejność zmienisz, przeciągając ⠿."
         aria-label="Grupuj według tagu albo epiku"
         onFocus={() => onOpen(true)}
         onBlur={() => onOpen(false)}

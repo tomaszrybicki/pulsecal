@@ -3,6 +3,14 @@
 Każda wersja to jeden commit `vX.Y.Z: …` (treść commita = wpis z tego pliku) i tag `vX.Y.Z`.
 Najnowsze na górze. Opis funkcji aplikacji jest w [FEATURES.md](FEATURES.md).
 
+## [0.50.0] – 2026-11-23: pierwszeństwo grupy w przeglądzie dnia
+
+- **Pierwszeństwo grupy („focus”) w przeglądzie dnia:** nowy mały przycisk ◎ w nagłówku grupy (obok „>”).
+  Po kliknięciu (◉) wpis, który pasuje do kilku grup, trafia właśnie do tej, bez względu na kolejność grup —
+  np. wpis 5 min z tagiem „low priority” pójdzie do grupy „low priority”, choć „na szybko” jest wyżej.
+  Pierwszeństwo może mieć jedna grupa naraz (kliknięcie innej je przenosi, ponowne kliknięcie wyłącza);
+  grupa z pierwszeństwem ma mocniejszy obrys, a ◉ widać zawsze. Zapamiętuje się razem z resztą ustawień grup.
+
 ## [0.49.0] – 2026-11-23: stały serwer na komputerze
 
 - **Stały serwer na komputerze:** Pulsecal uruchamia się sam po zalogowaniu do Windows, w tle i bez okna,
