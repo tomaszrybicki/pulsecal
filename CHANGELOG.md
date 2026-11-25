@@ -3,6 +3,17 @@
 Każda wersja to jeden commit `vX.Y.Z: …` (treść commita = wpis z tego pliku) i tag `vX.Y.Z`.
 Najnowsze na górze. Opis funkcji aplikacji jest w [FEATURES.md](FEATURES.md).
 
+## [0.52.0] – 2026-11-25: nowa ikona w kolorach kalendarza
+
+- **Nowa ikona aplikacji:** zamiast pomarańczowej plamy na beżowym tle, która przypominała logo sklepu, a nie
+  kalendarz, jest teraz biały kafelek z niebieską kartką kalendarza (z kółkami u góry) i czterema „blobami”
+  w kolorach jak w Google: czerwonym, żółtym, zielonym i niebieskim. Łatwo ją wypatrzyć kątem oka na pasku
+  zadań, w kartach przeglądarki i na ekranie telefonu.
+- Osobna wersja „maskable” (Android i Windows przycinają ją do koła albo zaokrąglonego kwadratu, rysunek
+  się mieści).
+- Zainstalowana aplikacja może pokazywać starą ikonę, dopóki system jej nie odświeży. Na iPhonie trzeba ją
+  usunąć z ekranu początkowego i dodać ponownie („Udostępnij → Do ekranu początkowego”).
+
 ## [0.51.0] – 2026-11-23: podpowiedź przy przenoszeniu co N razy, wyłączana dla wpisu
 
 - **Podpowiedź „prosty krok” co N przeniesień, licząc od ostatniej:** po oknie wpis można znowu przenieść

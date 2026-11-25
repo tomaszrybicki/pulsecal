@@ -116,6 +116,15 @@ Previous sessions: first Cursor IDE (built the MVP), then Claude in a chat sessi
 code audit and rewrote the data and sync layer, then stopped at the owner's request.
 **Start by reading `CLAUDE.md`.**
 
+## v0.52.0: new app icon (calendar, Google-like colours)
+- Owner: the old icon (orange blob on paper) got lost in peripheral vision and looked like a shop logo.
+  New: white tile, blue calendar sheet with rings, four blobs in red / yellow / green / blue. Original drawing,
+  not Google's logo (no „31”, no coloured corner edges) — keep it that way.
+- Source = `scripts/icons.py` (Python + Pillow, 4× supersampling): writes `public/favicon.svg`, `icon-192.png`,
+  `icon-512.png` (rounded tile, transparent corners, drawing zoomed 1.12), `icon-maskable-512.png` (full bleed,
+  zoom 1.0 so it fits the 40% safe circle) and `apple-touch-icon.png` (full bleed, RGB). Manifest's maskable
+  entry now points at `icon-maskable-512.png`. Theme colours unchanged.
+
 ## v0.51.0: move prompt every N moves since the last one, per-event off switch
 - `moves.ts`: `moveStep(prev, nextStart)` → `{ moves, nudge }`; the prompt fires when `moves - base >= N`, where
   `base = min(nudgedAt ?? floor(prevMoves / N) * N, prevMoves)` (the fallback keeps the old 10/20/30 rhythm for
