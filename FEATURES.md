@@ -98,7 +98,7 @@ logowanie Google bez własnego serwera (Google Identity Services).
   - górny pasek pokazuje zakres („16 – 29 lis 2026”), a × wraca do zwykłego widoku.
 - **Przypięte epiki:** paski postępu przypiętych epików (opisane w „Zadania i epiki”).
 - **Tagi:** lista wszystkich tagów z liczbą wpisów, opisana niżej.
-- **Odnośniki na dole:** „kalendarz”, „zadania i epiki” (z liczbą niezrobionych zadań), „ustawienia” i „motyw”
+- **Odnośniki na dole:** „kalendarz”, „zadania i epiki” (z liczbą niezrobionych zadań), „projekty”, „ustawienia” i „motyw”
   (auto / jasny / ciemny). Tu będą dochodzić kolejne funkcje.
 - **Ustawienia:** godziny produktywności, długość wpisu z „P”, po ilu przeniesieniach podpowiedzieć pierwszy
   krok, „Zawsze pełna edycja po kliknięciu wpisu” (tylko to urządzenie) i przycisk „Google Calendar…”.
@@ -331,6 +331,27 @@ Prosta „jira” do spraw osobistych — trzeci widok „zadania” (obok „ma
 - **Kopia w Google:** każde zadanie i epik to osobny ukryty wpis 2 stycznia 2000 („Pulsecal — epik: …”),
   razem z priorytetem, terminem, szacunkiem, własnymi polami, komentarzami i przypięciem. Przypisanie wpisu do epiku też synchronizuje się
   z Google (w ukrytych danych wpisu).
+
+### Projekty
+
+- **Projekt = grafika + opis + epiki wokół niej.** Widok „projekty” (panel boczny). Na start: „Auto”
+  (symboliczny samochód) i „Ja” (symboliczny człowiek). „+ projekt” dodaje kolejny (nazwa i grafika: auto
+  albo człowiek); grafikę i nazwę zmienisz też później, „usuń” kasuje projekt (epiki zostają, z „Cofnij”).
+- **Epiki na płótnie:** „+ połóż epik” kładzie dowolny epik obok grafiki (nowa nazwa od razu tworzy epik).
+  Karty przeciągasz myszą albo palcem, gdzie chcesz; pozycje są te same na każdym urządzeniu. Karta pokazuje
+  postęp epiku, kliknięcie otwiera epik, „×” zdejmuje go z projektu.
+- **Łamane strzałki:** „↗” na karcie rysuje cienką strzałkę z odcinków poziomych i pionowych do najbliższego
+  miejsca grafiki (auto: koła, szyby, dach, maska, bagażnik, drzwi, światło; człowiek: głowa, tułów, ręce,
+  nogi, stopy). Koniec strzałki można przeciągnąć w dowolne miejsce.
+- **Postęp projektu:** zrobione zadania ze wszystkich epików na płótnie (z pod-epikami; pod-epik leżący obok
+  swojego epiku liczy się raz). Grafika wypełnia się kolorem od dołu (koralowy → żółty → zielony), przy 100%
+  podskakuje: „🏁 projekt ukończony!”. Na przyciskach projektów widać procent.
+- **Podgląd po zamknięciu zadania:** zadanie oznaczone jako zrobione (lista, tablica, szczegóły) albo usunięty
+  wpis z epiku, który leży w projekcie → z boku na ok. 5 s wysuwa się podgląd projektu; grafika dopełnia się
+  do nowego postępu, obok „+1”. Staje po przeciwnej stronie niż przegląd dnia, najechanie myszą go zatrzymuje,
+  kliknięcie otwiera projekt. W samym widoku „projekty” się nie pokazuje.
+- **Kopia w Google:** każdy projekt to ukryty wpis 2 stycznia 2000 („Pulsecal — projekt: …”). Projekty startowe
+  wysyłają się dopiero po pierwszej zmianie, więc drugie urządzenie nie nadpisze ich pustą wersją.
 
 ### Synchronizacja z Google Calendar
 

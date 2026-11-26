@@ -3,6 +3,26 @@
 Każda wersja to jeden commit `vX.Y.Z: …` (treść commita = wpis z tego pliku) i tag `vX.Y.Z`.
 Najnowsze na górze. Opis funkcji aplikacji jest w [FEATURES.md](FEATURES.md).
 
+## [0.53.0] – 2026-11-26: projekty z grafiką i podgląd postępu
+
+- **Nowy widok „projekty”** (odnośnik w panelu bocznym): projekt to grafika z opisem, a wokół niej leżą epiki.
+  Na start są dwa projekty: „Auto” (symboliczny samochód) i „Ja” (symboliczny człowiek); kolejne dodasz
+  przyciskiem „+ projekt”, wybierając grafikę (auto albo człowiek).
+- **Epiki obok grafiki:** pole „+ połóż epik” kładzie na płótnie dowolny epik (albo od razu tworzy nowy, np.
+  „Zmień opony”). Karty epików przeciągasz swobodnie myszą albo palcem; każda pokazuje swój postęp,
+  a kliknięcie otwiera epik.
+- **Łamane strzałki:** przycisk ↗ na karcie dodaje minimalistyczną strzałkę z samych odcinków poziomych
+  i pionowych do najbliższego miejsca grafiki (koło, szyba, maska, głowa, ręka…). Koniec strzałki przeciągniesz
+  dokładnie tam, gdzie chcesz. Ponowne ↗ usuwa strzałkę, × zdejmuje epik z projektu (epik zostaje).
+- **Postęp całego projektu:** suma zrobionych zadań ze wszystkich jego epików (pod-epik leżący obok swojego
+  epiku liczy się raz). Grafika wypełnia się kolorem od dołu, od koralowego przez żółty do zielonego, a przy
+  100% podskakuje i pojawia się „🏁 projekt ukończony!”.
+- **Podgląd projektu po zamknięciu zadania:** gdy oznaczysz jako zrobione zadanie (albo usuniesz wpis) z epiku,
+  który leży w projekcie, z boku na ok. 5 sekund wysuwa się podgląd projektu. Grafika dopełnia się w nim do
+  nowego postępu i pojawia się „+1”. Podgląd staje po przeciwnej stronie niż otwarty przegląd dnia, więc go
+  nie zasłania; najechanie myszą go zatrzymuje, kliknięcie otwiera projekt.
+- Projekty mają kopię w Google tak jak zadania (ukryte wpisy 2 stycznia 2000), więc są też na innych urządzeniach.
+
 ## [0.52.0] – 2026-11-25: nowa ikona w kolorach kalendarza
 
 - **Nowa ikona aplikacji:** zamiast pomarańczowej plamy na beżowym tle, która przypominała logo sklepu, a nie

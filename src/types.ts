@@ -1,6 +1,6 @@
 export type EventOrigin = "local" | "google" | "both";
 
-export type ViewMode = "map" | "month" | "tasks";
+export type ViewMode = "map" | "month" | "tasks" | "projects";
 
 export interface CalEvent {
   id: string;
@@ -113,6 +113,34 @@ export interface WorkItem {
   statusManual?: boolean;
   /** Epik na kalendarzu: dzień (lokalna północ), w którym jest pokazany jako baner z paskiem zadań. */
   showOn?: number | null;
+}
+
+/** Grafika projektu (projects.ts, ProjectArt.tsx). */
+export type ProjectArtKind = "car" | "person";
+
+/** Epik położony na płótnie projektu. Współrzędne w jednostkach płótna (CANVAS_W × CANVAS_H, projects.ts). */
+export interface ProjectPin {
+  epicId: string;
+  /** Środek karty epiku. */
+  x: number;
+  y: number;
+  /** Łamana strzałka od karty do punktu na grafice (brak = bez strzałki). */
+  arrow?: { x: number; y: number } | null;
+}
+
+/** Projekt: grafika + opis + epiki rozłożone wokół grafiki; postęp = suma zrobionych zadań w tych epikach. */
+export interface Project {
+  id: string;
+  title: string;
+  description: string;
+  art: ProjectArtKind;
+  pins: ProjectPin[];
+  order: number;
+  createdAt: number;
+  updatedAt: number;
+  deleted: boolean;
+  /** 1 = zmiana czeka na wysłanie kopii do Google. */
+  pending: 0 | 1;
 }
 
 export type SyncState = "off" | "idle" | "syncing" | "expired" | "offline" | "error";

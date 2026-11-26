@@ -56,6 +56,7 @@ src/
   links.ts                task ↔ event links: reconcileLinks(), unlinkSeries()
   colors.ts               palette + mapping to Google colorId
   prefs.ts                productive hours, P slot length, always-full-editor pref, findFreeSlot()
+  projects.ts             projects: canvas geometry, starters, progress, elbow arrows, changeProject(), backup cleaning
   moves.ts                move counter + "simple step" prompt every N moves since the last (nudgedAt, nudgeOff)
   estimate.ts             time estimate (5 / 30 / 60 / 120 = "2h+") labels; EstimatePicker.tsx = quick buttons
   devSeed.ts              dev-only test data (ids start with "5eed", pending 0), auto-added via devAutoSeed()
@@ -83,6 +84,9 @@ src/
     SyncIndicator.tsx, Toast.tsx, sheetMotion.ts
     Cheers.tsx            cheer bubble + achievement pill at the top (pointer-events none), listens to onCheer()
     SettingsSheet.tsx     Client ID, calendar, polling interval
+    ProjectsView.tsx      "projekty" view: project chips, title/description, canvas with draggable epic cards + arrows
+    ProjectArt.tsx        project art (car, person) SVG, filled from the bottom by progress (framer clipPath)
+    ProjectPeek.tsx       side peek of a project for ~5 s after closing a task in one of its epics
     TasksView.tsx         "zadania" view, Jira-like: epic panel, list (grouped table) / board (drag between statuses)
     WorkItemSheet.tsx     Jira-like issue details: title, description, epic contents | status + fields panel
     WorkFieldsSheet.tsx   custom fields (text / number / select), definitions in settings backup
@@ -109,6 +113,9 @@ scripts/serve.mjs         owner's always-on server: builds the latest commit int
   always sent, "" = none). Epics contain only tasks: a task may link one event (`WorkItem.eventId`) or a series
   (`seriesId`); `links.ts` `reconcileLinks()` creates tasks for events in epics (deterministic `linkedTaskId`),
   keeps epic/title in sync (newer `updatedAt` wins) and sets auto status unless `statusManual`.
+- Projects (`Project`, Dexie v5 table `projects`): every change via `saveProject()`/`changeProject()` (`pending = 1`).
+  Backup like items: hidden event 2000-01-02, id `pulseproj<id>`, `private.pulseType=project`. Starter projects
+  (`starterauto`, `starterja`) are created with `pending: 0` so they never overwrite a real copy in Google.
 - Times are stored as epoch ms (local time). All-day `end` = **last millisecond of the last day**;
   Google's end is exclusive (the next day), so convert at the boundary (`sync/google.ts`).
 - Tags: local field `CalEvent.tags` (casing as typed; compare via `tagKey()` = lowercase; Dexie v3 `*tags` index).

@@ -41,7 +41,7 @@ type Props = {
   onDeleteTag: (tag: string) => void;
   view: ViewMode;
   /** Odnośniki na dole panelu: kalendarz (ostatni widok kalendarza) / zadania. */
-  onView: (v: "calendar" | "tasks") => void;
+  onView: (v: "calendar" | "tasks" | "projects") => void;
   /** Liczba niezrobionych zadań (przy odnośniku „zadania”). */
   openTasks: number;
   pinned: PinnedEpic[];
@@ -264,7 +264,7 @@ function SidebarImpl(p: Props) {
 
         {/* Odnośniki do funkcji — tu dochodzą kolejne (zawsze na dole panelu). */}
         <nav className="side-nav" aria-label="Funkcje">
-          <button type="button" aria-pressed={p.view !== "tasks"} onClick={() => p.onView("calendar")}>
+          <button type="button" aria-pressed={p.view !== "tasks" && p.view !== "projects"} onClick={() => p.onView("calendar")}>
             <NavIcon d="M3 5.5h14M6 2.5v3M14 2.5v3M4 4h12a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z" />
             kalendarz
           </button>
@@ -272,6 +272,10 @@ function SidebarImpl(p: Props) {
             <NavIcon d="M4 3h12a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zM6.5 10l2.5 2.5 4.5-5" />
             zadania i epiki
             {p.openTasks > 0 && <span className="nav-count">{p.openTasks}</span>}
+          </button>
+          <button type="button" aria-pressed={p.view === "projects"} onClick={() => p.onView("projects")}>
+            <NavIcon d="M10 2.5l7 4v7l-7 4l-7-4v-7zM10 2.5v15M3 6.5l7 4l7-4" />
+            projekty
           </button>
           <button type="button" onClick={p.onOpenPrefs}>
             <NavIcon d="M10 7a3 3 0 1 0 0 6a3 3 0 0 0 0-6zM10 2.5v2M10 15.5v2M2.5 10h2M15.5 10h2M4.7 4.7l1.4 1.4M13.9 13.9l1.4 1.4M4.7 15.3l1.4-1.4M13.9 6.1l1.4-1.4" />

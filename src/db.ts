@@ -1,10 +1,11 @@
 import Dexie, { type EntityTable } from "dexie";
 import { normalizeTags, splitTags, tagKey } from "./tags";
-import type { CalEvent, WorkItem } from "./types";
+import type { CalEvent, Project, WorkItem } from "./types";
 
 class PulseDB extends Dexie {
   events!: EntityTable<CalEvent, "id">;
   items!: EntityTable<WorkItem, "id">;
+  projects!: EntityTable<Project, "id">;
 
   constructor() {
     super("pulsecal");
@@ -47,6 +48,10 @@ class PulseDB extends Dexie {
     this.version(4).stores({
       events: "id, start, end, googleEventId, updatedAt, pending, *tags, epicId",
       items: "id, parentId, kind, status, updatedAt, pending",
+    });
+    // v5: projekty (grafika + epiki wokół niej, projects.ts)
+    this.version(5).stores({
+      projects: "id, updatedAt, pending",
     });
   }
 }

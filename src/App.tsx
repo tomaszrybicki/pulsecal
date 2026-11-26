@@ -17,6 +17,9 @@ import { PrefsSheet } from "./components/PrefsSheet";
 import { Sidebar } from "./components/Sidebar";
 import { TagRulesSheet } from "./components/TagRulesSheet";
 import { TasksView } from "./components/TasksView";
+import { ProjectsView } from "./components/ProjectsView";
+import { ProjectPeek, type PeekState } from "./components/ProjectPeek";
+import { projectProgress, projectsForEpic, setActiveProject } from "./projects";
 import { WorkItemSheet } from "./components/WorkItemSheet";
 import { WorkFieldsSheet } from "./components/WorkFieldsSheet";
 import { SyncIndicator } from "./components/SyncIndicator";
@@ -65,7 +68,7 @@ import {
   tagKey,
   withDefaultTags,
 } from "./tags";
-import type { CalEvent, DraftEvent, ViewMode, WorkField, WorkItem, WorkKind } from "./types";
+import type { CalEvent, DraftEvent, Project, ViewMode, WorkField, WorkItem, WorkKind } from "./types";
 import { formatMinutes, storedEstimate } from "./estimate";
 import { ancestorIds, SLEEPY_DAYS, remainingEstimate, subtreeIds, buildTree, epicColor, lastTouched, progressOf, epicOptions, epicPath, getWorkFields, newItem, nextNum, saveItem, setWorkFields } from "./work";
 import {
@@ -141,7 +144,7 @@ export function App() {
   // ostatni widok kalendarza — „kalendarz” w panelu bocznym wraca do niego z widoku zadań
   const lastCalView = useRef<ViewMode>(view);
   useEffect(() => {
-    if (view !== "tasks") lastCalView.current = view;
+    if (view !== "tasks" && view !== "projects") lastCalView.current = view;
   }, [view]);
   const [focus, setFocus] = useState(() => startOfDay(new Date()));
   // tygodnie wybrane w małym kalendarzu (null = zwykły widok: miesiąc / 21 dni wokół fokusu)
@@ -223,6 +226,7 @@ export function App() {
 
   /* ── zadania i epiki ── */
   const items = useLiveQuery(() => db.items.filter((i) => !i.deleted).toArray(), [], [] as WorkItem[]);
+  const projects = useLiveQuery(() => db.projects.filter((p) => !p.deleted).toArray(), [], [] as Project[]);
   // wpisy przypięte do epików — z całego kalendarza, nie tylko z widocznego zakresu (postęp, lista w epiku)
   const epicEvents = useLiveQuery(
     () => db.events.where("epicId").above("").filter((e) => !e.deleted).toArray(),
@@ -638,6 +642,7 @@ export function App() {
   const deleteEvent = async (id: string) => {
     const before = await db.events.get(id);
     if (!before) return;
+    peekProjectOf(before.epicId);
     await removeLocal(id);
     recordWin({ kind: "delete", source: "event" });
     sync.requestSync(8000);
@@ -731,6 +736,22 @@ export function App() {
   /** Z poziomu wpisu w kalendarzu: nowy epik na najwyższym poziomie. */
   const createEpicNamed = (name: string) => createItem("epic", name, "");
 
+  /* ── podgląd projektu po zamknięciu zadania z epiku w projekcie ── */
+  const [peek, setPeek] = useState<PeekState | null>(null);
+  const peekSeq = useRef(0);
+  /** Wołane PRZED zapisem zmiany: `from` = postęp sprzed zamknięcia, potem podgląd pokazuje postęp na żywo. */
+  const peekProjectOf = (epicId: string | undefined) => {
+    if (!epicId || view === "projects") return;
+    const p = projectsForEpic(epicId, projects, tree.byId)[0];
+    if (!p) return;
+    // po przeciwnej stronie niż przegląd dnia (otwarty przy klikniętym dniu)
+    const at = dayPanel?.from;
+    const side = at && at.x + at.w / 2 > window.innerWidth / 2 ? "left" : "right";
+    peekSeq.current += 1;
+    setPeek({ id: peekSeq.current, projectId: p.id, from: projectProgress(p, tree, Date.now()), side });
+  };
+  const peekProject = peek ? projects.find((p) => p.id === peek.projectId) : undefined;
+
   // szybkie zmiany z listy / tablicy po kolei, każda od aktualnego stanu w bazie
   const patchChain = useRef(Promise.resolve());
   const patchItem = (id: string, patch: Partial<WorkItem>) => {
@@ -739,8 +760,10 @@ export function App() {
       // status zmieniony ręcznie (lista, tablica) — już nie zmienia się sam po zakończeniu wpisu
       const manual = patch.status !== undefined && patch.status !== cur?.status ? { statusManual: true } : {};
       if (cur && !cur.deleted) {
+        const closing = patch.status === "done" && cur.status !== "done";
+        if (closing) peekProjectOf(cur.kind === "epic" ? cur.id : cur.parentId);
         await saveItem({ ...cur, ...patch, ...manual });
-        if (patch.status === "done" && cur.status !== "done") recordWin({ kind: "done", source: cur.kind === "epic" ? "epic" : "task" });
+        if (closing) recordWin({ kind: "done", source: cur.kind === "epic" ? "epic" : "task" });
       }
     });
     sync.requestSync(3000);
@@ -748,7 +771,10 @@ export function App() {
 
   const saveWork = (item: WorkItem) => {
     const prev = tree.byId.get(item.id);
-    if (item.status === "done" && prev && prev.status !== "done") recordWin({ kind: "done", source: item.kind === "epic" ? "epic" : "task" });
+    if (item.status === "done" && prev && prev.status !== "done") {
+      peekProjectOf(item.kind === "epic" ? item.id : item.parentId);
+      recordWin({ kind: "done", source: item.kind === "epic" ? "epic" : "task" });
+    }
     void saveItem(item);
     sync.requestSync(2000);
   };
@@ -1083,7 +1109,7 @@ export function App() {
   const goToday = () => {
     const today = startOfDay(new Date());
     // z widoku zadań „dziś” wraca do kalendarza
-    if (view === "tasks") setView(lastCalView.current);
+    if (view === "tasks" || view === "projects") setView(lastCalView.current);
     if (weekSel) setWeekSel({ ...weekSel, start: startOfWeek(today) });
     navigate(today);
   };
@@ -1276,7 +1302,7 @@ export function App() {
         </button>
         <div className="brand">
           <strong>pulsecal</strong>
-          <span className="period" hidden={view === "tasks"}>
+          <span className="period" hidden={view === "tasks" || view === "projects"}>
             <button
               type="button"
               className="today-btn"
@@ -1346,7 +1372,7 @@ export function App() {
           viewSwitch={sideViewSwitch}
           view={view}
           onView={(v) => {
-            setView(v === "tasks" ? "tasks" : lastCalView.current);
+            setView(v === "calendar" ? lastCalView.current : v);
             closeDrawer();
           }}
           openTasks={openTasks}
@@ -1401,7 +1427,18 @@ export function App() {
               />
             </div>
           )}
-          {view === "tasks" ? null : view === "map" ? (
+          {view === "projects" && (
+            <ProjectsView
+              projects={projects}
+              tree={tree}
+              now={now.getTime()}
+              onOpenEpic={(id) => setWorkOpen(id)}
+              onCreateEpic={createEpicNamed}
+              onChanged={() => sync.requestSync(3000)}
+              notify={sync.notify}
+            />
+          )}
+          {view === "tasks" || view === "projects" ? null : view === "map" ? (
             <CalendarMap
               now={now}
               days={mapDays}
@@ -1475,6 +1512,24 @@ export function App() {
 
       <Toast notice={sync.notice} />
       <Cheers />
+      <AnimatePresence>
+        {peek && peekProject && (
+          <ProjectPeek
+            key={peek.id}
+            peek={peek}
+            project={peekProject}
+            progress={projectProgress(peekProject, tree, now.getTime())}
+            onOpen={() => {
+              setActiveProject(peekProject.id);
+              setPeek(null);
+              setDayPanel(null);
+              setWorkOpen(null);
+              setView("projects");
+            }}
+            onClose={() => setPeek(null)}
+          />
+        )}
+      </AnimatePresence>
 
       {planDrag && (
         <div className="plan-ghost" style={{ transform: `translate(${planDrag.x + 14}px, ${planDrag.y + 12}px)` }} aria-hidden>

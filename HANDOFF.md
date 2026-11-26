@@ -116,6 +116,30 @@ Previous sessions: first Cursor IDE (built the MVP), then Claude in a chat sessi
 code audit and rewrote the data and sync layer, then stopped at the owner's request.
 **Start by reading `CLAUDE.md`.**
 
+## v0.53.0: projects (art + epics around it) and the progress peek
+- `Project` (types.ts): title, description, `art` ("car" | "person"), `pins` [{epicId, x, y, arrow?}], order.
+  Dexie v5 table `projects`; every change via `saveProject()` / `changeProject(id, fn)` (serial chain, reads
+  fresh from the DB) in `projects.ts`. Backup like items: hidden all-day event 2000-01-02, id
+  `pulseproj<id>`, `private.pulseType=project`, JSON in a ```json block (`projectBody`/`applyRemoteProject`/
+  `pullProjects`/`pushProjects` in sync/google.ts; routed in `applyRemote` by prefix; full pull lists them).
+- Starters „Auto” / „Ja”: fixed ids `starterauto` / `starterja`, created once per device (localStorage
+  `pulsecal:projects-started`) only when the table is empty, with `pending: 0` and `updatedAt: 1`, so a second
+  device never overwrites a real copy in Google — it just pulls it.
+- Canvas: logical 1000×660 (`CANVAS_W/H`), scaled as a whole (`scale` 0.5–1.2 from the wrapper width; phone
+  scrolls sideways). Pin x/y = card centre. Art box is centred (`artBox`), 1:1 with the SVG viewBox of
+  `ProjectArt.tsx`. Pointer drag with capture on cards and on arrow ends (`touch-action: none`), `held` keeps the
+  dropped position until the live query confirms it. Arrows: `elbowPath()` (H/V/H or V/H/V from the card edge),
+  default end = nearest `ANCHORS` point of the art.
+- Progress: `projectProgress()` sums `progressOf()` of pinned epics, skipping an epic whose ancestor is pinned.
+  `ProjectArt` fills the silhouette band (`fill: [top, bottom]`) via a framer `motion.rect` clipPath; the clip
+  id comes from `useId()` with everything but `[A-Za-z0-9_-]` stripped (React 19 ids break `url(#…)`).
+- Peek: `peekProjectOf(epicId)` in App is called BEFORE the change is saved (patchItem / saveWork on → done,
+  deleteEvent with `epicId`); it stores `from` = progress before, and `ProjectPeek` shows the live progress after
+  ~0.4 s. Side = opposite of the open day panel (`dayPanel.from` centre), default right; not shown in the projects
+  view. Auto-closes after 4.8 s (paused on hover).
+- Not done / ideas: more arts (house, bike…), own uploaded image, a cheer/achievement for a finished project,
+  dragging an epic from the sidebar onto the canvas.
+
 ## v0.52.0: new app icon (calendar, Google-like colours)
 - Owner: the old icon (orange blob on paper) got lost in peripheral vision and looked like a shop logo.
   New: white tile, blue calendar sheet with rings, four blobs in red / yellow / green / blue. Original drawing,

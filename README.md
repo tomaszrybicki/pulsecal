@@ -41,6 +41,8 @@ Na iPhonie instaluje się go z Safari („Udostępnij → Do ekranu początkoweg
 - ⏱️ **Estymata** (5 min / 30 min / 1 h / 2 h+) i przycisk **„P”**: wpis trafia w najbliższą wolną godzinę
   w Twoich godzinach produktywności.
 - 🧩 **Zadania i epiki** z postępem, komentarzami i własnymi polami; zadanie można przeciągnąć na kalendarz.
+- 🚗 **Projekty:** grafika (auto, człowiek) z epikami rozłożonymi wokół i łamanymi strzałkami; postęp
+  całego projektu wypełnia grafikę kolorem, a po zamknięciu zadania z boku wysuwa się podgląd.
 - 🎉 **Zachęty i mini-osiągnięcia** po zamknięciu zadania albo usunięciu wpisu („On fire! 🔥 ×3”).
 - 🌙 **Motyw jasny i ciemny**, działanie offline, automatyczne aktualizacje.
 

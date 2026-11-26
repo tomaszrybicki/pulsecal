@@ -13,7 +13,8 @@
  */
 import { DEFAULT_GOOGLE_COLOR, GOOGLE_EVENT_COLORS, googleIdForColor, paletteById, paletteByValue } from "../colors";
 import { db } from "../db";
-import type { CalEvent, WorkItem } from "../types";
+import type { CalEvent, Project, WorkItem } from "../types";
+import { cleanProject } from "../projects";
 import { applyTagRules } from "../tagRules";
 import { isSettings, type AppSettings, type SettingsBackup } from "../settings";
 import { htmlToText, joinTags, splitTags } from "../tags";
@@ -574,6 +575,7 @@ async function reconcileSeries(masterId: string, from: number, to: number): Prom
 async function applyRemote(g: GEvent, ignoreEtag = false): Promise<boolean> {
   if (g.id === SETTINGS_EVENT_ID) return false; // ukryty wpis z ustawieniami — nie pokazujemy go
   if (g.id.startsWith(ITEM_PREFIX)) return applyRemoteItem(g); // kopia zadania/epiku
+  if (g.id.startsWith(PROJECT_PREFIX)) return applyRemoteProject(g); // kopia projektu
   const existing = await db.events.where("googleEventId").equals(g.id).first();
 
   if (g.status === "cancelled") {
@@ -656,7 +658,7 @@ async function pullFull(from: Date, to: Date, ignoreEtag = false): Promise<numbe
     await db.events.bulkDelete(stale.map((e) => e.id));
     changed += stale.length;
   }
-  return changed + (await pullItems());
+  return changed + (await pullItems()) + (await pullProjects());
 }
 
 /**
@@ -706,10 +708,11 @@ export function syncNow(from: Date, to: Date, opts: { forceFull?: boolean } = {}
     const recolor = localStorage.getItem(COLOR_RULES_KEY) !== COLOR_RULES_VERSION;
     const ev = await pushPending();
     const it = await pushItems();
-    const pushed = ev.pushed + it.pushed;
+    const pr = await pushProjects();
+    const pushed = ev.pushed + it.pushed + pr.pushed;
     const removed = ev.removed;
-    const failed = ev.failed + it.failed;
-    const pushError = ev.error ?? it.error;
+    const failed = ev.failed + it.failed + pr.failed;
+    const pushError = ev.error ?? it.error ?? pr.error;
 
     const meta = readMeta();
     const covered = meta && meta.from <= from.getTime() && meta.to >= to.getTime();
@@ -957,6 +960,100 @@ async function pushItems(): Promise<{ pushed: number; failed: number; error?: Er
         const cur = await db.items.get(i.id);
         if (!cur) return;
         await db.items.update(i.id, { remote: 1, ...(cur.updatedAt === i.updatedAt ? { pending: 0 as const } : {}) });
+      });
+      pushed += 1;
+    } catch (err) {
+      if (err instanceof NeedsAuthError) throw err;
+      failed += 1;
+      error ??= err instanceof Error ? err : new Error(String(err));
+    }
+  }
+  return { pushed, failed, error };
+}
+
+/* ───────────────────────── kopia projektów ───────────────────────── */
+
+/** Projekt (projects.ts) jak zadanie: ukryty wpis 2.01.2000, ID „pulseproj<id>”, JSON w opisie. */
+const PROJECT_PREFIX = "pulseproj";
+const PROJECT_NOTE =
+  "Projekt z aplikacji Pulsecal (kopia zapasowa). Nie usuwaj i nie zmieniaj — Pulsecal odczytuje go " +
+  "na innych urządzeniach.";
+
+function projectBody(p: Project): Record<string, unknown> {
+  const data = {
+    id: p.id,
+    title: p.title,
+    description: p.description,
+    art: p.art,
+    pins: p.pins,
+    order: p.order,
+    createdAt: p.createdAt,
+    updatedAt: p.updatedAt,
+  };
+  return {
+    summary: `Pulsecal — projekt: ${p.title}`,
+    description: `${PROJECT_NOTE}\n\n\`\`\`json\n${JSON.stringify(data)}\n\`\`\``,
+    start: { date: "2000-01-02", dateTime: null },
+    end: { date: "2000-01-03", dateTime: null },
+    status: "confirmed",
+    transparency: "transparent",
+    visibility: "private",
+    extendedProperties: { private: { pulseType: "project" } },
+  };
+}
+
+/** Kopia z Google → lokalnie (wygrywa nowsza zmiana; niewysłana lokalna nie jest nadpisywana starszą). */
+async function applyRemoteProject(g: GEvent): Promise<boolean> {
+  const id = g.id.slice(PROJECT_PREFIX.length);
+  const cur = await db.projects.get(id);
+  if (g.status === "cancelled") {
+    if (!cur || cur.pending) return false;
+    await db.projects.delete(id);
+    return true;
+  }
+  const m = /```json\s*([\s\S]*)```/.exec(htmlToText(g.description || ""));
+  if (!m) return false;
+  let d: ReturnType<typeof cleanProject>;
+  try {
+    d = cleanProject(JSON.parse(m[1]) as Partial<Project>);
+  } catch {
+    return false;
+  }
+  if (!d || d.id !== id) return false;
+  if (cur && (cur.updatedAt === d.updatedAt || (cur.pending && cur.updatedAt > d.updatedAt))) return false;
+  await db.projects.put({ ...d, deleted: false, pending: 0 });
+  return true;
+}
+
+async function pullProjects(): Promise<number> {
+  const list = await listAll({ privateExtendedProperty: "pulseType=project", showDeleted: "true" });
+  let changed = 0;
+  for (const g of list) if (g.id.startsWith(PROJECT_PREFIX) && (await applyRemoteProject(g))) changed += 1;
+  return changed;
+}
+
+async function pushProjects(): Promise<{ pushed: number; failed: number; error?: Error }> {
+  const queue = await db.projects.where("pending").equals(1).toArray();
+  let pushed = 0;
+  let failed = 0;
+  let error: Error | undefined;
+  for (const p of queue) {
+    try {
+      const path = `${calPath()}/${PROJECT_PREFIX}${p.id}`;
+      if (p.deleted) {
+        const res = await api(path, { method: "DELETE" });
+        if (!res.ok && res.status !== 404 && res.status !== 410) throw new Error(`Usuwanie projektu nieudane (${res.status})`);
+        await db.projects.delete(p.id);
+        continue;
+      }
+      let res = await api(path, { method: "PATCH", body: JSON.stringify(projectBody(p)) });
+      if (res.status === 404) {
+        res = await api(calPath(), { method: "POST", body: JSON.stringify({ ...projectBody(p), id: `${PROJECT_PREFIX}${p.id}` }) });
+      }
+      if (!res.ok) throw new Error(`Kopia projektu „${p.title}” w Google nieudana (${res.status})`);
+      await db.transaction("rw", db.projects, async () => {
+        const cur = await db.projects.get(p.id);
+        if (cur && cur.updatedAt === p.updatedAt) await db.projects.update(p.id, { pending: 0 });
       });
       pushed += 1;
     } catch (err) {

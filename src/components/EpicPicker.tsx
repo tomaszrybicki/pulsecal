@@ -8,6 +8,7 @@ type Props = {
   /** Utwórz epik o tej nazwie i zwróć jego ID (wpis od razu do niego trafia). */
   onCreateEpic: (name: string) => string;
   className?: string;
+  placeholder?: string;
 };
 
 const norm = (s: string) => s.trim().toLocaleLowerCase("pl");
@@ -16,7 +17,7 @@ const norm = (s: string) => s.trim().toLocaleLowerCase("pl");
  * Epik wpisu bez tarcia: pole tekstowe z listą epików pod spodem. Wpisz nazwę i Enter —
  * istniejący epik zostaje wybrany, a nowa nazwa od razu tworzy epik i przypisuje do niego wpis.
  */
-export function EpicPicker({ value, epics, onChange, onCreateEpic, className = "" }: Props) {
+export function EpicPicker({ value, epics, onChange, onCreateEpic, className = "", placeholder = "Epik — wpisz nazwę, Enter" }: Props) {
   const info = useContext(EpicContext);
   const current = value ? info.get(value) : undefined;
   const currentLabel = value ? (epics.find((o) => o.id === value)?.label ?? current?.path ?? "") : "";
@@ -62,7 +63,7 @@ export function EpicPicker({ value, epics, onChange, onCreateEpic, className = "
         <input
           ref={input}
           value={open ? text : currentLabel}
-          placeholder="Epik — wpisz nazwę, Enter"
+          placeholder={placeholder}
           aria-label="Epik"
           role="combobox"
           aria-expanded={open}
