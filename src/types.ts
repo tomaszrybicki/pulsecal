@@ -116,7 +116,8 @@ export interface WorkItem {
 }
 
 /** Grafika projektu (projects.ts, ProjectArt.tsx). */
-export type ProjectArtKind = "car" | "person";
+/** "custom" = własna grafika (Project.image → tabela `assets`). */
+export type ProjectArtKind = "car" | "person" | "custom";
 
 /** Epik położony na płótnie projektu. Współrzędne w jednostkach płótna (CANVAS_W × CANVAS_H, projects.ts). */
 export interface ProjectPin {
@@ -134,6 +135,10 @@ export interface Project {
   title: string;
   description: string;
   art: ProjectArtKind;
+  /** Własna grafika: ID w tabeli `assets` + wymiary (po zmniejszeniu przy wgraniu). */
+  image?: { id: string; w: number; h: number } | null;
+  /** Rozmiar grafiki na płótnie (1 = domyślny). */
+  artScale?: number;
   pins: ProjectPin[];
   order: number;
   createdAt: number;
@@ -141,6 +146,21 @@ export interface Project {
   deleted: boolean;
   /** 1 = zmiana czeka na wysłanie kopii do Google. */
   pending: 0 | 1;
+}
+
+/** Wgrana grafika projektu (data URL, zmniejszona). Osobno od projektu: przeciąganie kart nie wysyła jej od nowa. */
+export interface ProjectAsset {
+  id: string;
+  /** data:image/…;base64,… */
+  data: string;
+  w: number;
+  h: number;
+  updatedAt: number;
+  deleted: boolean;
+  /** 1 = czeka na wysłanie kopii do Google. */
+  pending: 0 | 1;
+  /** -1 = Google jej nie przyjął (za duża) — zostaje tylko na tym urządzeniu, nie ponawiamy. */
+  remote?: 0 | 1 | -1;
 }
 
 export type SyncState = "off" | "idle" | "syncing" | "expired" | "offline" | "error";

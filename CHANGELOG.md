@@ -3,6 +3,22 @@
 Każda wersja to jeden commit `vX.Y.Z: …` (treść commita = wpis z tego pliku) i tag `vX.Y.Z`.
 Najnowsze na górze. Opis funkcji aplikacji jest w [FEATURES.md](FEATURES.md).
 
+## [0.54.0] – 2026-11-26: własna grafika projektu i zmiana rozmiaru
+
+- **Własna grafika projektu:** w przełączniku grafiki jest nowa opcja „🖼️ własna…”, która otwiera wybór pliku
+  (zdjęcie, rysunek, PNG z przezroczystym tłem; na iPhonie także z galerii). Tak samo przy tworzeniu nowego
+  projektu. „zmień plik…” wgrywa inną grafikę, a przełącznik pozwala wrócić do auta albo człowieka
+  i z powrotem do własnej.
+- **Postęp na własnej grafice:** grafika jest szara i przygaszona, a postęp projektu odsłania ją w kolorze od
+  dołu (sprężyście, tak jak auto i człowiek). Tak samo w podglądzie po zamknięciu zadania.
+- **Zmiana rozmiaru grafiki:** okrągły uchwyt w prawym dolnym rogu grafiki (widać go po najechaniu na płótno,
+  na telefonie zawsze). Przeciągnij, żeby powiększyć albo zmniejszyć grafikę wokół jej środka; strzałki
+  zostają w tych samych miejscach grafiki. Działa też dla auta i człowieka. Przycisk z procentem (np. „137% ↺”)
+  przywraca domyślny rozmiar; strzałkami na klawiaturze zmienisz rozmiar o 5%.
+- Grafika zmniejsza się przy wgraniu (najdłuższy bok do 640 px, WebP), żeby szybko się wczytywała i zmieściła
+  w kopii w Google: ma tam własny ukryty wpis, więc przeciąganie kart nie wysyła jej od nowa. Gdyby Google jej
+  nie przyjął, zostaje na tym urządzeniu i pojawi się jedno ostrzeżenie.
+
 ## [0.53.0] – 2026-11-26: projekty z grafiką i podgląd postępu
 
 - **Nowy widok „projekty”** (odnośnik w panelu bocznym): projekt to grafika z opisem, a wokół niej leżą epiki.

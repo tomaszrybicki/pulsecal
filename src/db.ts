@@ -1,11 +1,12 @@
 import Dexie, { type EntityTable } from "dexie";
 import { normalizeTags, splitTags, tagKey } from "./tags";
-import type { CalEvent, Project, WorkItem } from "./types";
+import type { CalEvent, Project, ProjectAsset, WorkItem } from "./types";
 
 class PulseDB extends Dexie {
   events!: EntityTable<CalEvent, "id">;
   items!: EntityTable<WorkItem, "id">;
   projects!: EntityTable<Project, "id">;
+  assets!: EntityTable<ProjectAsset, "id">;
 
   constructor() {
     super("pulsecal");
@@ -52,6 +53,10 @@ class PulseDB extends Dexie {
     // v5: projekty (grafika + epiki wokół niej, projects.ts)
     this.version(5).stores({
       projects: "id, updatedAt, pending",
+    });
+    // v6: wgrane grafiki projektów
+    this.version(6).stores({
+      assets: "id, pending",
     });
   }
 }

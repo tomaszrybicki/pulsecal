@@ -57,6 +57,7 @@ src/
   colors.ts               palette + mapping to Google colorId
   prefs.ts                productive hours, P slot length, always-full-editor pref, findFreeSlot()
   projects.ts             projects: canvas geometry, starters, progress, elbow arrows, changeProject(), backup cleaning
+  imageUpload.ts          own project image: file → downscaled data URL in `assets`, dropProjectImage()
   moves.ts                move counter + "simple step" prompt every N moves since the last (nudgedAt, nudgeOff)
   estimate.ts             time estimate (5 / 30 / 60 / 120 = "2h+") labels; EstimatePicker.tsx = quick buttons
   devSeed.ts              dev-only test data (ids start with "5eed", pending 0), auto-added via devAutoSeed()
@@ -85,7 +86,7 @@ src/
     Cheers.tsx            cheer bubble + achievement pill at the top (pointer-events none), listens to onCheer()
     SettingsSheet.tsx     Client ID, calendar, polling interval
     ProjectsView.tsx      "projekty" view: project chips, title/description, canvas with draggable epic cards + arrows
-    ProjectArt.tsx        project art (car, person) SVG, filled from the bottom by progress (framer clipPath)
+    ProjectArt.tsx        project art: car / person SVG or own image (assets), filled from the bottom by progress
     ProjectPeek.tsx       side peek of a project for ~5 s after closing a task in one of its epics
     TasksView.tsx         "zadania" view, Jira-like: epic panel, list (grouped table) / board (drag between statuses)
     WorkItemSheet.tsx     Jira-like issue details: title, description, epic contents | status + fields panel
@@ -116,6 +117,7 @@ scripts/serve.mjs         owner's always-on server: builds the latest commit int
 - Projects (`Project`, Dexie v5 table `projects`): every change via `saveProject()`/`changeProject()` (`pending = 1`).
   Backup like items: hidden event 2000-01-02, id `pulseproj<id>`, `private.pulseType=project`. Starter projects
   (`starterauto`, `starterja`) are created with `pending: 0` so they never overwrite a real copy in Google.
+  Own images live in Dexie v6 table `assets` (data URL), backed up separately as `pulseimg<id>` (`pulseType=asset`).
 - Times are stored as epoch ms (local time). All-day `end` = **last millisecond of the last day**;
   Google's end is exclusive (the next day), so convert at the boundary (`sync/google.ts`).
 - Tags: local field `CalEvent.tags` (casing as typed; compare via `tagKey()` = lowercase; Dexie v3 `*tags` index).

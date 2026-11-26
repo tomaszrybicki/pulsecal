@@ -73,7 +73,7 @@ export function ProjectPeek({ peek, project, progress, onOpen, onClose }: Props)
           {artInfo(project.art).icon} {project.title}
         </strong>
         <span className="pj-peek-art">
-          <ProjectArt kind={project.art} ratio={shown.ratio} />
+          <ProjectArt kind={project.art} image={project.image} ratio={shown.ratio} />
         </span>
         <span className="pj-bar-track">
           <i style={{ width: `${Math.round(shown.ratio * 100)}%`, background: progressColor(shown.ratio) }} />

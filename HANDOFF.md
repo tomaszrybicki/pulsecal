@@ -116,6 +116,24 @@ Previous sessions: first Cursor IDE (built the MVP), then Claude in a chat sessi
 code audit and rewrote the data and sync layer, then stopped at the owner's request.
 **Start by reading `CLAUDE.md`.**
 
+## v0.54.0: own project image + art resize
+- `ProjectArtKind` gains "custom"; `Project.image` = {id, w, h} → Dexie v6 table `assets` (`ProjectAsset`:
+  data URL, w, h, pending, remote 0/1/-1). `imageUpload.ts`: `uploadProjectImage(file)` draws to a canvas,
+  longest side 640 → 512 → … → 256 until the data URL is ≤ 150k chars; WebP, or PNG/JPEG where the browser can't
+  encode WebP (Safari). `dropProjectImage(id)` deletes a replaced image unless another project uses it
+  (deleting a project keeps its image, so „Cofnij” works; orphans are possible but small).
+- Backup: one hidden event per image, id `pulseimg<id>`, `private.pulseType=asset`, JSON with the data URL
+  (`assetBody`/`applyRemoteAsset`/`pullAssets`/`pushAssets`). A 4xx other than 401/403/429 marks it `remote: -1`
+  (kept local, not retried, one error notice). The description size limit of Google events is not verified —
+  if real users hit `remote: -1`, lower `MAX_DATA` in imageUpload.ts.
+- `Project.artScale` (default 1, clamped by `clampArtScale`: 0.35 … fits the canvas, max 2.4). `artBox(p, scale)`
+  grows around the fixed `ART_CENTER`; custom images fit 440×380 at scale 1. Resize = `.pj-art-handle` at the
+  box's bottom-right corner (drag kind "art" in ProjectsView; `artLive` holds the live / just-dropped scale).
+  `commitScale` also moves every arrow end with `scaleAboutArt`, so arrows stay on the same spot of the art.
+  Car/person anchors scale with the box (`defaultArrowTarget(p, from)`); custom art has no anchors → nearest
+  point of the box, 20% inwards.
+- `ProjectArt` custom = two `<img>`: grey base + colour copy with an animated `clip-path: inset(…)` from the bottom.
+
 ## v0.53.0: projects (art + epics around it) and the progress peek
 - `Project` (types.ts): title, description, `art` ("car" | "person"), `pins` [{epicId, x, y, arrow?}], order.
   Dexie v5 table `projects`; every change via `saveProject()` / `changeProject(id, fn)` (serial chain, reads

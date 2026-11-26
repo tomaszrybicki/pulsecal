@@ -1,19 +1,21 @@
 /**
- * Widok „projekty”: grafika projektu (auto, człowiek) i epiki położone wokół niej — swobodnie przeciągane,
+ * Widok „projekty”: grafika projektu (auto, człowiek albo własna, z rozmiarem) i epiki położone wokół niej — swobodnie przeciągane,
  * z opcjonalną łamaną strzałką do punktu na grafice. Postęp projektu (suma zrobionych zadań w epikach)
  * wypełnia grafikę kolorem.
  */
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type Ref } from "react";
 import type { NoticeAction } from "../hooks/useGoogleSync";
 import {
   ARTS,
   CANVAS_H,
   CANVAS_W,
   CARD_W,
+  ART_CENTER,
   artBox,
   artInfo,
   changeProject,
   clamp,
+  clampArtScale,
   clampPin,
   defaultArrowTarget,
   elbowPath,
@@ -23,8 +25,10 @@ import {
   newProject,
   projectProgress,
   saveProject,
+  scaleAboutArt,
   setActiveProject,
 } from "../projects";
+import { dropProjectImage, uploadProjectImage } from "../imageUpload";
 import type { Project, ProjectArtKind } from "../types";
 import { epicColor, epicOptions, progressColor, progressOf, type Tree } from "../work";
 import { EpicPicker } from "./EpicPicker";
@@ -42,7 +46,8 @@ type Props = {
 };
 
 type Pt = { x: number; y: number };
-type DragKind = "card" | "arrow";
+type DragKind = "card" | "arrow" | "art";
+type Notify = Props["notify"];
 
 export function ProjectsView({ projects, tree, now, onOpenEpic, onCreateEpic, onChanged, notify }: Props) {
   useEffect(() => {
@@ -58,9 +63,17 @@ export function ProjectsView({ projects, tree, now, onOpenEpic, onCreateEpic, on
   };
 
   const [creating, setCreating] = useState(false);
-  const create = (title: string, art: ProjectArtKind) => {
-    const p = newProject(title || (art === "car" ? "Auto" : "Ja"), art);
-    void saveProject(p);
+  const create = async (title: string, art: ProjectArtKind, file: File | null) => {
+    let p = newProject(title || (art === "car" ? "Auto" : art === "person" ? "Ja" : "Projekt"), art);
+    if (art === "custom") {
+      if (!file) return notify("Wybierz plik z grafiką", "warn");
+      try {
+        p = { ...p, image: await uploadProjectImage(file) };
+      } catch (err) {
+        return notify(err instanceof Error ? err.message : "Nie udało się wczytać grafiki", "error");
+      }
+    }
+    await saveProject(p);
     pick(p.id);
     setCreating(false);
     onChanged();
@@ -99,7 +112,7 @@ export function ProjectsView({ projects, tree, now, onOpenEpic, onCreateEpic, on
           </div>
         </header>
 
-        {creating && <NewProject onCreate={create} onCancel={() => setCreating(false)} />}
+        {creating && <NewProject onCreate={(t, a, f) => void create(t, a, f)} onCancel={() => setCreating(false)} />}
 
         {active ? (
           <ProjectBoard
@@ -110,6 +123,7 @@ export function ProjectsView({ projects, tree, now, onOpenEpic, onCreateEpic, on
             onOpenEpic={onOpenEpic}
             onCreateEpic={onCreateEpic}
             onChanged={onChanged}
+            notify={notify}
             onDelete={() => {
               const snap = active;
               void changeProject(snap.id, (p) => ({ ...p, deleted: true }));
@@ -139,19 +153,34 @@ export function ProjectsView({ projects, tree, now, onOpenEpic, onCreateEpic, on
   );
 }
 
-function NewProject({ onCreate, onCancel }: { onCreate: (title: string, art: ProjectArtKind) => void; onCancel: () => void }) {
+function NewProject({
+  onCreate,
+  onCancel,
+}: {
+  onCreate: (title: string, art: ProjectArtKind, file: File | null) => void;
+  onCancel: () => void;
+}) {
   const [title, setTitle] = useState("");
   const [art, setArt] = useState<ProjectArtKind>("car");
+  const [file, setFile] = useState<File | null>(null);
+  const input = useRef<HTMLInputElement>(null);
   return (
     <form
       className="pj-new"
       onSubmit={(e) => {
         e.preventDefault();
-        onCreate(title.trim(), art);
+        onCreate(title.trim(), art, file);
       }}
     >
       <input autoFocus value={title} placeholder="Nazwa projektu, np. Auto" aria-label="Nazwa projektu" onChange={(e) => setTitle(e.target.value)} />
-      <ArtSwitch value={art} onChange={setArt} />
+      <ArtSwitch value={art} onChange={setArt} onCustom={() => input.current?.click()} customLabel={file ? file.name : undefined} />
+      <ImageInput
+        ref={input}
+        onFile={(f) => {
+          setFile(f);
+          setArt("custom");
+        }}
+      />
       <button type="submit" className="pj-btn primary">
         utwórz
       </button>
@@ -162,7 +191,40 @@ function NewProject({ onCreate, onCancel }: { onCreate: (title: string, art: Pro
   );
 }
 
-function ArtSwitch({ value, onChange }: { value: ProjectArtKind; onChange: (a: ProjectArtKind) => void }) {
+/** Ukryte pole wyboru pliku (otwierane przyciskiem „własna…”). */
+function ImageInput({ ref, onFile }: { ref: Ref<HTMLInputElement>; onFile: (f: File) => void }) {
+  return (
+    <input
+      ref={ref}
+      type="file"
+      accept="image/*"
+      hidden
+      onChange={(e) => {
+        const f = e.target.files?.[0];
+        e.target.value = "";
+        if (f) onFile(f);
+      }}
+    />
+  );
+}
+
+/**
+ * Wybór grafiki: wbudowane (auto, człowiek) + „własna”. `onCustom` = wybór pliku; gdy projekt ma już własną
+ * grafikę (`hasCustom`), „własna” wraca do niej, a plik zmienia osobny przycisk.
+ */
+function ArtSwitch({
+  value,
+  onChange,
+  onCustom,
+  hasCustom = false,
+  customLabel,
+}: {
+  value: ProjectArtKind;
+  onChange: (a: ProjectArtKind) => void;
+  onCustom: () => void;
+  hasCustom?: boolean;
+  customLabel?: string;
+}) {
   return (
     <div className="seg pj-art-seg" role="radiogroup" aria-label="Grafika">
       {ARTS.map((a) => (
@@ -177,6 +239,16 @@ function ArtSwitch({ value, onChange }: { value: ProjectArtKind; onChange: (a: P
           {a.icon} {a.label}
         </button>
       ))}
+      <button
+        type="button"
+        role="radio"
+        aria-checked={value === "custom"}
+        className={`pj-custom-btn${value === "custom" ? " on" : ""}`}
+        title={hasCustom ? "Twoja grafika" : "Wgraj własną grafikę (zdjęcie, rysunek, PNG z przezroczystym tłem)"}
+        onClick={() => (hasCustom ? onChange("custom") : onCustom())}
+      >
+        🖼️ {customLabel ?? (hasCustom ? "własna" : "własna…")}
+      </button>
     </div>
   );
 }
@@ -188,10 +260,11 @@ type BoardProps = {
   onOpenEpic: (id: string) => void;
   onCreateEpic: (name: string) => string;
   onChanged: () => void;
+  notify: Notify;
   onDelete: () => void;
 };
 
-function ProjectBoard({ project, tree, now, onOpenEpic, onCreateEpic, onChanged, onDelete }: BoardProps) {
+function ProjectBoard({ project, tree, now, onOpenEpic, onCreateEpic, onChanged, notify, onDelete }: BoardProps) {
   const progress = projectProgress(project, tree, now);
   const change = (fn: (p: Project) => Project) => {
     void changeProject(project.id, fn);
@@ -252,8 +325,41 @@ function ProjectBoard({ project, tree, now, onOpenEpic, onCreateEpic, onChanged,
     });
   }, [project.pins]);
 
-  const posOf = (kind: DragKind, epicId: string, stored: Pt): Pt =>
-    drag && drag.kind === kind && drag.epicId === epicId ? drag : (held[`${kind}|${epicId}`] ?? stored);
+  // rozmiar grafiki: podczas przeciągania uchwytu (i chwilę po, dopóki baza nie potwierdzi) — artLive
+  const savedScale = project.artScale ?? 1;
+  const [artLive, setArtLive] = useState<number | null>(null);
+  const artScale = artLive ?? savedScale;
+  const artFactor = artScale / savedScale;
+  useEffect(() => {
+    if (artLive !== null && dragRef.current?.kind !== "art" && Math.abs(savedScale - artLive) < 0.005) setArtLive(null);
+  }, [savedScale, artLive]);
+
+  const posOf = (kind: DragKind, epicId: string, stored: Pt): Pt => {
+    if (drag && drag.kind === kind && drag.epicId === epicId) return drag;
+    const p = held[`${kind}|${epicId}`] ?? stored;
+    // końce strzałek rosną / maleją razem z grafiką
+    return kind === "arrow" && artFactor !== 1 ? scaleAboutArt(p, artFactor) : p;
+  };
+
+  /** Zapis nowego rozmiaru grafiki; końce strzałek zostają w tym samym miejscu grafiki. */
+  const commitScale = (s: number) => {
+    if (Math.abs(s - savedScale) < 0.005) {
+      setArtLive(null);
+      return;
+    }
+    setArtLive(s);
+    change((cur) => {
+      const f = s / (cur.artScale ?? 1);
+      return { ...cur, artScale: s, pins: cur.pins.map((x) => (x.arrow ? { ...x, arrow: scaleAboutArt(x.arrow, f) } : x)) };
+    });
+  };
+
+  const artAt = (e: ReactPointerEvent, d: NonNullable<typeof dragRef.current>): number => {
+    const x = d.ox + (e.clientX - d.sx) / scale;
+    const y = d.oy + (e.clientY - d.sy) / scale;
+    const d0 = Math.hypot(d.ox - ART_CENTER.x, d.oy - ART_CENTER.y) || 1;
+    return clampArtScale(project, savedScale * (Math.hypot(x - ART_CENTER.x, y - ART_CENTER.y) / d0));
+  };
 
   const dragTo = (e: ReactPointerEvent, d: NonNullable<typeof dragRef.current>): Pt => {
     const x = d.ox + (e.clientX - d.sx) / scale;
@@ -264,6 +370,7 @@ function ProjectBoard({ project, tree, now, onOpenEpic, onCreateEpic, onChanged,
   const startDrag = (e: ReactPointerEvent<Element>, kind: DragKind, epicId: string, at: Pt) => {
     if (e.button !== 0) return;
     if (kind === "card" && (e.target as Element).closest("button")) return;
+    if (kind === "art") e.stopPropagation();
     e.preventDefault();
     e.currentTarget.setPointerCapture(e.pointerId);
     dragRef.current = { kind, epicId, sx: e.clientX, sy: e.clientY, ox: at.x, oy: at.y, moved: false };
@@ -273,7 +380,8 @@ function ProjectBoard({ project, tree, now, onOpenEpic, onCreateEpic, onChanged,
     if (!d) return;
     if (!d.moved && Math.hypot(e.clientX - d.sx, e.clientY - d.sy) < 4) return;
     d.moved = true;
-    setDrag({ kind: d.kind, epicId: d.epicId, ...dragTo(e, d) });
+    if (d.kind === "art") setArtLive(artAt(e, d));
+    else setDrag({ kind: d.kind, epicId: d.epicId, ...dragTo(e, d) });
   };
   const endDrag = (e: ReactPointerEvent) => {
     const d = dragRef.current;
@@ -282,6 +390,10 @@ function ProjectBoard({ project, tree, now, onOpenEpic, onCreateEpic, onChanged,
     if (!d) return;
     if (!d.moved) {
       if (d.kind === "card") onOpenEpic(d.epicId);
+      return;
+    }
+    if (d.kind === "art") {
+      commitScale(artAt(e, d));
       return;
     }
     const p = dragTo(e, d);
@@ -293,8 +405,28 @@ function ProjectBoard({ project, tree, now, onOpenEpic, onCreateEpic, onChanged,
     }));
   };
   const cancelDrag = () => {
+    if (dragRef.current?.kind === "art") setArtLive(null);
     dragRef.current = null;
     setDrag(null);
+  };
+
+  // własna grafika: wybór pliku → zmniejszony obraz; poprzedni plik znika, jeśli nikt go nie używa
+  const fileInput = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const onFile = async (file: File) => {
+    setUploading(true);
+    try {
+      const image = await uploadProjectImage(file);
+      const old = project.image?.id;
+      await changeProject(project.id, (p) => ({ ...p, art: "custom", image, artScale: 1 }));
+      onChanged();
+      if (old && old !== image.id) await dropProjectImage(old);
+      notify("Grafika wgrana. Rozmiar zmienisz uchwytem w rogu grafiki.");
+    } catch (err) {
+      notify(err instanceof Error ? err.message : "Nie udało się wczytać grafiki", "error");
+    } finally {
+      setUploading(false);
+    }
   };
 
   const pinned = new Set(project.pins.map((p) => p.epicId));
@@ -305,11 +437,11 @@ function ProjectBoard({ project, tree, now, onOpenEpic, onCreateEpic, onChanged,
   const toggleArrow = (epicId: string, card: Pt) =>
     change((cur) => ({
       ...cur,
-      pins: cur.pins.map((x) => (x.epicId !== epicId ? x : { ...x, arrow: x.arrow ? null : defaultArrowTarget(cur.art, card) })),
+      pins: cur.pins.map((x) => (x.epicId !== epicId ? x : { ...x, arrow: x.arrow ? null : defaultArrowTarget(cur, card) })),
     }));
   const removePin = (epicId: string) => change((cur) => ({ ...cur, pins: cur.pins.filter((x) => x.epicId !== epicId) }));
 
-  const box = artBox(project.art);
+  const box = artBox(project, artScale);
   const done = progress.total > 0 && progress.ratio >= 1;
 
   return (
@@ -326,7 +458,24 @@ function ProjectBoard({ project, tree, now, onOpenEpic, onCreateEpic, onChanged,
           }}
         />
         <div className="pj-tools">
-          <ArtSwitch value={project.art} onChange={(art) => change((p) => ({ ...p, art }))} />
+          <ArtSwitch
+            value={project.art}
+            hasCustom={Boolean(project.image)}
+            customLabel={uploading ? "wczytuję…" : undefined}
+            onChange={(art) => change((p) => (p.art === art ? p : { ...p, art }))}
+            onCustom={() => fileInput.current?.click()}
+          />
+          {project.image && (
+            <button type="button" className="pj-btn" onClick={() => fileInput.current?.click()} title="Wgraj inną grafikę">
+              zmień plik…
+            </button>
+          )}
+          <ImageInput ref={fileInput} onFile={(f) => void onFile(f)} />
+          {Math.abs(artScale - 1) > 0.005 && (
+            <button type="button" className="pj-btn" onClick={() => commitScale(1)} title="Przywróć domyślny rozmiar grafiki">
+              {Math.round(artScale * 100)}% ↺
+            </button>
+          )}
           <button type="button" className="pj-btn danger" onClick={onDelete} title="Usuń projekt (epiki i zadania zostają)">
             usuń
           </button>
@@ -369,7 +518,32 @@ function ProjectBoard({ project, tree, now, onOpenEpic, onCreateEpic, onChanged,
         <div className="pj-canvas-size" style={{ width: CANVAS_W * scale, height: CANVAS_H * scale }}>
           <div className="pj-canvas" style={{ width: CANVAS_W, height: CANVAS_H, transform: `scale(${scale})` }}>
             <div className="pj-art" style={{ left: box.x, top: box.y, width: box.w, height: box.h }}>
-              <ProjectArt kind={project.art} ratio={progress.ratio} />
+              <ProjectArt kind={project.art} image={project.image} ratio={progress.ratio} />
+            </div>
+            <div
+              className={`pj-art-handle${artLive !== null ? " live" : ""}`}
+              style={{ left: box.x + box.w, top: box.y + box.h }}
+              role="slider"
+              tabIndex={0}
+              aria-label="Rozmiar grafiki"
+              aria-valuemin={35}
+              aria-valuemax={240}
+              aria-valuenow={Math.round(artScale * 100)}
+              title="Przeciągnij, żeby zmienić rozmiar grafiki (strzałki zostają na swoich miejscach)"
+              onPointerDown={(e) => startDrag(e, "art", "", { x: box.x + box.w, y: box.y + box.h })}
+              onPointerMove={moveDrag}
+              onPointerUp={endDrag}
+              onPointerCancel={cancelDrag}
+              onKeyDown={(e) => {
+                const step = e.key === "ArrowUp" || e.key === "ArrowRight" ? 0.05 : e.key === "ArrowDown" || e.key === "ArrowLeft" ? -0.05 : 0;
+                if (!step) return;
+                e.preventDefault();
+                commitScale(clampArtScale(project, artScale + step));
+              }}
+            >
+              <svg viewBox="0 0 12 12" aria-hidden>
+                <path d="M11 4V11H4M11 11L6 6" />
+              </svg>
             </div>
 
             <svg className="pj-arrows" viewBox={`0 0 ${CANVAS_W} ${CANVAS_H}`} width={CANVAS_W} height={CANVAS_H} aria-hidden>

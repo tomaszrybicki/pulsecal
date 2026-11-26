@@ -7493,3 +7493,96 @@ html[data-anim="off"] *::after {
     transition: none;
   }
 }
+
+/* własna grafika projektu: szara, postęp odsłania ją w kolorze od dołu */
+.pa-custom {
+  position: relative;
+}
+
+.pa-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
+}
+
+.pa-img.base {
+  filter: grayscale(1) opacity(0.42);
+}
+
+.pa-missing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border: 2px dashed var(--ink-faint);
+  border-radius: 18px;
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+}
+
+.pa-missing span:first-child {
+  font-size: 1.6rem;
+}
+
+/* uchwyt zmiany rozmiaru grafiki (prawy dolny róg) */
+.pj-art-handle {
+  position: absolute;
+  z-index: 1;
+  width: 26px;
+  height: 26px;
+  margin: -13px 0 0 -13px;
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18), inset 0 0 0 1.5px var(--ink-faint);
+  cursor: nwse-resize;
+  touch-action: none;
+  opacity: 0;
+  transition: opacity 0.15s, scale 0.15s;
+}
+
+.pj-art-handle svg {
+  display: block;
+  width: 12px;
+  height: 12px;
+  margin: 7px;
+  fill: none;
+  stroke: var(--ink-soft);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.pj-canvas:hover .pj-art-handle,
+.pj-art-handle:focus-visible,
+.pj-art-handle.live {
+  opacity: 1;
+}
+
+.pj-art-handle.live {
+  scale: 1.15;
+}
+
+.pj-art-handle:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+@media (hover: none) {
+  .pj-art-handle {
+    opacity: 0.85;
+  }
+}
+
+.pj-custom-btn {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

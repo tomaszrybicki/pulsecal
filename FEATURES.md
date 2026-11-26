@@ -337,6 +337,13 @@ Prosta „jira” do spraw osobistych — trzeci widok „zadania” (obok „ma
 - **Projekt = grafika + opis + epiki wokół niej.** Widok „projekty” (panel boczny). Na start: „Auto”
   (symboliczny samochód) i „Ja” (symboliczny człowiek). „+ projekt” dodaje kolejny (nazwa i grafika: auto
   albo człowiek); grafikę i nazwę zmienisz też później, „usuń” kasuje projekt (epiki zostają, z „Cofnij”).
+- **Własna grafika:** „🖼️ własna…” w przełączniku grafiki (i przy tworzeniu projektu) wgrywa plik: zdjęcie,
+  rysunek, PNG z przezroczystym tłem. Grafika zmniejsza się przy wgraniu (do 640 px). „zmień plik…” wgrywa inną;
+  przełącznik pozwala wrócić do auta / człowieka i z powrotem do własnej. Postęp odsłania ją w kolorze od dołu
+  (reszta jest szara i przygaszona).
+- **Rozmiar grafiki:** okrągły uchwyt w prawym dolnym rogu grafiki (po najechaniu na płótno; na telefonie zawsze
+  widoczny) — przeciągnij, żeby powiększyć lub zmniejszyć grafikę wokół jej środka. Strzałki zostają w tych samych
+  miejscach grafiki. „NN% ↺” przywraca domyślny rozmiar; na uchwycie działają też strzałki klawiatury (±5%).
 - **Epiki na płótnie:** „+ połóż epik” kładzie dowolny epik obok grafiki (nowa nazwa od razu tworzy epik).
   Karty przeciągasz myszą albo palcem, gdzie chcesz; pozycje są te same na każdym urządzeniu. Karta pokazuje
   postęp epiku, kliknięcie otwiera epik, „×” zdejmuje go z projektu.
@@ -351,7 +358,9 @@ Prosta „jira” do spraw osobistych — trzeci widok „zadania” (obok „ma
   do nowego postępu, obok „+1”. Staje po przeciwnej stronie niż przegląd dnia, najechanie myszą go zatrzymuje,
   kliknięcie otwiera projekt. W samym widoku „projekty” się nie pokazuje.
 - **Kopia w Google:** każdy projekt to ukryty wpis 2 stycznia 2000 („Pulsecal — projekt: …”). Projekty startowe
-  wysyłają się dopiero po pierwszej zmianie, więc drugie urządzenie nie nadpisze ich pustą wersją.
+  wysyłają się dopiero po pierwszej zmianie, więc drugie urządzenie nie nadpisze ich pustą wersją. Wgrana grafika
+  ma osobny ukryty wpis („Pulsecal — grafika projektu”); gdyby Google jej nie przyjął, zostaje tylko na tym
+  urządzeniu (jedno ostrzeżenie), a na innych w jej miejscu widać „grafika się wczytuje…”.
 
 ### Synchronizacja z Google Calendar
 

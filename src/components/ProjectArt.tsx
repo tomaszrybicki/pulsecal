@@ -1,11 +1,14 @@
 /**
  * Grafiki projektów (symboliczne, „bąblowe”): auto i człowiek. Postęp projektu wypełnia grafikę kolorem
  * od dołu (koralowy → żółty → zielony, jak paski postępu epików), sprężyście.
+ * Własna grafika (wgrany obraz): szara i przygaszona, a postęp odsłania ją w kolorze od dołu.
  */
 import { useId, type ReactNode } from "react";
+import { db } from "../db";
+import { useLiveQuery } from "../hooks/useLiveQuery";
 import { motion, useReducedMotion } from "framer-motion";
 import { tr } from "../motionPrefs";
-import type { ProjectArtKind } from "../types";
+import type { Project, ProjectArtKind, ProjectAsset } from "../types";
 import { progressColor } from "../work";
 
 /** fill: [góra, dół] sylwetki — w tym pasie postęp wypełnia grafikę (50% = połowa auta, nie widoku). */
@@ -16,7 +19,7 @@ const CAR_BODY =
   "C410 116 420 130 420 150L420 178C420 190 412 196 400 196L380 196A45 45 0 0 0 290 196L150 196A45 45 0 0 0 60 196" +
   "L56 196C46 196 40 190 40 180Z";
 
-const ARTS: Record<ProjectArtKind, Art> = {
+const ARTS: Record<"car" | "person", Art> = {
   car: {
     w: 440,
     h: 252,
@@ -59,8 +62,44 @@ const ARTS: Record<ProjectArtKind, Art> = {
   },
 };
 
+type ArtProps = { kind: ProjectArtKind; ratio: number; image?: Project["image"]; className?: string };
+
 /** Grafika projektu; `ratio` (0–1) = postęp, wypełnia kolorem od dołu. */
-export function ProjectArt({ kind, ratio, className }: { kind: ProjectArtKind; ratio: number; className?: string }) {
+export function ProjectArt({ kind, ratio, image, className }: ArtProps) {
+  if (kind === "custom") return <CustomArt id={image?.id} ratio={ratio} className={className} />;
+  return <SvgArt kind={kind} ratio={ratio} className={className} />;
+}
+
+function CustomArt({ id, ratio, className }: { id?: string; ratio: number; className?: string }) {
+  const asset = useLiveQuery(() => (id ? db.assets.get(id) : undefined), [id], undefined as ProjectAsset | undefined);
+  const reduce = useReducedMotion();
+  const r = Math.max(0, Math.min(1, ratio));
+  const cls = `project-art pa-custom${r >= 1 ? " full" : ""}${className ? ` ${className}` : ""}`;
+  if (!asset || asset.deleted) {
+    return (
+      <div className={`${cls} pa-missing`} role="img" aria-label="własna grafika (jeszcze się nie wczytała)">
+        <span aria-hidden>🖼️</span>
+        <span>grafika się wczytuje…</span>
+      </div>
+    );
+  }
+  return (
+    <div className={cls} role="img" aria-label={`własna grafika, postęp ${Math.round(r * 100)}%`}>
+      <img className="pa-img base" src={asset.data} alt="" draggable={false} />
+      <motion.img
+        className="pa-img fill"
+        src={asset.data}
+        alt=""
+        draggable={false}
+        initial={false}
+        animate={{ clipPath: `inset(${((1 - r) * 100).toFixed(2)}% 0% 0% 0%)` }}
+        transition={reduce ? { duration: 0 } : tr({ type: "spring", stiffness: 120, damping: 14 })}
+      />
+    </div>
+  );
+}
+
+function SvgArt({ kind, ratio, className }: { kind: "car" | "person"; ratio: number; className?: string }) {
   const art = ARTS[kind];
   const clip = `pa-clip-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
   const reduce = useReducedMotion();

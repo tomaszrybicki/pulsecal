@@ -13,7 +13,7 @@
  */
 import { DEFAULT_GOOGLE_COLOR, GOOGLE_EVENT_COLORS, googleIdForColor, paletteById, paletteByValue } from "../colors";
 import { db } from "../db";
-import type { CalEvent, Project, WorkItem } from "../types";
+import type { CalEvent, Project, ProjectAsset, WorkItem } from "../types";
 import { cleanProject } from "../projects";
 import { applyTagRules } from "../tagRules";
 import { isSettings, type AppSettings, type SettingsBackup } from "../settings";
@@ -576,6 +576,7 @@ async function applyRemote(g: GEvent, ignoreEtag = false): Promise<boolean> {
   if (g.id === SETTINGS_EVENT_ID) return false; // ukryty wpis z ustawieniami — nie pokazujemy go
   if (g.id.startsWith(ITEM_PREFIX)) return applyRemoteItem(g); // kopia zadania/epiku
   if (g.id.startsWith(PROJECT_PREFIX)) return applyRemoteProject(g); // kopia projektu
+  if (g.id.startsWith(ASSET_PREFIX)) return applyRemoteAsset(g); // grafika projektu
   const existing = await db.events.where("googleEventId").equals(g.id).first();
 
   if (g.status === "cancelled") {
@@ -658,7 +659,7 @@ async function pullFull(from: Date, to: Date, ignoreEtag = false): Promise<numbe
     await db.events.bulkDelete(stale.map((e) => e.id));
     changed += stale.length;
   }
-  return changed + (await pullItems()) + (await pullProjects());
+  return changed + (await pullItems()) + (await pullProjects()) + (await pullAssets());
 }
 
 /**
@@ -709,10 +710,11 @@ export function syncNow(from: Date, to: Date, opts: { forceFull?: boolean } = {}
     const ev = await pushPending();
     const it = await pushItems();
     const pr = await pushProjects();
-    const pushed = ev.pushed + it.pushed + pr.pushed;
+    const as = await pushAssets();
+    const pushed = ev.pushed + it.pushed + pr.pushed + as.pushed;
     const removed = ev.removed;
-    const failed = ev.failed + it.failed + pr.failed;
-    const pushError = ev.error ?? it.error ?? pr.error;
+    const failed = ev.failed + it.failed + pr.failed + as.failed;
+    const pushError = ev.error ?? it.error ?? pr.error ?? as.error;
 
     const meta = readMeta();
     const covered = meta && meta.from <= from.getTime() && meta.to >= to.getTime();
@@ -985,6 +987,8 @@ function projectBody(p: Project): Record<string, unknown> {
     title: p.title,
     description: p.description,
     art: p.art,
+    image: p.image ?? null,
+    artScale: p.artScale ?? 1,
     pins: p.pins,
     order: p.order,
     createdAt: p.createdAt,
@@ -1054,6 +1058,97 @@ async function pushProjects(): Promise<{ pushed: number; failed: number; error?:
       await db.transaction("rw", db.projects, async () => {
         const cur = await db.projects.get(p.id);
         if (cur && cur.updatedAt === p.updatedAt) await db.projects.update(p.id, { pending: 0 });
+      });
+      pushed += 1;
+    } catch (err) {
+      if (err instanceof NeedsAuthError) throw err;
+      failed += 1;
+      error ??= err instanceof Error ? err : new Error(String(err));
+    }
+  }
+  return { pushed, failed, error };
+}
+
+/* ───────────────────────── kopia wgranych grafik ───────────────────────── */
+
+/** Grafika projektu: ukryty wpis 2.01.2000, ID „pulseimg<id>”, JSON z data URL w opisie. */
+const ASSET_PREFIX = "pulseimg";
+const ASSET_NOTE =
+  "Grafika projektu z aplikacji Pulsecal (kopia zapasowa). Nie usuwaj i nie zmieniaj — Pulsecal odczytuje ją " +
+  "na innych urządzeniach.";
+
+function assetBody(a: ProjectAsset): Record<string, unknown> {
+  const data = { id: a.id, w: a.w, h: a.h, updatedAt: a.updatedAt, data: a.data };
+  return {
+    summary: "Pulsecal — grafika projektu",
+    description: `${ASSET_NOTE}\n\n\`\`\`json\n${JSON.stringify(data)}\n\`\`\``,
+    start: { date: "2000-01-02", dateTime: null },
+    end: { date: "2000-01-03", dateTime: null },
+    status: "confirmed",
+    transparency: "transparent",
+    visibility: "private",
+    extendedProperties: { private: { pulseType: "asset" } },
+  };
+}
+
+async function applyRemoteAsset(g: GEvent): Promise<boolean> {
+  const id = g.id.slice(ASSET_PREFIX.length);
+  const cur = await db.assets.get(id);
+  if (g.status === "cancelled") {
+    if (!cur || cur.pending) return false;
+    await db.assets.delete(id);
+    return true;
+  }
+  const m = /```json\s*([\s\S]*)```/.exec(htmlToText(g.description || ""));
+  if (!m) return false;
+  try {
+    const d = JSON.parse(m[1]) as Partial<ProjectAsset>;
+    if (d.id !== id || typeof d.data !== "string" || !d.data.startsWith("data:image/")) return false;
+    const updatedAt = Number(d.updatedAt) || 0;
+    if (cur && (cur.updatedAt === updatedAt || (cur.pending && cur.updatedAt > updatedAt))) return false;
+    await db.assets.put({ id, data: d.data, w: Number(d.w) || 1, h: Number(d.h) || 1, updatedAt, deleted: false, pending: 0, remote: 1 });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function pullAssets(): Promise<number> {
+  const list = await listAll({ privateExtendedProperty: "pulseType=asset", showDeleted: "true" });
+  let changed = 0;
+  for (const g of list) if (g.id.startsWith(ASSET_PREFIX) && (await applyRemoteAsset(g))) changed += 1;
+  return changed;
+}
+
+async function pushAssets(): Promise<{ pushed: number; failed: number; error?: Error }> {
+  const queue = (await db.assets.where("pending").equals(1).toArray()).filter((a) => a.remote !== -1 || a.deleted);
+  let pushed = 0;
+  let failed = 0;
+  let error: Error | undefined;
+  for (const a of queue) {
+    try {
+      const path = `${calPath()}/${ASSET_PREFIX}${a.id}`;
+      if (a.deleted) {
+        if (a.remote !== -1) {
+          const res = await api(path, { method: "DELETE" });
+          if (!res.ok && res.status !== 404 && res.status !== 410) throw new Error(`Usuwanie grafiki nieudane (${res.status})`);
+        }
+        await db.assets.delete(a.id);
+        continue;
+      }
+      let res = await api(path, { method: "PATCH", body: JSON.stringify(assetBody(a)) });
+      if (res.status === 404) {
+        res = await api(calPath(), { method: "POST", body: JSON.stringify({ ...assetBody(a), id: `${ASSET_PREFIX}${a.id}` }) });
+      }
+      if (res.status >= 400 && res.status < 500 && res.status !== 429) {
+        // Google nie przyjął (np. za długi opis) — grafika zostaje tylko tutaj, bez ponawiania w kółko
+        await db.assets.update(a.id, { pending: 0, remote: -1 });
+        throw new Error("Grafika projektu jest za duża na kopię w Google — zostaje tylko na tym urządzeniu");
+      }
+      if (!res.ok) throw new Error(`Kopia grafiki projektu w Google nieudana (${res.status})`);
+      await db.transaction("rw", db.assets, async () => {
+        const cur = await db.assets.get(a.id);
+        if (cur && cur.updatedAt === a.updatedAt) await db.assets.update(a.id, { pending: 0, remote: 1 });
       });
       pushed += 1;
     } catch (err) {
